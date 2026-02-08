@@ -18,6 +18,27 @@ const AdminDashboard = () => {
   const [selectedDriver, setSelectedDriver] = useState("");
   const [archiveStats, setArchiveStats] = useState(null);
   const [archiveLoading, setArchiveLoading] = useState(false);
+  const [showCreateCustomer, setShowCreateCustomer] = useState(false);
+  const [showCreateDriver, setShowCreateDriver] = useState(false);
+  const [newCustomer, setNewCustomer] = useState({
+    email: "",
+    password: "",
+    name: "",
+    phoneNumber: "",
+    city: "",
+    digitalAddress: "",
+  });
+  const [newDriver, setNewDriver] = useState({
+    email: "",
+    password: "",
+    name: "",
+    contactNumber: "",
+    baseLocation: "",
+    carType: "",
+    carNumber: "",
+    licenseNumber: "",
+    seats: 4,
+  });
 
   useEffect(() => {
     fetchStats();
@@ -286,6 +307,57 @@ const AdminDashboard = () => {
     }
   };
 
+  const createCustomer = async (e) => {
+    e.preventDefault();
+    setLoading(true);
+    try {
+      await axios.post("/api/admin/customers", newCustomer);
+      toast.success("Customer created successfully!");
+      setShowCreateCustomer(false);
+      setNewCustomer({
+        email: "",
+        password: "",
+        name: "",
+        phoneNumber: "",
+        city: "",
+        digitalAddress: "",
+      });
+      fetchCustomers();
+      fetchStats();
+    } catch (error) {
+      toast.error(error.response?.data?.message || "Failed to create customer");
+    } finally {
+      setLoading(false);
+    }
+  };
+
+  const createDriver = async (e) => {
+    e.preventDefault();
+    setLoading(true);
+    try {
+      await axios.post("/api/admin/drivers", newDriver);
+      toast.success("Driver created successfully!");
+      setShowCreateDriver(false);
+      setNewDriver({
+        email: "",
+        password: "",
+        name: "",
+        contactNumber: "",
+        baseLocation: "",
+        carType: "",
+        carNumber: "",
+        licenseNumber: "",
+        seats: 4,
+      });
+      fetchDrivers();
+      fetchStats();
+    } catch (error) {
+      toast.error(error.response?.data?.message || "Failed to create driver");
+    } finally {
+      setLoading(false);
+    }
+  };
+
   const handleLogout = () => {
     logout();
     navigate("/");
@@ -350,12 +422,12 @@ const AdminDashboard = () => {
       {/* Tabs */}
       <div className="bg-white border-b">
         <div className="container mx-auto px-6">
-          <div className="flex space-x-8">
+          <div className="flex space-x-4 md:space-x-8 overflow-x-auto">
             {["dashboard", "bookings", "drivers", "customers", "settings"].map((tab) => (
               <button
                 key={tab}
                 onClick={() => setActiveTab(tab)}
-                className={`py-4 px-2 border-b-2 font-semibold capitalize transition-all ${
+                className={`py-4 px-2 border-b-2 font-semibold capitalize transition-all whitespace-nowrap ${
                   activeTab === tab
                     ? "border-primary text-primary"
                     : "border-transparent text-gray-500 hover:text-gray-700"
@@ -412,6 +484,52 @@ const AdminDashboard = () => {
                 </p>
               </div>
             </div>
+
+            {/* Lifetime Statistics */}
+            {stats.lifetime && (
+              <div className="mb-8">
+                <h3 className="text-lg font-bold text-gray-700 mb-4">📊 Lifetime Statistics (Persists After Data Cleanup)</h3>
+                <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-4">
+                  <div className="card bg-gradient-to-br from-blue-100 to-blue-50">
+                    <h4 className="text-gray-600 text-xs mb-1">Total Bookings</h4>
+                    <p className="text-2xl font-bold text-blue-700">{stats.lifetime.totalBookings}</p>
+                    <p className="text-xs text-gray-500 mt-1">All time</p>
+                  </div>
+                  <div className="card bg-gradient-to-br from-green-100 to-green-50">
+                    <h4 className="text-gray-600 text-xs mb-1">Completed</h4>
+                    <p className="text-2xl font-bold text-green-700">{stats.lifetime.totalCompleted}</p>
+                    <p className="text-xs text-gray-500 mt-1">All time</p>
+                  </div>
+                  <div className="card bg-gradient-to-br from-red-100 to-red-50">
+                    <h4 className="text-gray-600 text-xs mb-1">Cancelled</h4>
+                    <p className="text-2xl font-bold text-red-700">{stats.lifetime.totalCancelled}</p>
+                    <p className="text-xs text-gray-500 mt-1">All time</p>
+                  </div>
+                  <div className="card bg-gradient-to-br from-purple-100 to-purple-50">
+                    <h4 className="text-gray-600 text-xs mb-1">Total Revenue</h4>
+                    <p className="text-2xl font-bold text-purple-700">₦{stats.lifetime.totalRevenue.toLocaleString()}</p>
+                    <p className="text-xs text-gray-500 mt-1">All time</p>
+                  </div>
+                </div>
+                {stats.lifetime.last7Days && stats.lifetime.last7Days.length > 0 && (
+                  <div className="mt-4 card">
+                    <h4 className="text-sm font-bold text-gray-700 mb-3">📅 Last 7 Days Activity</h4>
+                    <div className="space-y-2">
+                      {stats.lifetime.last7Days.map((day, idx) => (
+                        <div key={idx} className="flex justify-between items-center text-sm">
+                          <span className="text-gray-600">{new Date(day.date).toLocaleDateString()}</span>
+                          <div className="flex gap-4">
+                            <span className="text-blue-600">{day.bookingCount} bookings</span>
+                            <span className="text-green-600">{day.completedCount} completed</span>
+                            <span className="text-purple-600">₦{day.revenue.toLocaleString()}</span>
+                          </div>
+                        </div>
+                      ))}
+                    </div>
+                  </div>
+                )}
+              </div>
+            )}
 
             {pendingBookings.length > 0 && (
               <div className="card bg-yellow-50 border-l-4 border-yellow-500">
@@ -733,9 +851,127 @@ const AdminDashboard = () => {
         {/* Drivers Tab */}
         {activeTab === "drivers" && (
           <div>
-            <h2 className="text-2xl font-bold text-primary mb-6">
-              Driver Management
-            </h2>
+            <div className="flex justify-between items-center mb-6">
+              <h2 className="text-2xl font-bold text-primary">
+                Driver Management
+              </h2>
+              <button
+                onClick={() => setShowCreateDriver(!showCreateDriver)}
+                className="px-4 py-2 bg-primary text-white rounded-lg hover:bg-primary-dark transition-all font-semibold"
+              >
+                {showCreateDriver ? "Cancel" : "+ Add New Driver"}
+              </button>
+            </div>
+
+            {/* Create Driver Form*/}
+            {showCreateDriver && (
+              <div className="card mb-6 bg-blue-50 border-l-4 border-primary">
+                <h3 className="font-bold text-gray-800 mb-4">Create New Driver</h3>
+                <form onSubmit={createDriver} className="space-y-4">
+                  <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+                    <div>
+                      <label className="block text-sm font-medium text-gray-700 mb-1">Email *</label>
+                      <input
+                        type="email"
+                        required
+                        value={newDriver.email}
+                        onChange={(e) => setNewDriver({ ...newDriver, email: e.target.value })}
+                        className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-primary focus:border-transparent"
+                      />
+                    </div>
+                    <div>
+                      <label className="block text-sm font-medium text-gray-700 mb-1">Password *</label>
+                      <input
+                        type="password"
+                        required
+                        value={newDriver.password}
+                        onChange={(e) => setNewDriver({ ...newDriver, password: e.target.value })}
+                        className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-primary focus:border-transparent"
+                      />
+                    </div>
+                    <div>
+                      <label className="block text-sm font-medium text-gray-700 mb-1">Name *</label>
+                      <input
+                        type="text"
+                        required
+                        value={newDriver.name}
+                        onChange={(e) => setNewDriver({ ...newDriver, name: e.target.value })}
+                        className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-primary focus:border-transparent"
+                      />
+                    </div>
+                    <div>
+                      <label className="block text-sm font-medium text-gray-700 mb-1">Contact Number *</label>
+                      <input
+                        type="text"
+                        required
+                        value={newDriver.contactNumber}
+                        onChange={(e) => setNewDriver({ ...newDriver, contactNumber: e.target.value })}
+                        className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-primary focus:border-transparent"
+                      />
+                    </div>
+                    <div>
+                      <label className="block text-sm font-medium text-gray-700 mb-1">Base Location *</label>
+                      <input
+                        type="text"
+                        required
+                        value={newDriver.baseLocation}
+                        onChange={(e) => setNewDriver({ ...newDriver, baseLocation: e.target.value })}
+                        className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-primary focus:border-transparent"
+                      />
+                    </div>
+                    <div>
+                      <label className="block text-sm font-medium text-gray-700 mb-1">Car Type *</label>
+                      <input
+                        type="text"
+                        required
+                        value={newDriver.carType}
+                        onChange={(e) => setNewDriver({ ...newDriver, carType: e.target.value })}
+                        placeholder="e.g., Sedan, SUV"
+                        className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-primary focus:border-transparent"
+                      />
+                    </div>
+                    <div>
+                      <label className="block text-sm font-medium text-gray-700 mb-1">Car Number *</label>
+                      <input
+                        type="text"
+                        required
+                        value={newDriver.carNumber}
+                        onChange={(e) => setNewDriver({ ...newDriver, carNumber: e.target.value })}
+                        className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-primary focus:border-transparent"
+                      />
+                    </div>
+                    <div>
+                      <label className="block text-sm font-medium text-gray-700 mb-1">License Number *</label>
+                      <input
+                        type="text"
+                        required
+                        value={newDriver.licenseNumber}
+                        onChange={(e) => setNewDriver({ ...newDriver, licenseNumber: e.target.value })}
+                        className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-primary focus:border-transparent"
+                      />
+                    </div>
+                    <div>
+                      <label className="block text-sm font-medium text-gray-700 mb-1">Seats</label>
+                      <input
+                        type="number"
+                        min="1"
+                        max="20"
+                        value={newDriver.seats}
+                        onChange={(e) => setNewDriver({ ...newDriver, seats: parseInt(e.target.value) })}
+                        className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-primary focus:border-transparent"
+                      />
+                    </div>
+                  </div>
+                  <button
+                    type="submit"
+                    disabled={loading}
+                    className="w-full px-4 py-2 bg-primary text-white rounded-lg hover:bg-primary-dark disabled:opacity-50 transition-all font-semibold"
+                  >
+                    {loading ? "Creating..." : "Create Driver"}
+                  </button>
+                </form>
+              </div>
+            )}
 
             {drivers.length === 0 ? (
               <div className="card text-center py-12">
@@ -845,9 +1081,94 @@ const AdminDashboard = () => {
         {/* Customers Tab */}
         {activeTab === "customers" && (
           <div>
-            <h2 className="text-2xl font-bold text-primary mb-6">
-              Customer Management
-            </h2>
+            <div className="flex justify-between items-center mb-6">
+              <h2 className="text-2xl font-bold text-primary">
+                Customer Management
+              </h2>
+              <button
+                onClick={() => setShowCreateCustomer(!showCreateCustomer)}
+                className="px-4 py-2 bg-primary text-white rounded-lg hover:bg-primary-dark transition-all font-semibold"
+              >
+                {showCreateCustomer ? "Cancel" : "+ Add New Customer"}
+              </button>
+            </div>
+
+            {/* Create Customer Form */}
+            {showCreateCustomer && (
+              <div className="card mb-6 bg-green-50 border-l-4 border-green-500">
+                <h3 className="font-bold text-gray-800 mb-4">Create New Customer</h3>
+                <form onSubmit={createCustomer} className="space-y-4">
+                  <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+                    <div>
+                      <label className="block text-sm font-medium text-gray-700 mb-1">Email *</label>
+                      <input
+                        type="email"
+                        required
+                        value={newCustomer.email}
+                        onChange={(e) => setNewCustomer({ ...newCustomer, email: e.target.value })}
+                        className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-green-500 focus:border-transparent"
+                      />
+                    </div>
+                    <div>
+                      <label className="block text-sm font-medium text-gray-700 mb-1">Password *</label>
+                      <input
+                        type="password"
+                        required
+                        value={newCustomer.password}
+                        onChange={(e) => setNewCustomer({ ...newCustomer, password: e.target.value })}
+                        className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-green-500 focus:border-transparent"
+                      />
+                    </div>
+                    <div>
+                      <label className="block text-sm font-medium text-gray-700 mb-1">Name *</label>
+                      <input
+                        type="text"
+                        required
+                        value={newCustomer.name}
+                        onChange={(e) => setNewCustomer({ ...newCustomer, name: e.target.value })}
+                        className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-green-500 focus:border-transparent"
+                      />
+                    </div>
+                    <div>
+                      <label className="block text-sm font-medium text-gray-700 mb-1">Phone Number *</label>
+                      <input
+                        type="text"
+                        required
+                        value={newCustomer.phoneNumber}
+                        onChange={(e) => setNewCustomer({ ...newCustomer, phoneNumber: e.target.value })}
+                        className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-green-500 focus:border-transparent"
+                      />
+                    </div>
+                    <div>
+                      <label className="block text-sm font-medium text-gray-700 mb-1">City *</label>
+                      <input
+                        type="text"
+                        required
+                        value={newCustomer.city}
+                        onChange={(e) => setNewCustomer({ ...newCustomer, city: e.target.value })}
+                        className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-green-500 focus:border-transparent"
+                      />
+                    </div>
+                    <div>
+                      <label className="block text-sm font-medium text-gray-700 mb-1">Digital Address</label>
+                      <input
+                        type="text"
+                        value={newCustomer.digitalAddress}
+                        onChange={(e) => setNewCustomer({ ...newCustomer, digitalAddress: e.target.value })}
+                        className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-green-500 focus:border-transparent"
+                      />
+                    </div>
+                  </div>
+                  <button
+                    type="submit"
+                    disabled={loading}
+                    className="w-full px-4 py-2 bg-green-600 text-white rounded-lg hover:bg-green-700 disabled:opacity-50 transition-all font-semibold"
+                  >
+                    {loading ? "Creating..." : "Create Customer"}
+                  </button>
+                </form>
+              </div>
+            )}
 
             {customers.length === 0 ? (
               <div className="card text-center py-12">

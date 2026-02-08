@@ -12,6 +12,8 @@ const {
   getAllBookings,
   clearCompletedBookings,
   clearAllBookings,
+  createCustomer,
+  createDriver,
 } = require("../controllers/adminController");
 const { protect, admin } = require("../middleware/auth");
 
@@ -24,11 +26,13 @@ router.get("/stats", getDashboardStats);
 
 // Drivers
 router.get("/drivers", getAllDrivers);
+router.post("/drivers", createDriver);
 router.delete("/drivers/:driverId", deleteDriver);
 router.put("/drivers/:driverId/toggle-status", toggleDriverStatus);
 
 // Customers
 router.get("/customers", getAllCustomers);
+router.post("/customers", createCustomer);
 router.delete("/customers/:customerId", deleteCustomer);
 
 // Bookings

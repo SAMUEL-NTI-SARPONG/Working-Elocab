@@ -1,5 +1,6 @@
 const Driver = require("../models/Driver");
 const Booking = require("../models/Booking");
+const Statistics = require("../models/Statistics");
 
 // Get driver profile
 exports.getProfile = async (req, res) => {
@@ -167,8 +168,17 @@ exports.updateBookingStatus = async (req, res) => {
       return res.status(400).json({ message: "Invalid status" });
     }
 
+    const oldStatus = booking.status;
     booking.status = status;
     await booking.save();
+
+    // Track statistics
+    const stats = await Statistics.getInstance();
+    if (status === "completed" && oldStatus !== "completed") {
+      await stats.recordCompleted(booking.totalAmount || 0);
+    } else if (status === "cancelled" && oldStatus !== "cancelled") {
+      await stats.recordCancelled();
+    }
 
     // Notify customer and admin via Socket.io
     const io = req.app.get("io");

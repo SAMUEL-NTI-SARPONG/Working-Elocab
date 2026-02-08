@@ -2,6 +2,8 @@ const User = require("../models/User");
 const Driver = require("../models/Driver");
 const Customer = require("../models/Customer");
 const Booking = require("../models/Booking");
+const Statistics = require("../models/Statistics");
+const bcrypt = require("bcryptjs");
 
 // Get all drivers
 exports.getAllDrivers = async (req, res) => {
@@ -43,6 +45,12 @@ exports.getDashboardStats = async (req, res) => {
       status: "completed",
     });
 
+    // Get lifetime statistics
+    const stats = await Statistics.getInstance();
+    const last7Days = stats.dailyBookings
+      .slice(-7)
+      .sort((a, b) => new Date(a.date) - new Date(b.date));
+
     res.json({
       drivers: {
         total: totalDrivers,
@@ -55,6 +63,13 @@ exports.getDashboardStats = async (req, res) => {
         total: totalBookings,
         pending: pendingBookings,
         completed: completedBookings,
+      },
+      lifetime: {
+        totalBookings: stats.totalBookingsAllTime,
+        totalCompleted: stats.totalCompletedBookingsAllTime,
+        totalCancelled: stats.totalCancelledBookingsAllTime,
+        totalRevenue: stats.totalRevenueAllTime,
+        last7Days: last7Days,
       },
     });
   } catch (error) {
@@ -121,8 +136,17 @@ exports.updateBookingStatus = async (req, res) => {
       return res.status(404).json({ message: "Booking not found" });
     }
 
+    const oldStatus = booking.status;
     booking.status = status;
     await booking.save();
+
+    // Track statistics
+    const stats = await Statistics.getInstance();
+    if (status === "completed" && oldStatus !== "completed") {
+      await stats.recordCompleted(booking.totalAmount || 0);
+    } else if (status === "cancelled" && oldStatus !== "cancelled") {
+      await stats.recordCancelled();
+    }
 
     const populatedBooking = await Booking.findById(booking._id)
       .populate("customerId", "name phoneNumber")
@@ -259,5 +283,107 @@ exports.clearAllBookings = async (req, res) => {
     res
       .status(500)
       .json({ message: "Error clearing all bookings", error: error.message });
+  }
+};
+
+// Create new customer
+exports.createCustomer = async (req, res) => {
+  try {
+    const { email, password, name, phoneNumber, city, digitalAddress } = req.body;
+
+    // Check if user already exists
+    const existingUser = await User.findOne({ email });
+    if (existingUser) {
+      return res.status(400).json({ message: "User already exists with this email" });
+    }
+
+    // Hash password
+    const hashedPassword = await bcrypt.hash(password, 10);
+
+    // Create user account
+    const user = await User.create({
+      email,
+      password: hashedPassword,
+      role: "customer",
+    });
+
+    // Create customer profile
+    const customer = await Customer.create({
+      userId: user._id,
+      name,
+      phoneNumber,
+      city,
+      digitalAddress,
+    });
+
+    const populatedCustomer = await Customer.findById(customer._id)
+      .populate("userId", "email createdAt");
+
+    res.status(201).json({
+      message: "Customer created successfully",
+      customer: populatedCustomer,
+    });
+  } catch (error) {
+    res
+      .status(500)
+      .json({ message: "Error creating customer", error: error.message });
+  }
+};
+
+// Create new driver
+exports.createDriver = async (req, res) => {
+  try {
+    const {
+      email,
+      password,
+      name,
+      baseLocation,
+      carType,
+      carNumber,
+      licenseNumber,
+      seats,
+      contactNumber,
+    } = req.body;
+
+    // Check if user already exists
+    const existingUser = await User.findOne({ email });
+    if (existingUser) {
+      return res.status(400).json({ message: "User already exists with this email" });
+    }
+
+    // Hash password
+    const hashedPassword = await bcrypt.hash(password, 10);
+
+    // Create user account
+    const user = await User.create({
+      email,
+      password: hashedPassword,
+      role: "driver",
+    });
+
+    // Create driver profile
+    const driver = await Driver.create({
+      userId: user._id,
+      name,
+      baseLocation,
+      carType,
+      carNumber,
+      licenseNumber,
+      seats: seats || 4,
+      contactNumber,
+      isAvailable: true,
+    });
+
+    const populatedDriver = await Driver.findById(driver._id)
+      .populate("userId", "email createdAt");
+
+    res.status(201).json({
+      message: "Driver created successfully",
+      driver: populatedDriver,
+    });
+  } catch (error) {
+    res
+      .status(500)
+      .json({ message: "Error creating driver", error: error.message });
   }
 };

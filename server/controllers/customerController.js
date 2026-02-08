@@ -1,5 +1,6 @@
 const Customer = require("../models/Customer");
 const Booking = require("../models/Booking");
+const Statistics = require("../models/Statistics");
 
 // Get customer profile
 exports.getProfile = async (req, res) => {
@@ -85,6 +86,10 @@ exports.createBooking = async (req, res) => {
       "customerId",
       "name phoneNumber city",
     );
+
+    // Track statistics
+    const stats = await Statistics.getInstance();
+    await stats.incrementBooking(booking.totalAmount || 0);
 
     // Notify admin via Socket.io
     const io = req.app.get("io");
