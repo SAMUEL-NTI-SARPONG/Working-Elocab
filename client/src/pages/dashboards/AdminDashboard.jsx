@@ -3,6 +3,7 @@ import { useNavigate } from "react-router-dom";
 import { useAuth } from "../../context/AuthContext";
 import axios from "axios";
 import toast from "react-hot-toast";
+import ArchiveViewer from "../../components/ArchiveViewer";
 
 const AdminDashboard = () => {
   const { user, logout } = useAuth();
@@ -15,6 +16,8 @@ const AdminDashboard = () => {
   const [loading, setLoading] = useState(false);
   const [selectedBooking, setSelectedBooking] = useState(null);
   const [selectedDriver, setSelectedDriver] = useState("");
+  const [archiveStats, setArchiveStats] = useState(null);
+  const [archiveLoading, setArchiveLoading] = useState(false);
 
   useEffect(() => {
     fetchStats();
@@ -27,6 +30,13 @@ const AdminDashboard = () => {
       Notification.requestPermission();
     }
   }, []);
+
+  // Fetch archive stats when settings tab is opened
+  useEffect(() => {
+    if (activeTab === "settings") {
+      fetchArchiveStats();
+    }
+  }, [activeTab]);
 
   // Listen for new bookings for notifications
   useEffect(() => {
@@ -206,6 +216,73 @@ const AdminDashboard = () => {
       }
     } catch (error) {
       toast.error("Failed to enable notifications");
+    }
+  };
+
+  const fetchArchiveStats = async () => {
+    try {
+      const { data } = await axios.get("/api/admin/archive/stats");
+      setArchiveStats(data);
+    } catch (error) {
+      toast.error("Failed to fetch archive statistics");
+    }
+  };
+
+  const previewArchive = async () => {
+    setArchiveLoading(true);
+    try {
+      const { data } = await axios.get("/api/admin/archive/preview");
+      if (data.count === 0) {
+        toast("No bookings available for archiving", { icon: "ℹ️" });
+        return;
+      }
+      
+      const message = `Found ${data.count} booking(s) older than 90 days that will be archived.\n\nCutoff date: ${new Date(data.cutoffDate).toLocaleDateString()}`;
+      if (confirm(message + "\n\nClick OK to preview the bookings or Cancel to go back.")) {
+        console.log("Archivable bookings:", data.bookings);
+        toast.success(`${data.count} bookings ready for archiving. Check console for details.`);
+      }
+    } catch (error) {
+      toast.error("Failed to preview archive");
+    } finally {
+      setArchiveLoading(false);
+    }
+  };
+
+  const executeArchive = async () => {
+    if (!archiveStats || archiveStats.archivable === 0) {
+      toast.error("No bookings available for archiving");
+      return;
+    }
+
+    const message = `This will archive and delete ${archiveStats.archivable} booking(s) older than 90 days.\n\nThe data will be downloaded as a JSON file before deletion.\n\nContinue?`;
+    if (!confirm(message)) return;
+
+    setArchiveLoading(true);
+    try {
+      const { data } = await axios.post("/api/admin/archive/execute");
+      
+      // Create and download JSON file
+      const blob = new Blob([JSON.stringify(data.data, null, 2)], { type: "application/json" });
+      const url = URL.createObjectURL(blob);
+      const link = document.createElement("a");
+      link.href = url;
+      link.download = data.filename;
+      document.body.appendChild(link);
+      link.click();
+      document.body.removeChild(link);
+      URL.revokeObjectURL(url);
+
+      toast.success(data.message);
+      
+      // Refresh data
+      fetchBookings();
+      fetchStats();
+      fetchArchiveStats();
+    } catch (error) {
+      toast.error("Failed to execute archive");
+    } finally {
+      setArchiveLoading(false);
     }
   };
 
@@ -927,8 +1004,79 @@ const AdminDashboard = () => {
               </div>
             </div>
 
+            {/* Archive & Download */}
+            <div className="card mb-6 border-l-4 border-blue-500">
+              <h3 className="text-lg font-bold text-gray-800 mb-4 flex items-center">
+                <span className="text-2xl mr-2">📦</span>
+                Archive & Download Bookings
+              </h3>
+              <p className="text-gray-600 mb-4">
+                Archive old bookings (older than 90 days) to save storage space. Data is downloaded as JSON before deletion.
+              </p>
+
+              {archiveStats && (
+                <div className="bg-blue-50 border border-blue-200 rounded-lg p-4 mb-4">
+                  <div className="grid grid-cols-1 md:grid-cols-3 gap-4 mb-4">
+                    <div>
+                      <p className="text-sm text-gray-600">Archivable Bookings</p>
+                      <p className="text-2xl font-bold text-blue-600">{archiveStats.archivable}</p>
+                      <p className="text-xs text-gray-500">Older than 90 days</p>
+                    </div>
+                    <div>
+                      <p className="text-sm text-gray-600">Recent Completed</p>
+                      <p className="text-2xl font-bold text-green-600">{archiveStats.recentCompleted}</p>
+                      <p className="text-xs text-gray-500">Last 90 days</p>
+                    </div>
+                    <div>
+                      <p className="text-sm text-gray-600">Active Bookings</p>
+                      <p className="text-2xl font-bold text-orange-600">{archiveStats.active}</p>
+                      <p className="text-xs text-gray-500">Will be kept</p>
+                    </div>
+                  </div>
+
+                  {archiveStats.cutoffDate && (
+                    <p className="text-sm text-gray-600 mb-4">
+                      <strong>Cutoff Date:</strong> {new Date(archiveStats.cutoffDate).toLocaleDateString()} 
+                      <span className="text-gray-500"> (bookings before this date will be archived)</span>
+                    </p>
+                  )}
+
+                  <div className="flex gap-3">
+                    <button
+                      onClick={previewArchive}
+                      disabled={archiveLoading || archiveStats.archivable === 0}
+                      className="px-4 py-2 bg-blue-600 text-white rounded-lg hover:bg-blue-700 disabled:opacity-50 disabled:cursor-not-allowed transition-all font-semibold"
+                    >
+                      {archiveLoading ? "Loading..." : "Preview Archive"}
+                    </button>
+                    <button
+                      onClick={executeArchive}
+                      disabled={archiveLoading || archiveStats.archivable === 0}
+                      className="px-4 py-2 bg-green-600 text-white rounded-lg hover:bg-green-700 disabled:opacity-50 disabled:cursor-not-allowed transition-all font-semibold flex items-center gap-2"
+                    >
+                      <span>📥</span>
+                      {archiveLoading ? "Archiving..." : `Download & Archive ${archiveStats.archivable} Bookings`}
+                    </button>
+                  </div>
+                </div>
+              )}
+
+              {!archiveStats && (
+                <div className="text-center py-4">
+                  <p className="text-gray-500">Loading archive statistics...</p>
+                </div>
+              )}
+
+              <div className="mt-4 bg-gray-50 border border-gray-200 rounded-lg p-3">
+                <p className="text-sm text-gray-700">
+                  <strong>ℹ️ How it works:</strong> Archive downloads a JSON file containing all bookings older than 90 days (completed or cancelled), 
+                  then safely deletes them from the database to free up space. Active bookings are never archived.
+                </p>
+              </div>
+            </div>
+
             {/* PWA Status */}
-            <div className="card bg-gradient-to-r from-purple-50 to-blue-50 border border-purple-200">
+            <div className="card mb-6 bg-gradient-to-r from-purple-50 to-blue-50 border border-purple-200">
               <h3 className="text-lg font-bold text-gray-800 mb-4 flex items-center">
                 <span className="text-2xl mr-2">📱</span>
                 Progressive Web App (PWA)
@@ -942,6 +1090,9 @@ const AdminDashboard = () => {
                 ✅ Can be installed on mobile and desktop
               </p>
             </div>
+
+            {/* Archive Viewer */}
+            <ArchiveViewer />
           </div>
         )}
       </div>

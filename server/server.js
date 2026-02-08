@@ -5,6 +5,7 @@ const helmet = require("helmet");
 const dotenv = require("dotenv");
 const http = require("http");
 const socketIo = require("socket.io");
+const { startArchiveScheduler } = require("./schedulers/archiveScheduler");
 
 // Load environment variables
 dotenv.config();
@@ -15,6 +16,7 @@ const driverRoutes = require("./routes/driverRoutes");
 const customerRoutes = require("./routes/customerRoutes");
 const bookingRoutes = require("./routes/bookingRoutes");
 const adminRoutes = require("./routes/adminRoutes");
+const archiveRoutes = require("./routes/archiveRoutes");
 
 const app = express();
 const server = http.createServer(app);
@@ -51,7 +53,11 @@ app.set("io", io);
 // Database connection
 mongoose
   .connect(process.env.MONGODB_URI)
-  .then(() => console.log("✅ MongoDB Connected Successfully"))
+  .then(() => {
+    console.log("✅ MongoDB Connected Successfully");
+    // Start automatic archive scheduler after DB connection
+    startArchiveScheduler();
+  })
   .catch((err) => console.error("❌ MongoDB Connection Error:", err));
 
 // Socket.io connection handling
@@ -87,6 +93,7 @@ app.use("/api/drivers", driverRoutes);
 app.use("/api/customers", customerRoutes);
 app.use("/api/bookings", bookingRoutes);
 app.use("/api/admin", adminRoutes);
+app.use("/api/admin/archive", archiveRoutes);
 
 // Health check route
 app.get("/api/health", (req, res) => {
