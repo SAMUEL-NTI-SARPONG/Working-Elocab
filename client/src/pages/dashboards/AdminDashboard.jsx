@@ -333,7 +333,7 @@ const AdminDashboard = () => {
                                   <option value="">Select driver...</option>
                                   {drivers.map((driver) => (
                                     <option key={driver._id} value={driver._id}>
-                                      {driver.name} - {driver.carType} ({driver.seats} seats) {driver.isAvailable ? "✅" : "⚫"}
+                                      {driver.name} - {driver.carType} ({driver.numberOfSeats} seats) {driver.isAvailable ? "✅" : "⚫"}
                                     </option>
                                   ))}
                                 </select>
@@ -394,7 +394,7 @@ const AdminDashboard = () => {
                             <option value="">Select driver...</option>
                             {drivers.map((driver) => (
                               <option key={driver._id} value={driver._id}>
-                                {driver.name} - {driver.carType} ({driver.seats} seats) {driver.isAvailable ? "✅" : "⚫"}
+                                {driver.name} - {driver.carType} ({driver.numberOfSeats} seats) {driver.isAvailable ? "✅" : "⚫"}
                               </option>
                             ))}
                           </select>
@@ -423,7 +423,7 @@ const AdminDashboard = () => {
                   {/* Desktop Table */}
                   <div className="hidden md:block overflow-x-auto">
                     <table className="w-full">
-                      <thead className="bg-gradient-to-r from-blue-500 to-blue-400 text-white">
+                      <thead className="bg-gradient-to-r from-primary to-primary-light text-white">
                         <tr>
                           <th className="px-6 py-4 text-left text-sm font-semibold">Status</th>
                           <th className="px-6 py-4 text-left text-sm font-semibold">Service</th>
@@ -608,13 +608,13 @@ const AdminDashboard = () => {
                             </span>
                           </td>
                           <td className="px-6 py-4 text-gray-600 text-sm">
-                            {driver.email}
+                            {driver.userId?.email || "Not set"}
                           </td>
                           <td className="px-6 py-4">
                             <div className="text-sm">
                               <div className="font-medium text-gray-800">{driver.carType}</div>
                               <div className="text-gray-500 text-xs">
-                                {driver.carNumber} • {driver.seats} seats
+                                {driver.carNumber} • {driver.numberOfSeats} seats
                               </div>
                             </div>
                           </td>
@@ -655,9 +655,9 @@ const AdminDashboard = () => {
                         </span>
                       </div>
                       <div className="space-y-2 text-sm mb-4">
-                        <div><span className="text-gray-500">Email:</span> <span className="ml-2">{driver.email}</span></div>
+                        <div><span className="text-gray-500">Email:</span> <span className="ml-2">{driver.userId?.email || "Not set"}</span></div>
                         <div><span className="text-gray-500">Vehicle:</span> <span className="ml-2">{driver.carType} ({driver.carNumber})</span></div>
-                        <div><span className="text-gray-500">Seats:</span> <span className="ml-2">{driver.seats}</span></div>
+                        <div><span className="text-gray-500">Seats:</span> <span className="ml-2">{driver.numberOfSeats}</span></div>
                         <div><span className="text-gray-500">Contact:</span> <span className="ml-2">{driver.contactNumber}</span></div>
                         <div><span className="text-gray-500">Location:</span> <span className="ml-2">{driver.baseLocation}</span></div>
                       </div>
@@ -707,7 +707,7 @@ const AdminDashboard = () => {
                             {customer.name || "No Name"}
                           </td>
                           <td className="px-6 py-4 text-gray-600 text-sm">
-                            {customer.email}
+                            {customer.userId?.email || "Not set"}
                           </td>
                           <td className="px-6 py-4 text-gray-600 text-sm">
                             {customer.phoneNumber || "Not set"}
@@ -737,7 +737,7 @@ const AdminDashboard = () => {
                         {customer.name || "No Name"}
                       </h3>
                       <div className="space-y-2 text-sm mb-4">
-                        <div><span className="text-gray-500">Email:</span> <span className="ml-2">{customer.email}</span></div>
+                        <div><span className="text-gray-500">Email:</span> <span className="ml-2">{customer.userId?.email || "Not set"}</span></div>
                         <div><span className="text-gray-500">Phone:</span> <span className="ml-2">{customer.phoneNumber || "Not set"}</span></div>
                         <div><span className="text-gray-500">City:</span> <span className="ml-2">{customer.city || "Not set"}</span></div>
                       </div>

@@ -181,7 +181,7 @@ const LandingPage = () => {
               
               <button
                 onClick={() => navigate("/register")}
-                className="group relative px-10 py-5 bg-white text-primary rounded-2xl font-bold text-lg shadow-strong hover:shadow-[0_20px_60px_rgba(0,0,0,0.3)] transform hover:scale-105 transition-all duration-300 overflow-hidden"
+                className="group relative px-10 py-5 bg-white text-primary rounded-2xl font-bold text-lg shadow-strong hover:shadow-[0_20px_60px_rgba(0,0,0,0.3)] transform hover:scale-105 transition-all duration-300 overflow-hidden mb-12"
               >
                 <span className="relative z-10">
                   Sign up to drive
