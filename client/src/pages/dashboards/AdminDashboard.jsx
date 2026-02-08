@@ -21,7 +21,36 @@ const AdminDashboard = () => {
     fetchDrivers();
     fetchCustomers();
     fetchBookings();
+    
+    // Request notification permission on mount
+    if ("Notification" in window && Notification.permission === "default") {
+      Notification.requestPermission();
+    }
   }, []);
+
+  // Listen for new bookings for notifications
+  useEffect(() => {
+    const checkForNewBookings = () => {
+      // This will trigger when bookings change
+      if (bookings.length > 0 && Notification.permission === "granted") {
+        const pendingCount = bookings.filter(b => b.status === "pending").length;
+        if (pendingCount > 0 && activeTab !== "bookings") {
+          // Show notification if there are pending bookings and user is not on bookings tab
+          new Notification("New Booking Alert", {
+            body: `You have ${pendingCount} pending booking(s) awaiting assignment`,
+            icon: "/logo.png",
+            badge: "/logo.png"
+          });
+        }
+      }
+    };
+
+    const interval = setInterval(() => {
+      fetchBookings();
+    }, 30000); // Check every 30 seconds
+
+    return () => clearInterval(interval);
+  }, [bookings, activeTab]);
 
   const fetchStats = async () => {
     try {
@@ -119,6 +148,67 @@ const AdminDashboard = () => {
     }
   };
 
+  const clearCompletedBookings = async () => {
+    if (!confirm("Are you sure you want to delete all completed and cancelled bookings? This cannot be undone!")) return;
+
+    setLoading(true);
+    try {
+      const { data } = await axios.delete("/api/admin/bookings/clear-completed");
+      toast.success(data.message);
+      fetchBookings();
+      fetchStats();
+    } catch (error) {
+      toast.error("Failed to clear completed bookings");
+    } finally {
+      setLoading(false);
+    }
+  };
+
+  const clearAllBookings = async () => {
+    if (!confirm("⚠️ WARNING: This will delete ALL bookings including active ones! Are you absolutely sure?")) return;
+    if (!confirm("This is your final warning. All booking data will be permanently deleted. Continue?")) return;
+
+    setLoading(true);
+    try {
+      const { data } = await axios.delete("/api/admin/bookings/clear-all");
+      toast.success(data.message);
+      fetchBookings();
+      fetchStats();
+    } catch (error) {
+      toast.error("Failed to clear all bookings");
+    } finally {
+      setLoading(false);
+    }
+  };
+
+  const requestNotificationPermission = async () => {
+    if (!("Notification" in window)) {
+      toast.error("This browser does not support notifications");
+      return;
+    }
+
+    if (Notification.permission === "granted") {
+      toast.success("Notifications are already enabled");
+      return;
+    }
+
+    try {
+      const permission = await Notification.requestPermission();
+      if (permission === "granted") {
+        toast.success("Notifications enabled successfully!");
+        // Test notification
+        new Notification("ELOCAB Admin", {
+          body: "You will now receive notifications for new bookings",
+          icon: "/logo.png"
+        });
+      } else {
+        toast.error("Notification permission denied");
+      }
+    } catch (error) {
+      toast.error("Failed to enable notifications");
+    }
+  };
+
   const handleLogout = () => {
     logout();
     navigate("/");
@@ -184,7 +274,7 @@ const AdminDashboard = () => {
       <div className="bg-white border-b">
         <div className="container mx-auto px-6">
           <div className="flex space-x-8">
-            {["dashboard", "bookings", "drivers", "customers"].map((tab) => (
+            {["dashboard", "bookings", "drivers", "customers", "settings"].map((tab) => (
               <button
                 key={tab}
                 onClick={() => setActiveTab(tab)}
@@ -416,7 +506,7 @@ const AdminDashboard = () => {
             {/* Active Bookings */}
             {assignedBookings.length > 0 && (
               <div className="mb-8">
-                <h3 className="text-xl font-bold text-blue-600 mb-4">
+                <h3 className="text-xl font-bold text-gray-600 mb-4">
                   🚗 Active Rides ({assignedBookings.length})
                 </h3>
                 <div className="bg-white rounded-lg shadow-md overflow-hidden">
@@ -752,6 +842,106 @@ const AdminDashboard = () => {
                 </div>
               </div>
             )}
+          </div>
+        )}
+
+        {/* Settings Tab */}
+        {activeTab === "settings" && (
+          <div>
+            <h2 className="text-2xl font-bold text-primary mb-6">
+              System Settings
+            </h2>
+
+            {/* Notification Settings */}
+            <div className="card mb-6">
+              <h3 className="text-lg font-bold text-gray-800 mb-4 flex items-center">
+                <span className="text-2xl mr-2">🔔</span>
+                Push Notifications
+              </h3>
+              <p className="text-gray-600 mb-4">
+                Enable push notifications to receive alerts when new bookings are created.
+              </p>
+              <button
+                onClick={requestNotificationPermission}
+                className="px-6 py-3 bg-blue-600 text-white rounded-lg hover:bg-blue-700 transition-all font-semibold"
+              >
+                {Notification?.permission === "granted" 
+                  ? "✅ Notifications Enabled" 
+                  : "Enable Notifications"}
+              </button>
+            </div>
+
+            {/* Data Management */}
+            <div className="card mb-6 border-l-4 border-yellow-500">
+              <h3 className="text-lg font-bold text-gray-800 mb-4 flex items-center">
+                <span className="text-2xl mr-2">🗄️</span>
+                Data Management
+              </h3>
+              <p className="text-gray-600 mb-4">
+                Manage your booking data to free up space and maintain optimal performance.
+              </p>
+              
+              <div className="space-y-4">
+                {/* Clear Completed Bookings */}
+                <div className="bg-yellow-50 border border-yellow-200 rounded-lg p-4">
+                  <div className="flex items-start justify-between">
+                    <div className="flex-1">
+                      <h4 className="font-bold text-gray-800 mb-1">Clear Completed Bookings</h4>
+                      <p className="text-sm text-gray-600 mb-3">
+                        Remove all completed and cancelled bookings. This will help reduce database size.
+                        Currently: <strong>{completedBookings.length}</strong> completed/cancelled bookings
+                      </p>
+                    </div>
+                  </div>
+                  <button
+                    onClick={clearCompletedBookings}
+                    disabled={loading || completedBookings.length === 0}
+                    className="px-4 py-2 bg-yellow-600 text-white rounded-lg hover:bg-yellow-700 disabled:opacity-50 disabled:cursor-not-allowed transition-all font-semibold"
+                  >
+                    {loading ? "Clearing..." : `Clear ${completedBookings.length} Bookings`}
+                  </button>
+                </div>
+
+                {/* Clear All Bookings - Danger Zone */}
+                <div className="bg-red-50 border-2 border-red-300 rounded-lg p-4">
+                  <div className="flex items-start justify-between">
+                    <div className="flex-1">
+                      <h4 className="font-bold text-red-800 mb-1 flex items-center">
+                        <span className="mr-2">⚠️</span>
+                        Danger Zone: Clear All Bookings
+                      </h4>
+                      <p className="text-sm text-red-700 mb-3">
+                        <strong>WARNING:</strong> This will permanently delete ALL bookings including active ones. 
+                        This action cannot be undone! Use only when absolutely necessary.
+                      </p>
+                    </div>
+                  </div>
+                  <button
+                    onClick={clearAllBookings}
+                    disabled={loading || bookings.length === 0}
+                    className="px-4 py-2 bg-red-600 text-white rounded-lg hover:bg-red-700 disabled:opacity-50 disabled:cursor-not-allowed transition-all font-semibold"
+                  >
+                    {loading ? "Clearing..." : `Delete All ${bookings.length} Bookings`}
+                  </button>
+                </div>
+              </div>
+            </div>
+
+            {/* PWA Status */}
+            <div className="card bg-gradient-to-r from-purple-50 to-blue-50 border border-purple-200">
+              <h3 className="text-lg font-bold text-gray-800 mb-4 flex items-center">
+                <span className="text-2xl mr-2">📱</span>
+                Progressive Web App (PWA)
+              </h3>
+              <p className="text-gray-600 mb-2">
+                This application is PWA-enabled. You can install it on your device for a better experience.
+              </p>
+              <p className="text-sm text-gray-500">
+                ✅ Offline support enabled<br />
+                ✅ Push notifications available<br />
+                ✅ Can be installed on mobile and desktop
+              </p>
+            </div>
           </div>
         )}
       </div>

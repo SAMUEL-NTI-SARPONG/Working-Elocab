@@ -227,3 +227,37 @@ exports.getAllBookings = async (req, res) => {
       .json({ message: "Error fetching bookings", error: error.message });
   }
 };
+
+// Clear completed bookings to save space
+exports.clearCompletedBookings = async (req, res) => {
+  try {
+    const result = await Booking.deleteMany({ 
+      status: { $in: ["completed", "cancelled"] } 
+    });
+
+    res.json({
+      message: `Successfully deleted ${result.deletedCount} completed/cancelled bookings`,
+      deletedCount: result.deletedCount,
+    });
+  } catch (error) {
+    res
+      .status(500)
+      .json({ message: "Error clearing bookings", error: error.message });
+  }
+};
+
+// Clear all bookings (use with caution)
+exports.clearAllBookings = async (req, res) => {
+  try {
+    const result = await Booking.deleteMany({});
+
+    res.json({
+      message: `Successfully deleted all ${result.deletedCount} bookings`,
+      deletedCount: result.deletedCount,
+    });
+  } catch (error) {
+    res
+      .status(500)
+      .json({ message: "Error clearing all bookings", error: error.message });
+  }
+};

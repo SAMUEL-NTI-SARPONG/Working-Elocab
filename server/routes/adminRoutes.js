@@ -10,6 +10,8 @@ const {
   deleteCustomer,
   toggleDriverStatus,
   getAllBookings,
+  clearCompletedBookings,
+  clearAllBookings,
 } = require("../controllers/adminController");
 const { protect, admin } = require("../middleware/auth");
 
@@ -33,5 +35,7 @@ router.delete("/customers/:customerId", deleteCustomer);
 router.get("/bookings", getAllBookings);
 router.post("/bookings/assign", assignDriver);
 router.put("/bookings/:bookingId/status", updateBookingStatus);
+router.delete("/bookings/clear-completed", clearCompletedBookings);
+router.delete("/bookings/clear-all", clearAllBookings);
 
 module.exports = router;

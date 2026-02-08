@@ -83,7 +83,7 @@ A modern, full-stack ride-sharing and car hiring platform built for Kumasi, Ghan
 1. Go to [MongoDB Atlas](https://www.mongodb.com/cloud/atlas)
 2. Create a free account
 3. Create a new cluster (free tier)
-4. Get your connection string (looks like: `mongodb+srv://username:password@cluster.mongodb.net/elocab`)
+4. Get your connection string (looks like: `mongodb+srv://<username>:<password>@cluster.mongodb.net/elocab`)
 
 ---
 
@@ -121,7 +121,7 @@ A modern, full-stack ride-sharing and car hiring platform built for Kumasi, Ghan
      PORT=5000
      MONGODB_URI=mongodb://localhost:27017/elocab
      # OR if using MongoDB Atlas:
-     # MONGODB_URI=mongodb+srv://your-username:your-password@cluster.mongodb.net/elocab
+     # MONGODB_URI=mongodb+srv://<username>:<password>@cluster.mongodb.net/elocab
 
      JWT_SECRET=your_super_secret_jwt_key_change_this_in_production
      NODE_ENV=development

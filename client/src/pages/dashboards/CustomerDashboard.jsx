@@ -321,7 +321,6 @@ const CustomerDashboard = () => {
                         <th className="px-6 py-4 text-left text-sm font-semibold">Date & Time</th>
                         <th className="px-6 py-4 text-left text-sm font-semibold">Route</th>
                         <th className="px-6 py-4 text-left text-sm font-semibold">Passengers</th>
-                        <th className="px-6 py-4 text-left text-sm font-semibold">Driver</th>
                       </tr>
                     </thead>
                     <tbody className="divide-y divide-gray-200">
@@ -360,20 +359,20 @@ const CustomerDashboard = () => {
                           <td className="px-6 py-4 text-gray-600">
                             {booking.numberOfPeople}
                           </td>
-                          <td className="px-6 py-4">
-                            {booking.driver ? (
-                              <div className="text-sm">
-                                <div className="font-semibold text-gray-800">
-                                  {booking.driver.name}
+                          {booking.driverId && (
+                            <td className="px-6 py-4">
+                              {booking.driverId.name ? (
+                                <div className="text-sm">
+                                  <div className="font-semibold text-gray-800">
+                                    {booking.driverId.name}
+                                  </div>
+                                  <div className="text-gray-500 text-xs">
+                                    {booking.driverId.contactNumber}
+                                  </div>
                                 </div>
-                                <div className="text-gray-500 text-xs">
-                                  {booking.driver.phone}
-                                </div>
-                              </div>
-                            ) : (
-                              <span className="text-gray-400 text-sm">Not assigned</span>
-                            )}
-                          </td>
+                              ) : null}
+                            </td>
+                          )}
                         </tr>
                       ))}
                     </tbody>

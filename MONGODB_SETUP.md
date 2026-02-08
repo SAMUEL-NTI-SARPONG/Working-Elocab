@@ -86,10 +86,10 @@ If you don't want to install MongoDB locally:
    Replace the MONGODB_URI line with your Atlas connection string:
 
    ```env
-   MONGODB_URI=mongodb+srv://elocab_user:YOUR_PASSWORD@cluster0.xxxxx.mongodb.net/elocab?retryWrites=true&w=majority
+   MONGODB_URI=mongodb+srv://<username>:<password>@cluster0.xxxxx.mongodb.net/elocab?retryWrites=true&w=majority
    ```
 
-   Replace `<password>` with your actual password!
+   Replace `<username>` and `<password>` with your actual credentials!
 
 7. **Restart Backend Server**
 
