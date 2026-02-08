@@ -359,20 +359,13 @@ const RegisterPage = () => {
 
                   <input
                     type="text"
-                    name="digitalAddress"
-                    value={formData.digitalAddress}
-                    onChange={handleChange}
-                    className="w-full px-4 py-4 bg-gray-50 border-2 border-transparent rounded-xl focus:border-primary focus:bg-white transition-all text-base placeholder-gray-500 hover:bg-gray-100"
-                    placeholder="Digital address (e.g., AK-039-5678)"
-                  />
-
-                  <input
-                    type="text"
                     name="city"
                     value={formData.city}
                     onChange={handleChange}
                     className="w-full px-4 py-4 bg-gray-50 border-2 border-transparent rounded-xl focus:border-primary focus:bg-white transition-all text-base placeholder-gray-500 hover:bg-gray-100"
                     placeholder="City"
+                    required
+                  />
                     required
                   />
                 </>

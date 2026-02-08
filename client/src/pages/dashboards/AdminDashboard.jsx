@@ -489,7 +489,7 @@ const AdminDashboard = () => {
             {stats.lifetime && (
               <div className="mb-8">
                 <h3 className="text-lg font-bold text-gray-700 mb-4">📊 Lifetime Statistics (Persists After Data Cleanup)</h3>
-                <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-4">
+                <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4">
                   <div className="card bg-gradient-to-br from-blue-100 to-blue-50">
                     <h4 className="text-gray-600 text-xs mb-1">Total Bookings</h4>
                     <p className="text-2xl font-bold text-blue-700">{stats.lifetime.totalBookings}</p>
@@ -505,11 +505,6 @@ const AdminDashboard = () => {
                     <p className="text-2xl font-bold text-red-700">{stats.lifetime.totalCancelled}</p>
                     <p className="text-xs text-gray-500 mt-1">All time</p>
                   </div>
-                  <div className="card bg-gradient-to-br from-purple-100 to-purple-50">
-                    <h4 className="text-gray-600 text-xs mb-1">Total Revenue</h4>
-                    <p className="text-2xl font-bold text-purple-700">₦{stats.lifetime.totalRevenue.toLocaleString()}</p>
-                    <p className="text-xs text-gray-500 mt-1">All time</p>
-                  </div>
                 </div>
                 {stats.lifetime.last7Days && stats.lifetime.last7Days.length > 0 && (
                   <div className="mt-4 card">
@@ -521,7 +516,6 @@ const AdminDashboard = () => {
                           <div className="flex gap-4">
                             <span className="text-blue-600">{day.bookingCount} bookings</span>
                             <span className="text-green-600">{day.completedCount} completed</span>
-                            <span className="text-purple-600">₦{day.revenue.toLocaleString()}</span>
                           </div>
                         </div>
                       ))}
