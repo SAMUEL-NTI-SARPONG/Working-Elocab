@@ -279,99 +279,136 @@ const AdminDashboard = () => {
                 <h3 className="text-xl font-bold text-yellow-600 mb-4">
                   ⏳ Pending Assignments ({pendingBookings.length})
                 </h3>
-                <div className="space-y-4">
-                  {pendingBookings.map((booking) => (
-                    <div
-                      key={booking._id}
-                      className="card border-l-4 border-yellow-500"
-                    >
-                      <div className="flex items-start justify-between mb-4">
-                        <div className="flex-1">
-                          <h4 className="text-lg font-bold">
-                            {booking.serviceType}
-                          </h4>
-                          <p className="text-sm text-gray-600">
-                            {new Date(booking.dateTime).toLocaleString()}
-                          </p>
-                          <div className="mt-2 grid md:grid-cols-2 gap-2">
-                            <div>
-                              <p className="text-sm text-gray-500">Pickup</p>
-                              <p className="font-semibold">
-                                {booking.pickupPoint}
-                              </p>
-                            </div>
-                            <div>
-                              <p className="text-sm text-gray-500">Destination</p>
-                              <p className="font-semibold">
-                                {booking.destination}
-                              </p>
-                            </div>
+                <div className="bg-white rounded-lg shadow-md overflow-hidden">
+                  {/* Desktop Table */}
+                  <div className="hidden md:block overflow-x-auto">
+                    <table className="w-full">
+                      <thead className="bg-gradient-to-r from-yellow-500 to-yellow-400 text-white">
+                        <tr>
+                          <th className="px-6 py-4 text-left text-sm font-semibold">Service</th>
+                          <th className="px-6 py-4 text-left text-sm font-semibold">Date & Time</th>
+                          <th className="px-6 py-4 text-left text-sm font-semibold">Route</th>
+                          <th className="px-6 py-4 text-left text-sm font-semibold">Customer</th>
+                          <th className="px-6 py-4 text-left text-sm font-semibold">Passengers</th>
+                          <th className="px-6 py-4 text-left text-sm font-semibold">Assign Driver</th>
+                        </tr>
+                      </thead>
+                      <tbody className="divide-y divide-gray-200">
+                        {pendingBookings.map((booking) => (
+                          <tr key={booking._id} className="hover:bg-gray-50 transition-colors">
+                            <td className="px-6 py-4 font-medium text-gray-800">
+                              {booking.serviceType}
+                            </td>
+                            <td className="px-6 py-4 text-gray-600 text-sm">
+                              {new Date(booking.dateTime).toLocaleString()}
+                            </td>
+                            <td className="px-6 py-4">
+                              <div className="text-sm">
+                                <div className="font-semibold text-gray-800">{booking.pickupPoint}</div>
+                                <div className="text-gray-500 text-xs">→</div>
+                                <div className="font-semibold text-gray-800">{booking.destination}</div>
+                              </div>
+                            </td>
+                            <td className="px-6 py-4">
+                              {booking.customerId && (
+                                <div className="text-sm">
+                                  <div className="font-bold text-gray-800">{booking.customerId.name}</div>
+                                  <div className="text-gray-600">{booking.customerId.phoneNumber}</div>
+                                </div>
+                              )}
+                            </td>
+                            <td className="px-6 py-4 text-gray-600">
+                              {booking.numberOfPeople}
+                            </td>
+                            <td className="px-6 py-4">
+                              <div className="flex gap-2">
+                                <select
+                                  className="flex-1 min-w-[180px] px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-primary focus:border-transparent text-sm"
+                                  value={selectedBooking === booking._id ? selectedDriver : ""}
+                                  onChange={(e) => {
+                                    setSelectedBooking(booking._id);
+                                    setSelectedDriver(e.target.value);
+                                  }}
+                                >
+                                  <option value="">Select driver...</option>
+                                  {drivers.map((driver) => (
+                                    <option key={driver._id} value={driver._id}>
+                                      {driver.name} - {driver.carType} ({driver.seats} seats) {driver.isAvailable ? "✅" : "⚫"}
+                                    </option>
+                                  ))}
+                                </select>
+                                <button
+                                  onClick={assignDriver}
+                                  disabled={selectedBooking !== booking._id || !selectedDriver || loading}
+                                  className="px-4 py-2 bg-green-600 text-white rounded-lg hover:bg-green-700 disabled:opacity-50 disabled:cursor-not-allowed font-semibold text-sm whitespace-nowrap"
+                                >
+                                  Assign
+                                </button>
+                              </div>
+                            </td>
+                          </tr>
+                        ))}
+                      </tbody>
+                    </table>
+                  </div>
+
+                  {/* Mobile Cards */}
+                  <div className="md:hidden space-y-4 p-4">
+                    {pendingBookings.map((booking) => (
+                      <div key={booking._id} className="border border-yellow-200 rounded-lg p-4 shadow-sm bg-yellow-50">
+                        <div className="mb-3">
+                          <div className="font-bold text-gray-800 text-lg">{booking.serviceType}</div>
+                          <div className="text-sm text-gray-600">{new Date(booking.dateTime).toLocaleString()}</div>
+                        </div>
+                        
+                        <div className="space-y-2 mb-3">
+                          <div>
+                            <div className="text-xs text-gray-500 font-semibold">Route</div>
+                            <div className="font-semibold text-gray-800">{booking.pickupPoint} → {booking.destination}</div>
                           </div>
+                          
                           {booking.customerId && (
-                            <div className="mt-2 text-sm">
-                              <p>
-                                <strong>Customer:</strong>{" "}
-                                {booking.customerId.name} -{" "}
-                                {booking.customerId.phoneNumber}
-                              </p>
-                              <p>
-                                <strong>Passengers:</strong>{" "}
-                                {booking.numberOfPeople}
-                              </p>
+                            <div>
+                              <div className="text-xs text-gray-500 font-semibold">Customer</div>
+                              <div className="font-bold text-gray-800">{booking.customerId.name}</div>
+                              <div className="text-sm text-gray-600">{booking.customerId.phoneNumber}</div>
                             </div>
                           )}
+                          
+                          <div>
+                            <div className="text-xs text-gray-500 font-semibold">Passengers</div>
+                            <div className="text-gray-800">{booking.numberOfPeople}</div>
+                          </div>
                         </div>
-                        <div className="ml-4">
-                          <span
-                            className={`px-3 py-1 rounded-full text-sm font-semibold ${getStatusColor(
-                              booking.status
-                            )}`}
-                          >
-                            {booking.status.toUpperCase()}
-                          </span>
-                        </div>
-                      </div>
-
-                      <div className="flex items-end gap-4 mt-4 border-t pt-4">
-                        <div className="flex-1">
-                          <label className="block text-sm font-semibold text-gray-700 mb-2">
-                            Assign Driver
-                          </label>
+                        
+                        <div className="border-t pt-3">
+                          <label className="block text-sm font-semibold text-gray-700 mb-2">Assign Driver</label>
                           <select
-                            className="input-field"
-                            value={
-                              selectedBooking === booking._id
-                                ? selectedDriver
-                                : ""
-                            }
+                            className="w-full px-3 py-2 border border-gray-300 rounded-lg mb-2 text-sm"
+                            value={selectedBooking === booking._id ? selectedDriver : ""}
                             onChange={(e) => {
                               setSelectedBooking(booking._id);
                               setSelectedDriver(e.target.value);
                             }}
                           >
-                            <option value="">Select a driver...</option>
+                            <option value="">Select driver...</option>
                             {drivers.map((driver) => (
                               <option key={driver._id} value={driver._id}>
-                                {driver.name} - {driver.carType} ({driver.seats}{" "}
-                                seats) {driver.isAvailable ? "✅" : "⚫"}
+                                {driver.name} - {driver.carType} ({driver.seats} seats) {driver.isAvailable ? "✅" : "⚫"}
                               </option>
                             ))}
                           </select>
+                          <button
+                            onClick={assignDriver}
+                            disabled={selectedBooking !== booking._id || !selectedDriver || loading}
+                            className="w-full px-4 py-2 bg-green-600 text-white rounded-lg hover:bg-green-700 disabled:opacity-50 disabled:cursor-not-allowed font-semibold text-sm"
+                          >
+                            Assign
+                          </button>
                         </div>
-                        <button
-                          onClick={assignDriver}
-                          disabled={
-                            selectedBooking !== booking._id ||
-                            !selectedDriver ||
-                            loading
-                          }
-                          className="px-6 py-3 bg-green-600 text-white rounded-lg hover:bg-green-700 disabled:opacity-50 disabled:cursor-not-allowed font-semibold"
-                        >
-                          Assign
-                        </button>
                       </div>
-                    </div>
-                  ))}
+                    ))}
+                  </div>
                 </div>
               </div>
             )}
@@ -382,48 +419,112 @@ const AdminDashboard = () => {
                 <h3 className="text-xl font-bold text-blue-600 mb-4">
                   🚗 Active Rides ({assignedBookings.length})
                 </h3>
-                <div className="space-y-4">
-                  {assignedBookings.map((booking) => (
-                    <div
-                      key={booking._id}
-                      className="card border-l-4 border-blue-500"
-                    >
-                      <div className="flex items-start justify-between mb-4">
-                        <div className="flex-1">
-                          <h4 className="text-lg font-bold">
-                            {booking.serviceType}
-                          </h4>
-                          <p className="text-sm text-gray-600">
-                            {new Date(booking.dateTime).toLocaleString()}
-                          </p>
-                          <div className="mt-2 grid md:grid-cols-2 gap-4">
-                            <div>
-                              <p className="text-sm text-gray-500">Route</p>
-                              <p className="font-semibold">
-                                {booking.pickupPoint} → {booking.destination}
-                              </p>
-                            </div>
-                            <div>
-                              <p className="text-sm text-gray-500">Driver</p>
-                              <p className="font-semibold">
-                                {booking.driverId?.name} -{" "}
-                                {booking.driverId?.contactNumber}
-                              </p>
-                            </div>
+                <div className="bg-white rounded-lg shadow-md overflow-hidden">
+                  {/* Desktop Table */}
+                  <div className="hidden md:block overflow-x-auto">
+                    <table className="w-full">
+                      <thead className="bg-gradient-to-r from-blue-500 to-blue-400 text-white">
+                        <tr>
+                          <th className="px-6 py-4 text-left text-sm font-semibold">Status</th>
+                          <th className="px-6 py-4 text-left text-sm font-semibold">Service</th>
+                          <th className="px-6 py-4 text-left text-sm font-semibold">Date & Time</th>
+                          <th className="px-6 py-4 text-left text-sm font-semibold">Route</th>
+                          <th className="px-6 py-4 text-left text-sm font-semibold">Driver</th>
+                          <th className="px-6 py-4 text-left text-sm font-semibold">Customer</th>
+                        </tr>
+                      </thead>
+                      <tbody className="divide-y divide-gray-200">
+                        {assignedBookings.map((booking) => (
+                          <tr key={booking._id} className="hover:bg-gray-50 transition-colors">
+                            <td className="px-6 py-4">
+                              <span
+                                className={`px-3 py-1 rounded-full text-xs font-semibold ${getStatusColor(
+                                  booking.status
+                                )}`}
+                              >
+                                {booking.status.replace("-", " ").toUpperCase()}
+                              </span>
+                            </td>
+                            <td className="px-6 py-4 font-medium text-gray-800">
+                              {booking.serviceType}
+                            </td>
+                            <td className="px-6 py-4 text-gray-600 text-sm">
+                              {new Date(booking.dateTime).toLocaleString()}
+                            </td>
+                            <td className="px-6 py-4">
+                              <div className="text-sm">
+                                <div className="font-semibold text-gray-800">{booking.pickupPoint}</div>
+                                <div className="text-gray-500 text-xs">→</div>
+                                <div className="font-semibold text-gray-800">{booking.destination}</div>
+                              </div>
+                            </td>
+                            <td className="px-6 py-4">
+                              {booking.driverId && (
+                                <div className="text-sm">
+                                  <div className="font-bold text-gray-800">{booking.driverId.name}</div>
+                                  <div className="text-gray-600">{booking.driverId.contactNumber}</div>
+                                </div>
+                              )}
+                            </td>
+                            <td className="px-6 py-4">
+                              {booking.customerId && (
+                                <div className="text-sm">
+                                  <div className="font-bold text-gray-800">{booking.customerId.name}</div>
+                                  <div className="text-gray-600">{booking.customerId.phoneNumber}</div>
+                                  <div className="text-gray-500 text-xs">{booking.numberOfPeople} passengers</div>
+                                </div>
+                              )}
+                            </td>
+                          </tr>
+                        ))}
+                      </tbody>
+                    </table>
+                  </div>
+
+                  {/* Mobile Cards */}
+                  <div className="md:hidden space-y-4 p-4">
+                    {assignedBookings.map((booking) => (
+                      <div key={booking._id} className="border border-blue-200 rounded-lg p-4 shadow-sm bg-blue-50">
+                        <div className="flex justify-between items-start mb-3">
+                          <div>
+                            <div className="font-bold text-gray-800 text-lg">{booking.serviceType}</div>
+                            <div className="text-sm text-gray-600">{new Date(booking.dateTime).toLocaleString()}</div>
                           </div>
-                        </div>
-                        <div>
                           <span
-                            className={`px-3 py-1 rounded-full text-sm font-semibold ${getStatusColor(
+                            className={`px-3 py-1 rounded-full text-xs font-semibold ${getStatusColor(
                               booking.status
                             )}`}
                           >
                             {booking.status.replace("-", " ").toUpperCase()}
                           </span>
                         </div>
+                        
+                        <div className="space-y-2">
+                          <div>
+                            <div className="text-xs text-gray-500 font-semibold">Route</div>
+                            <div className="font-semibold text-gray-800">{booking.pickupPoint} → {booking.destination}</div>
+                          </div>
+                          
+                          {booking.driverId && (
+                            <div>
+                              <div className="text-xs text-gray-500 font-semibold">Driver</div>
+                              <div className="font-bold text-gray-800">{booking.driverId.name}</div>
+                              <div className="text-sm text-gray-600">{booking.driverId.contactNumber}</div>
+                            </div>
+                          )}
+                          
+                          {booking.customerId && (
+                            <div>
+                              <div className="text-xs text-gray-500 font-semibold">Customer</div>
+                              <div className="font-bold text-gray-800">{booking.customerId.name}</div>
+                              <div className="text-sm text-gray-600">{booking.customerId.phoneNumber}</div>
+                              <div className="text-xs text-gray-500">{booking.numberOfPeople} passengers</div>
+                            </div>
+                          )}
+                        </div>
                       </div>
-                    </div>
-                  ))}
+                    ))}
+                  </div>
                 </div>
               </div>
             )}

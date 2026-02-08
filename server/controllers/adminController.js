@@ -83,7 +83,7 @@ exports.assignDriver = async (req, res) => {
     }
 
     booking.driverId = driverId;
-    booking.status = "assigned";
+    booking.status = "accepted";
     await booking.save();
 
     const populatedBooking = await Booking.findById(booking._id)
