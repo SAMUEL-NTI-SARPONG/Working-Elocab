@@ -121,13 +121,13 @@ const DriverDashboard = () => {
   return (
     <div className="min-h-screen bg-gray-50">
       {/* Header */}
-      <header className="bg-secondary shadow-lg">
+      <header className="bg-white shadow-sm">
         <div className="container mx-auto px-6 py-4">
           <div className="flex items-center justify-between">
             <div className="flex items-center space-x-4">
               <div className="flex items-center space-x-3 group">
                 <div className="relative">
-                  <div className="absolute inset-0 rounded-full bg-white/10 scale-100 group-hover:scale-125 transition-all duration-300"></div>
+                  <div className="absolute inset-0 rounded-full bg-primary/5 scale-110 group-hover:scale-125 transition-all duration-300"></div>
                   <img
                     src="/images/logo.png"
                     alt="ELOCAB"
@@ -136,8 +136,8 @@ const DriverDashboard = () => {
                   />
                 </div>
                 <div>
-                  <h1 className="text-xl font-black tracking-tight text-white">ELOCAB</h1>
-                  <p className="text-xs text-white/80">Driver Dashboard</p>
+                  <h1 className="text-xl font-black tracking-tight text-gray-900">ELOCAB</h1>
+                  <p className="text-xs text-gray-500">Driver Dashboard</p>
                 </div>
               </div>
             </div>
@@ -152,10 +152,10 @@ const DriverDashboard = () => {
               >
                 {profile?.isAvailable ? "Online" : "Offline"}
               </button>
-              <span className="text-white">{profile?.name || user?.email}</span>
+              <span className="text-gray-600">{profile?.name || user?.email}</span>
               <button
                 onClick={handleLogout}
-                className="px-4 py-2 bg-white/20 text-white rounded-lg hover:bg-white/30 transition-all"
+                className="px-4 py-2 bg-red-500 text-white rounded-lg hover:bg-red-600 transition-all"
               >
                 Logout
               </button>
@@ -172,7 +172,7 @@ const DriverDashboard = () => {
               onClick={() => setActiveTab("bookings")}
               className={`py-4 px-2 border-b-2 font-semibold transition-all ${
                 activeTab === "bookings"
-                  ? "border-secondary text-secondary"
+                  ? "border-primary text-primary"
                   : "border-transparent text-gray-500 hover:text-gray-700"
               }`}
             >
@@ -182,7 +182,7 @@ const DriverDashboard = () => {
               onClick={() => setActiveTab("history")}
               className={`py-4 px-2 border-b-2 font-semibold transition-all ${
                 activeTab === "history"
-                  ? "border-secondary text-secondary"
+                  ? "border-primary text-primary"
                   : "border-transparent text-gray-500 hover:text-gray-700"
               }`}
             >
@@ -192,7 +192,7 @@ const DriverDashboard = () => {
               onClick={() => setActiveTab("profile")}
               className={`py-4 px-2 border-b-2 font-semibold transition-all ${
                 activeTab === "profile"
-                  ? "border-secondary text-secondary"
+                  ? "border-primary text-primary"
                   : "border-transparent text-gray-500 hover:text-gray-700"
               }`}
             >
@@ -206,8 +206,8 @@ const DriverDashboard = () => {
       <div className="container mx-auto px-6 py-8">
         {/* Active Bookings Tab */}
         {activeTab === "bookings" && (
-          <div className="max-w-5xl mx-auto">
-            <h2 className="text-2xl font-bold text-secondary mb-6">
+          <div className="max-w-4xl mx-auto">
+            <h2 className="text-2xl font-bold text-primary mb-6">
               Assigned Rides
             </h2>
 
@@ -228,10 +228,10 @@ const DriverDashboard = () => {
                 )}
               </div>
             ) : (
-              <div className="space-y-4">
+              <div className="space-y-3">
                 {activeBookings.map((booking) => (
-                  <div key={booking._id} className="card border-l-4 border-secondary">
-                    <div className="flex flex-col sm:flex-row sm:items-start justify-between gap-4 mb-4">
+                  <div key={booking._id} className="card border-l-4 border-primary">
+                    <div className="flex flex-col sm:flex-row sm:items-start justify-between gap-3 mb-3">
                       <div>
                         <h3 className="text-lg font-bold text-gray-800">
                           {booking.serviceType}
@@ -249,7 +249,7 @@ const DriverDashboard = () => {
                       </span>
                     </div>
 
-                    <div className="grid sm:grid-cols-2 gap-4 mb-4 p-4 bg-gray-50 rounded-lg">
+                    <div className="grid sm:grid-cols-2 gap-3 mb-3 p-3 bg-gray-50 rounded-lg">
                       <div>
                         <p className="text-xs text-gray-500 font-semibold uppercase">
                           Pickup Point
@@ -269,14 +269,14 @@ const DriverDashboard = () => {
                     </div>
 
                     {booking.customerId && (
-                      <div className="bg-blue-50 border border-blue-100 p-4 rounded-lg mb-4">
+                      <div className="bg-blue-50 border border-blue-100 p-3 rounded-lg mb-3">
                         <p className="text-xs text-blue-600 font-semibold uppercase mb-1">
                           Customer Details
                         </p>
                         <p className="font-bold text-gray-800">
                           {booking.customerId.name}
                         </p>
-                        <p className="text-secondary font-semibold text-sm">
+                        <p className="text-primary font-semibold text-sm">
                           {booking.customerId.phoneNumber}
                         </p>
                         <p className="text-sm text-gray-600 mt-1">
@@ -287,7 +287,7 @@ const DriverDashboard = () => {
                     )}
 
                     {booking.notes && (
-                      <div className="bg-amber-50 border border-amber-200 p-4 rounded-lg mb-4">
+                      <div className="bg-amber-50 border border-amber-200 p-3 rounded-lg mb-3">
                         <p className="text-sm font-semibold text-amber-700">
                           Special Note:
                         </p>
@@ -296,14 +296,14 @@ const DriverDashboard = () => {
                     )}
 
                     {/* Status Update Buttons */}
-                    <div className="flex gap-3 flex-wrap pt-4 border-t border-gray-200">
+                    <div className="flex gap-2 flex-wrap pt-3 border-t border-gray-200">
                       {booking.status === "assigned" && (
                         <>
                           <button
                             onClick={() =>
                               updateBookingStatus(booking._id, "accepted")
                             }
-                            className="flex-1 min-w-[140px] px-6 py-3 bg-green-500 text-white rounded-lg hover:bg-green-600 font-semibold transition-all"
+                            className="flex-1 min-w-[120px] px-4 py-2 bg-green-500 text-white rounded-lg hover:bg-green-600 font-semibold transition-all text-sm"
                           >
                             Accept Ride
                           </button>
@@ -311,7 +311,7 @@ const DriverDashboard = () => {
                             onClick={() =>
                               updateBookingStatus(booking._id, "cancelled")
                             }
-                            className="px-6 py-3 bg-red-500 text-white rounded-lg hover:bg-red-600 font-semibold transition-all"
+                            className="px-4 py-2 bg-red-500 text-white rounded-lg hover:bg-red-600 font-semibold transition-all text-sm"
                           >
                             Decline
                           </button>
@@ -322,7 +322,7 @@ const DriverDashboard = () => {
                           onClick={() =>
                             updateBookingStatus(booking._id, "on-the-way")
                           }
-                          className="flex-1 px-6 py-3 bg-blue-500 text-white rounded-lg hover:bg-blue-600 font-semibold transition-all"
+                          className="flex-1 px-4 py-2 bg-blue-500 text-white rounded-lg hover:bg-blue-600 font-semibold transition-all text-sm"
                         >
                           On The Way
                         </button>
@@ -332,7 +332,7 @@ const DriverDashboard = () => {
                           onClick={() =>
                             updateBookingStatus(booking._id, "picked-up")
                           }
-                          className="flex-1 px-6 py-3 bg-purple-500 text-white rounded-lg hover:bg-purple-600 font-semibold transition-all"
+                          className="flex-1 px-4 py-2 bg-purple-500 text-white rounded-lg hover:bg-purple-600 font-semibold transition-all text-sm"
                         >
                           Picked Up
                         </button>
@@ -342,7 +342,7 @@ const DriverDashboard = () => {
                           onClick={() =>
                             updateBookingStatus(booking._id, "completed")
                           }
-                          className="flex-1 px-6 py-3 bg-green-600 text-white rounded-lg hover:bg-green-700 font-semibold transition-all"
+                          className="flex-1 px-4 py-2 bg-green-600 text-white rounded-lg hover:bg-green-700 font-semibold transition-all text-sm"
                         >
                           Complete Ride
                         </button>
@@ -357,7 +357,7 @@ const DriverDashboard = () => {
 
         {/* History Tab */}
         {activeTab === "history" && (
-          <div className="max-w-5xl mx-auto">
+          <div className="max-w-4xl mx-auto">
             <h2 className="text-2xl font-bold text-primary mb-6">
               Ride History ({completedBookings.length} total)
             </h2>
