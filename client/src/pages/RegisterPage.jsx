@@ -366,8 +366,6 @@ const RegisterPage = () => {
                     placeholder="City"
                     required
                   />
-                    required
-                  />
                 </>
               )}
 

@@ -14,6 +14,7 @@ const {
   clearAllBookings,
   createCustomer,
   createDriver,
+  resetStatistics,
 } = require("../controllers/adminController");
 const { protect, admin } = require("../middleware/auth");
 
@@ -23,6 +24,7 @@ router.use(admin);
 
 // Dashboard
 router.get("/stats", getDashboardStats);
+router.post("/stats/reset", resetStatistics);
 
 // Drivers
 router.get("/drivers", getAllDrivers);

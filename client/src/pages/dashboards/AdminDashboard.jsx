@@ -249,6 +249,22 @@ const AdminDashboard = () => {
     }
   };
 
+  const resetStatistics = async () => {
+    if (!confirm("⚠️ WARNING: This will reset ALL lifetime statistics to zero! Are you absolutely sure?")) return;
+    if (!confirm("This is your final warning. All statistics data will be permanently reset. Continue?")) return;
+
+    setLoading(true);
+    try {
+      const { data } = await axios.post("/api/admin/stats/reset");
+      toast.success(data.message);
+      fetchStats();
+    } catch (error) {
+      toast.error("Failed to reset statistics");
+    } finally {
+      setLoading(false);
+    }
+  };
+
   const previewArchive = async () => {
     setArchiveLoading(true);
     try {
@@ -488,7 +504,16 @@ const AdminDashboard = () => {
             {/* Lifetime Statistics */}
             {stats.lifetime && (
               <div className="mb-8">
-                <h3 className="text-lg font-bold text-gray-700 mb-4">📊 Lifetime Statistics (Persists After Data Cleanup)</h3>
+                <div className="flex justify-between items-center mb-4">
+                  <h3 className="text-lg font-bold text-gray-700">📊 Lifetime Statistics (Persists After Data Cleanup)</h3>
+                  <button
+                    onClick={resetStatistics}
+                    className="px-4 py-2 bg-red-600 text-white text-sm rounded-lg hover:bg-red-700 transition-all"
+                    disabled={loading}
+                  >
+                    Reset Stats
+                  </button>
+                </div>
                 <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4">
                   <div className="card bg-gradient-to-br from-blue-100 to-blue-50">
                     <h4 className="text-gray-600 text-xs mb-1">Total Bookings</h4>

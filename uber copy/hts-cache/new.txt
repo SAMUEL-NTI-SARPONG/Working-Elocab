@@ -1,3 +1,0 @@
-date	size'/'remotesize	flags(request:Update,Range state:File response:Modified,Chunked,gZipped)	statuscode	status ('servermsg')	MIME	Etag|Date	URL	localfile	(from URL)
-03:44:13	0/0	---M--	301	error ('Moved%20Permanently')	text/html	date:Fri,%2006%20Feb%202026%2003:44:13%20GMT	http://uber.com/robots.txt		(from )
-03:44:14	0/0	---M--	301	error ('Moved%20Permanently')	text/html	date:Fri,%2006%20Feb%202026%2003:44:14%20GMT	http://uber.com/	C:/Users/Samuel/OneDrive/Desktop/new%20elocab/uber%20copy/uber.com/index.html	(from )

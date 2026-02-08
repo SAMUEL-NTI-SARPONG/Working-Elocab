@@ -387,3 +387,28 @@ exports.createDriver = async (req, res) => {
       .json({ message: "Error creating driver", error: error.message });
   }
 };
+
+// Reset statistics
+exports.resetStatistics = async (req, res) => {
+  try {
+    const stats = await Statistics.getInstance();
+    
+    // Reset all counters to zero
+    stats.totalBookingsAllTime = 0;
+    stats.totalCompletedBookingsAllTime = 0;
+    stats.totalCancelledBookingsAllTime = 0;
+    stats.totalRevenueAllTime = 0;
+    stats.dailyBookings = [];
+    
+    await stats.save();
+    
+    res.json({ 
+      message: "Statistics reset successfully",
+      stats 
+    });
+  } catch (error) {
+    res
+      .status(500)
+      .json({ message: "Error resetting statistics", error: error.message });
+  }
+};
