@@ -1,0 +1,36 @@
+ DRIVER SECTION IMAGE GUIDE
+================================
+
+WHERE TO PLACE THE IMAGE:
+-------------------------
+Location: client/public/images/
+File name: driver-image.jpg (or .png)
+Full path: c:\Users\Samuel\OneDrive\Desktop\new elocab\client\public\images\driver-image.jpg
+
+IMAGE SPECIFICATIONS:
+--------------------
+ Format: JPG or PNG
+ Size: 800x800 pixels (square aspect ratio)
+ File size: Under 300KB for best performance
+ Content: Photo of a happy driver, someone in a car, or driving-related image
+
+WHAT THIS IMAGE IS FOR:
+----------------------
+This image appears in the 'Drive when you want, make what you need' section
+on the homepage - it's the driver recruitment section that encourages 
+people to sign up as drivers.
+
+FALLBACK:
+---------
+If no image is placed, the site will show an icon placeholder automatically.
+No errors will occur.
+
+QUICK STEPS:
+------------
+1. Get/create your driver image (happy driver photo recommended)
+2. Resize to 800x800 pixels
+3. Save as 'driver-image.jpg'
+4. Place in: client/public/images/
+5. Refresh the website - the image will appear!
+
+CURRENT STATUS: Image placeholder is ready and waiting for your photo! 

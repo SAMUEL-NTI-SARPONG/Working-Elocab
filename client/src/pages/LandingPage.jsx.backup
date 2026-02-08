@@ -1,0 +1,588 @@
+import { useState, useEffect } from "react";
+import { useNavigate } from "react-router-dom";
+import { Swiper, SwiperSlide } from "swiper/react";
+import { Autoplay, Pagination, EffectFade } from "swiper/modules";
+import { useAuth } from "../context/AuthContext";
+import Navbar from "../components/Navbar";
+import Footer from "../components/Footer";
+
+// Import Swiper styles
+import "swiper/css";
+import "swiper/css/pagination";
+import "swiper/css/effect-fade";
+
+const LandingPage = () => {
+  const [scrolled, setScrolled] = useState(false);
+  const { user } = useAuth();
+  const navigate = useNavigate();
+
+  useEffect(() => {
+    // Redirect if already logged in
+    if (user) {
+      if (user.role === "customer") navigate("/customer/dashboard");
+      else if (user.role === "driver") navigate("/driver/dashboard");
+      else if (user.role === "admin") navigate("/admin/dashboard");
+    }
+
+    const handleScroll = () => {
+      setScrolled(window.scrollY > 50);
+    };
+
+    window.addEventListener("scroll", handleScroll);
+    return () => window.removeEventListener("scroll", handleScroll);
+  }, [user, navigate]);
+
+  const cars = [
+    {
+      name: "Nissan Caravan",
+      image: "/images/nissan-caravan.jpg",
+      seats: "14-16 seats",
+      description: "Perfect for large groups and events",
+    },
+    {
+      name: "Toyota Hiace",
+      image: "/images/toyota-hiace.jpg",
+      seats: "14-16 seats",
+      description: "Comfortable and spacious for all journeys",
+    },
+    {
+      name: "Toyota Voxy",
+      image: "/images/toyota-voxy.jpg",
+      seats: "7-8 seats",
+      description: "Ideal for family trips and small groups",
+    },
+    {
+      name: "Toyota Vitz",
+      image: "/images/toyota-vitz.jpg",
+      seats: "4-5 seats",
+      description: "Quick and efficient for short trips",
+    },
+  ];
+
+  const services = [
+    {
+      icon: (
+        <svg
+          className="w-12 h-12"
+          fill="none"
+          stroke="currentColor"
+          viewBox="0 0 24 24"
+        >
+          <path
+            strokeLinecap="round"
+            strokeLinejoin="round"
+            strokeWidth={2}
+            d="M8 7h12m0 0l-4-4m4 4l-4 4m0 6H4m0 0l4 4m-4-4l4-4"
+          />
+        </svg>
+      ),
+      title: "Ride",
+      description: "Book a ride to your destination",
+      action: "Book now",
+    },
+    {
+      icon: (
+        <svg
+          className="w-12 h-12"
+          fill="none"
+          stroke="currentColor"
+          viewBox="0 0 24 24"
+        >
+          <path
+            strokeLinecap="round"
+            strokeLinejoin="round"
+            strokeWidth={2}
+            d="M17 20h5v-2a3 3 0 00-5.356-1.857M17 20H7m10 0v-2c0-.656-.126-1.283-.356-1.857M7 20H2v-2a3 3 0 015.356-1.857M7 20v-2c0-.656.126-1.283.356-1.857m0 0a5.002 5.002 0 019.288 0M15 7a3 3 0 11-6 0 3 3 0 016 0zm6 3a2 2 0 11-4 0 2 2 0 014 0zM7 10a2 2 0 11-4 0 2 2 0 014 0z"
+          />
+        </svg>
+      ),
+      title: "Groups",
+      description: "Travel together with family or friends",
+      action: "Learn more",
+    },
+    {
+      icon: (
+        <svg
+          className="w-12 h-12"
+          fill="none"
+          stroke="currentColor"
+          viewBox="0 0 24 24"
+        >
+          <path
+            strokeLinecap="round"
+            strokeLinejoin="round"
+            strokeWidth={2}
+            d="M12 8v4l3 3m6-3a9 9 0 11-18 0 9 9 0 0118 0z"
+          />
+        </svg>
+      ),
+      title: "Hire",
+      description: "Hire a car for events and occasions",
+      action: "Get started",
+    },
+  ];
+
+  const features = [
+    {
+      title: "Safety first",
+      description:
+        "We are committed to your safety with background-checked drivers and real-time GPS tracking",
+    },
+    {
+      title: "Flexible pricing",
+      description:
+        "Get affordable rates that work for you with transparent pricing and no hidden fees",
+    },
+    {
+      title: "Available 24/7",
+      description:
+        "Book a ride anytime, anywhere in Kumasi. Our drivers are always ready to serve you",
+    },
+  ];
+
+  return (
+    <div className="min-h-screen bg-white">
+      <Navbar scrolled={scrolled} />
+
+      {/* Hero Section - Modern & Sophisticated with Carousel Background */}
+      <section className="relative min-h-screen flex items-center overflow-hidden">
+        {/* Car Carousel Background */}
+        <div className="absolute inset-0">
+          <Swiper
+            modules={[Autoplay, EffectFade]}
+            effect="fade"
+            fadeEffect={{ crossFade: true }}
+            autoplay={{
+              delay: 4000,
+              disableOnInteraction: false,
+            }}
+            loop={true}
+            className="h-full w-full"
+          >
+            {cars.map((car, index) => (
+              <SwiperSlide key={index}>
+                <div className="relative w-full h-full">
+                  <img
+                    src={car.image}
+                    alt={car.name}
+                    className="absolute inset-0 w-full h-full object-cover"
+                  />
+                </div>
+              </SwiperSlide>
+            ))}
+          </Swiper>
+        </div>
+
+        {/* Transparent Gradient Overlay */}
+        <div className="absolute inset-0 bg-gradient-to-br from-primary/80 via-primary-light/75 to-secondary/80">
+          {/* Subtle Pattern */}
+          <div
+            className="absolute inset-0 opacity-10"
+            style={{
+              backgroundImage: `url("data:image/svg+xml,%3Csvg width='60' height='60' viewBox='0 0 60 60' xmlns='http://www.w3.org/2000/svg'%3E%3Cg fill='none' fill-rule='evenodd'%3E%3Cg fill='%23ffffff' fill-opacity='0.4'%3E%3Cpath d='M36 34v-4h-2v4h-4v2h4v4h2v-4h4v-2h-4zm0-30V0h-2v4h-4v2h4v4h2V6h4V4h-4zM6 34v-4H4v4H0v2h4v4h2v-4h4v-2H6zM6 4V0H4v4H0v2h4v4h2V6h4V4H6z'/%3E%3C/g%3E%3C/g%3E%3C/svg%3E")`,
+            }}
+          ></div>
+        </div>
+
+        <div className="container mx-auto px-6 md:px-12 relative z-10">
+          <div className="max-w-4xl">
+            {/* Main Heading with Beautiful Text Shadow & Gradient */}
+            <h1 className="text-6xl md:text-7xl lg:text-8xl font-bold text-white mb-6 leading-tight animate-fade-in">
+              <span className="block drop-shadow-[0_4px_20px_rgba(0,0,0,0.5)]">
+                Go anywhere
+              </span>
+              <span className="block bg-gradient-to-r from-white via-secondary-light to-secondary bg-clip-text text-transparent drop-shadow-[0_4px_20px_rgba(0,0,0,0.5)] animate-slide-in">
+                with ELOCAB
+              </span>
+            </h1>
+
+            {/* Subheading with soft shadow */}
+            <p
+              className="text-xl md:text-2xl text-white/95 mb-4 font-light drop-shadow-[0_2px_10px_rgba(0,0,0,0.3)] animate-slide-up"
+              style={{ animationDelay: "0.2s" }}
+            >
+              Reliable rides anytime. Your journey, our priority.
+            </p>
+
+            {/* Feature Pills */}
+            <div
+              className="flex flex-wrap gap-3 mb-10 animate-slide-up"
+              style={{ animationDelay: "0.3s" }}
+            >
+              {["Safe & Reliable", "Available 24/7", "Affordable Rates"].map(
+                (feature, index) => (
+                  <span
+                    key={index}
+                    className="inline-flex items-center gap-2 bg-white/20 backdrop-blur-sm px-4 py-2 rounded-full text-white text-sm font-medium drop-shadow-lg hover:bg-white/30 transition-all"
+                  >
+                    <svg
+                      className="w-4 h-4 text-secondary-light"
+                      fill="currentColor"
+                      viewBox="0 0 20 20"
+                    >
+                      <path
+                        fillRule="evenodd"
+                        d="M10 18a8 8 0 100-16 8 8 0 000 16zm3.707-9.293a1 1 0 00-1.414-1.414L9 10.586 7.707 9.293a1 1 0 00-1.414 1.414l2 2a1 1 0 001.414 0l4-4z"
+                        clipRule="evenodd"
+                      />
+                    </svg>
+                    {feature}
+                  </span>
+                ),
+              )}
+            </div>
+
+            {/* Modern CTA Button with Hover Effects */}
+            <button
+              onClick={() => navigate("/register")}
+              className="group relative px-10 py-5 bg-white text-primary rounded-2xl font-bold text-lg shadow-strong hover:shadow-xl transform hover:scale-105 transition-all duration-300 animate-scale-in overflow-hidden"
+              style={{ animationDelay: "0.4s" }}
+            >
+              <span className="relative z-10 flex items-center justify-center gap-2">
+                Get started
+                <svg
+                  className="w-5 h-5 group-hover:translate-x-1 transition-transform duration-300"
+                  fill="none"
+                  stroke="currentColor"
+                  viewBox="0 0 24 24"
+                >
+                  <path
+                    strokeLinecap="round"
+                    strokeLinejoin="round"
+                    strokeWidth={2}
+                    d="M13 7l5 5m0 0l-5 5m5-5H6"
+                  />
+                </svg>
+              </span>
+              {/* Shimmer Effect on Hover */}
+              <div className="absolute inset-0 bg-gradient-to-r from-transparent via-secondary-light/10 to-transparent opacity-0 group-hover:opacity-100 transition-all duration-500 transform -translate-x-full group-hover:translate-x-full"></div>
+            </button>
+
+            {/* Stats */}
+            <div
+              className="mt-16 grid grid-cols-3 gap-8 max-w-2xl animate-fade-in"
+              style={{ animationDelay: "0.5s" }}
+            >
+              {[
+                { value: "500+", label: "Happy Customers" },
+                { value: "50+", label: "Professional Drivers" },
+                { value: "24/7", label: "Service" },
+              ].map((stat, index) => (
+                <div key={index} className="text-white group cursor-pointer">
+                  <div className="text-3xl md:text-4xl font-bold drop-shadow-lg group-hover:scale-110 transition-transform">
+                    {stat.value}
+                  </div>
+                  <div className="text-sm text-white/80 mt-1 drop-shadow-md">
+                    {stat.label}
+                  </div>
+                </div>
+              ))}
+            </div>
+          </div>
+        </div>
+
+        {/* Floating Scroll Indicator */}
+        <div className="absolute bottom-8 left-1/2 transform -translate-x-1/2 animate-float">
+          <div className="flex flex-col items-center gap-2 text-white/80 drop-shadow-lg">
+            <span className="text-xs uppercase tracking-wider">Scroll</span>
+            <svg
+              className="w-6 h-6"
+              fill="none"
+              stroke="currentColor"
+              viewBox="0 0 24 24"
+            >
+              <path
+                strokeLinecap="round"
+                strokeLinejoin="round"
+                strokeWidth={2}
+                d="M19 14l-7 7m0 0l-7-7m7 7V3"
+              />
+            </svg>
+          </div>
+        </div>
+      </section>
+
+      {/* Services Section - Modern Cards */
+      <section className="py-24 bg-gradient-to-b from-white to-gray-50">
+        <div className="container mx-auto px-6 md:px-12">
+          <h2 className="text-4xl md:text-5xl font-bold text-gray-900 mb-4 animate-slide-up">
+            What we offer
+          </h2>
+          <p
+            className="text-xl text-gray-600 mb-16 max-w-2xl animate-slide-up"
+            style={{ animationDelay: "0.1s" }}
+          >
+            Choose the perfect ride for your needs
+          </p>
+
+          <div className="grid grid-cols-1 md:grid-cols-3 gap-8">
+            {services.map((service, index) => (
+              <div
+                key={index}
+                className="group cursor-pointer animate-scale-in hover:animate-none"
+                style={{ animationDelay: `${0.1 * index}s` }}
+                onClick={() => navigate("/register")}
+              >
+                <div className="relative bg-white rounded-2xl p-8 shadow-soft hover:shadow-strong transition-all duration-300 transform hover:-translate-y-2 border border-gray-100 overflow-hidden">
+                  <div className="absolute inset-0 bg-gradient-to-br from-primary/5 to-secondary/5 opacity-0 group-hover:opacity-100 transition-opacity duration-300"></div>
+
+                  <div className="relative z-10">
+                    <div className="text-primary mb-6 group-hover:scale-110 transition-transform duration-300">
+                      {service.icon}
+                    </div>
+                    <h3 className="text-2xl font-bold text-gray-900 mb-3 group-hover:text-primary transition-colors">
+                      {service.title}
+                    </h3>
+                    <p className="text-gray-600 mb-6 leading-relaxed">
+                      {service.description}
+                    </p>
+                    <span className="text-secondary font-semibold inline-flex items-center group-hover:gap-3 gap-2 transition-all">
+                      {service.action}
+                      <svg
+                        className="w-5 h-5 group-hover:translate-x-1 transition-transform duration-300"
+                        fill="none"
+                        stroke="currentColor"
+                        viewBox="0 0 24 24"
+                      >
+                        <path
+                          strokeLinecap="round"
+                          strokeLinejoin="round"
+                          strokeWidth={2}
+                          d="M17 8l4 4m0 0l-4 4m4-4H3"
+                        />
+                      </svg>
+                    </span>
+                  </div>
+                </div>
+              </div>
+            ))}
+          </div>
+        </div>
+      </section>
+
+      {/* Driver Section - Modern Design */}
+      <section className="relative py-24 overflow-hidden">
+        {/* Gradient background matching hero */}
+        <div className="absolute inset-0 bg-gradient-to-br from-primary via-primary-light to-secondary"></div>
+        <div className="absolute inset-0 bg-[url('data:image/svg+xml;base64,PHN2ZyB3aWR0aD0iNjAiIGhlaWdodD0iNjAiIHZpZXdCb3g9IjAgMCA2MCA2MCIgeG1sbnM9Imh0dHA6Ly93d3cudzMub3JnLzIwMDAvc3ZnIj48ZyBmaWxsPSJub25lIiBmaWxsLXJ1bGU9ImV2ZW5vZGQiPjxwYXRoIGQ9Ik0zNiAxOGMzLjMxNCAwIDYgMi42ODYgNiA2cy0yLjY4NiA2LTYgNi02LTIuNjg2LTYtNiAyLjY4Ni02IDYtNnoiIHN0cm9rZT0iI2ZmZiIgc3Ryb2tlLW9wYWNpdHk9Ii4xIi8+PC9nPjwvc3ZnPg==')] opacity-10"></div>
+
+        <div className="relative container mx-auto px-6 md:px-12">
+          <div className="grid grid-cols-1 lg:grid-cols-2 gap-12 items-center">
+            <div className="animate-slide-in">
+              <h2 className="text-4xl md:text-5xl font-bold text-white mb-6 drop-shadow-[0_2px_10px_rgba(0,0,0,0.3)]">
+                Drive when you want, make what you need
+              </h2>
+              <p className="text-xl text-white/90 mb-8 leading-relaxed drop-shadow-[0_2px_8px_rgba(0,0,0,0.2)]">
+                Make money on your schedule with deliveries or rides—or both.
+                You can use your own car or choose a rental through ELOCAB.
+              </p>
+              <div className="space-y-4 mb-8">
+                <div
+                  className="flex items-start space-x-4 animate-slide-in"
+                  style={{ animationDelay: "0.1s" }}
+                >
+                  <div className="w-10 h-10 rounded-full bg-white/20 backdrop-blur-md flex items-center justify-center flex-shrink-0">
+                    <svg
+                      className="w-5 h-5 text-white"
+                      fill="currentColor"
+                      viewBox="0 0 20 20"
+                    >
+                      <path
+                        fillRule="evenodd"
+                        d="M10 18a8 8 0 100-16 8 8 0 000 16zm3.707-9.293a1 1 0 00-1.414-1.414L9 10.586 7.707 9.293a1 1 0 00-1.414 1.414l2 2a1 1 0 001.414 0l4-4z"
+                        clipRule="evenodd"
+                      />
+                    </svg>
+                  </div>
+                  <div>
+                    <h4 className="font-semibold text-lg text-white">
+                      Set your own hours
+                    </h4>
+                    <p className="text-white/80">
+                      You decide when and how often you drive
+                    </p>
+                  </div>
+                </div>
+                <div
+                  className="flex items-start space-x-4 animate-slide-in"
+                  style={{ animationDelay: "0.2s" }}
+                >
+                  <div className="w-10 h-10 rounded-full bg-white/20 backdrop-blur-md flex items-center justify-center flex-shrink-0">
+                    <svg
+                      className="w-5 h-5 text-white"
+                      fill="currentColor"
+                      viewBox="0 0 20 20"
+                    >
+                      <path
+                        fillRule="evenodd"
+                        d="M10 18a8 8 0 100-16 8 8 0 000 16zm3.707-9.293a1 1 0 00-1.414-1.414L9 10.586 7.707 9.293a1 1 0 00-1.414 1.414l2 2a1 1 0 001.414 0l4-4z"
+                        clipRule="evenodd"
+                      />
+                    </svg>
+                  </div>
+                  <div>
+                    <h4 className="font-semibold text-lg text-white">
+                      Earn competitive rates
+                    </h4>
+                    <p className="text-white/80">
+                      Get paid fairly for every trip
+                    </p>
+                  </div>
+                </div>
+              </div>
+              <button
+                onClick={() => navigate("/register")}
+                className="group relative px-8 py-4 bg-white text-primary rounded-xl font-bold text-lg shadow-medium hover:shadow-strong transform hover:-translate-y-1 transition-all duration-300 overflow-hidden"
+              >
+                <span className="relative z-10 flex items-center justify-center gap-2">
+                  Sign up to drive
+                  <svg
+                    className="w-5 h-5 group-hover:translate-x-1 transition-transform"
+                    fill="none"
+                    stroke="currentColor"
+                    viewBox="0 0 24 24"
+                  >
+                    <path
+                      strokeLinecap="round"
+                      strokeLinejoin="round"
+                      strokeWidth={2}
+                      d="M17 8l4 4m0 0l-4 4m4-4H3"
+                    />
+                  </svg>
+                </span>
+                <div className="absolute inset-0 -translate-x-full bg-gradient-to-r from-transparent via-white/30 to-transparent group-hover:translate-x-full transition-transform duration-700"></div>
+              </button>
+            </div>
+
+            <div className="relative h-96 lg:h-full min-h-[400px] flex items-center justify-center animate-scale-in" style={{animationDelay: '0.3s'}}>
+              <div className="text-center text-white animate-float">
+                <svg className="w-40 h-40 mx-auto mb-6 opacity-90 drop-shadow-2xl" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                  <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={1.5} d="M8 7v8a2 2 0 002 2h6M8 7V5a2 2 0 012-2h4.586a1 1 0 01.707.293l4.414 4.414a1 1 0 01.293.707V15a2 2 0 01-2 2h-2M8 7H6a2 2 0 00-2 2v10a2 2 0 002 2h8a2 2 0 002-2v-2" />
+                </svg>
+                <p className="text-3xl font-bold drop-shadow-lg">Your Car, Your Schedule</p>
+              </div>
+            </div>
+          </div>
+        </div>
+      </section>
+
+      {/* Features Section - Modern Cards */}
+      <section className="py-24 bg-gradient-to-b from-gray-50 to-white">
+        <div className="container mx-auto px-6 md:px-12">
+          <h2 className="text-4xl md:text-5xl font-bold text-gray-900 mb-4 animate-slide-up">
+            Focused on safety, wherever you go
+          </h2>
+          <p
+            className="text-xl text-gray-600 mb-16 max-w-2xl animate-slide-up"
+            style={{ animationDelay: "0.1s" }}
+          >
+            We're committed to providing a safe, reliable transportation
+            experience for everyone in Kumasi.
+          </p>
+
+          <div className="grid grid-cols-1 md:grid-cols-3 gap-12">
+            {features.map((feature, index) => (
+              <div
+                key={index}
+                className="group space-y-4 animate-scale-in"
+                style={{ animationDelay: `${0.1 * index}s` }}
+              >
+                <div className="w-14 h-14 bg-gradient-to-br from-primary to-primary-light rounded-2xl flex items-center justify-center shadow-soft group-hover:shadow-medium group-hover:scale-110 transition-all duration-300">
+                  <svg
+                    className="w-7 h-7 text-white"
+                    fill="none"
+                    stroke="currentColor"
+                    viewBox="0 0 24 24"
+                  >
+                    <path
+                      strokeLinecap="round"
+                      strokeLinejoin="round"
+                      strokeWidth={2}
+                      d="M5 13l4 4L19 7"
+                    />
+                  </svg>
+                </div>
+                <h3 className="text-2xl font-bold text-gray-900 group-hover:text-primary transition-colors">
+                  {feature.title}
+                </h3>
+                <p className="text-gray-600 leading-relaxed">
+                  {feature.description}
+                </p>
+              </div>
+            ))}
+          </div>
+        </div>
+      </section>
+
+      {/* CTA Section - Modern Gradient matching hero */}
+      <section className="relative py-24 overflow-hidden">
+        <div className="absolute inset-0 bg-gradient-to-br from-primary via-primary-light to-secondary"></div>
+        <div className="absolute inset-0 bg-[url('data:image/svg+xml;base64,PHN2ZyB3aWR0aD0iNjAiIGhlaWdodD0iNjAiIHZpZXdCb3g9IjAgMCA2MCA2MCIgeG1sbnM9Imh0dHA6Ly93d3cudzMub3JnLzIwMDAvc3ZnIj48ZyBmaWxsPSJub25lIiBmaWxsLXJ1bGU9ImV2ZW5vZGQiPjxwYXRoIGQ9Ik0zNiAxOGMzLjMxNCAwIDYgMi42ODYgNiA2cy0yLjY4NiA2LTYgNi02LTIuNjg2LTYtNiAyLjY4Ni02IDYtNnoiIHN0cm9rZT0iI2ZmZiIgc3Ryb2tlLW9wYWNpdHk9Ii4xIi8+PC9nPjwvc3ZnPg==')] opacity-10"></div>
+
+        <div className="relative container mx-auto px-6 md:px-12 text-center">
+          <h2 className="text-4xl md:text-5xl font-bold mb-6 text-white drop-shadow-[0_4px_20px_rgba(0,0,0,0.3)] animate-scale-in">
+            Ready to get started?
+          </h2>
+          <p
+            className="text-xl mb-12 text-white/90 drop-shadow-lg max-w-2xl mx-auto animate-slide-up"
+            style={{ animationDelay: "0.1s" }}
+          >
+            Join thousands of satisfied customers and drivers across Kumasi
+          </p>
+          <div
+            className="flex flex-col sm:flex-row gap-4 justify-center animate-slide-up"
+            style={{ animationDelay: "0.2s" }}
+          >
+            <button
+              onClick={() => navigate("/register")}
+              className="group relative bg-white text-secondary px-10 py-4 rounded-xl font-bold text-lg shadow-strong hover:shadow-[0_20px_60px_rgba(0,0,0,0.4)] transition-all transform hover:-translate-y-1 overflow-hidden"
+            >
+              <span className="relative z-10 flex items-center justify-center gap-2">
+                Book a ride
+                <svg
+                  className="w-5 h-5 group-hover:translate-x-1 transition-transform"
+                  fill="none"
+                  stroke="currentColor"
+                  viewBox="0 0 24 24"
+                >
+                  <path
+                    strokeLinecap="round"
+                    strokeLinejoin="round"
+                    strokeWidth={2}
+                    d="M13 7l5 5m0 0l-5 5m5-5H6"
+                  />
+                </svg>
+              </span>
+              <div className="absolute inset-0 -translate-x-full bg-gradient-to-r from-transparent via-secondary/20 to-transparent group-hover:translate-x-full transition-transform duration-700"></div>
+            </button>
+            <button
+              onClick={() => navigate("/register")}
+              className="group bg-transparent border-2 border-white text-white px-10 py-4 rounded-xl font-bold text-lg hover:bg-white hover:text-secondary transition-all transform hover:-translate-y-1 shadow-medium hover:shadow-strong"
+            >
+              <span className="flex items-center justify-center gap-2">
+                Become a driver
+                <svg
+                  className="w-5 h-5 group-hover:translate-x-1 transition-transform"
+                  fill="none"
+                  stroke="currentColor"
+                  viewBox="0 0 24 24"
+                >
+                  <path
+                    strokeLinecap="round"
+                    strokeLinejoin="round"
+                    strokeWidth={2}
+                    d="M13 7l5 5m0 0l-5 5m5-5H6"
+                  />
+                </svg>
+              </span>
+            </button>
+          </div>
+        </div>
+      </section>
+
+      <Footer />
+    </div>
+  );
+};
+
+export default LandingPage;
