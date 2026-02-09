@@ -87,6 +87,27 @@ io.on("connection", (socket) => {
 // Make connectedUsers accessible globally
 global.connectedUsers = connectedUsers;
 
+// Root route - API homepage
+app.get("/", (req, res) => {
+  res.json({
+    success: true,
+    message: "🚗 ELOCAB API Server",
+    version: "1.0.0",
+    status: "running",
+    environment: process.env.NODE_ENV || "development",
+    endpoints: {
+      auth: "/api/auth",
+      customers: "/api/customers",
+      drivers: "/api/drivers",
+      bookings: "/api/bookings",
+      admin: "/api/admin",
+      health: "/api/health",
+    },
+    documentation: "Visit https://github.com/SAMUEL-NTI-SARPONG/Working-Elocab",
+    timestamp: new Date().toISOString(),
+  });
+});
+
 // Routes
 app.use("/api/auth", authRoutes);
 app.use("/api/drivers", driverRoutes);
