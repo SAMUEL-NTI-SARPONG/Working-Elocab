@@ -21,7 +21,8 @@ export const SocketProvider = ({ children }) => {
     if (isAuthenticated && user) {
       // Connect to socket server
       const newSocket = io(import.meta.env.VITE_API_URL || "http://localhost:5000", {
-        transports: ["websocket"],
+        withCredentials: true,
+        transports: ["websocket", "polling"],
       });
 
       newSocket.on("connect", () => {
