@@ -26,11 +26,17 @@ const DriverDashboard = () => {
   const [showInstallPrompt, setShowInstallPrompt] = useState(false);
 
   useEffect(() => {
-    // Show install prompt after 2 seconds
-    const timer = setTimeout(() => {
-      setShowInstallPrompt(true);
-    }, 2000);
-    return () => clearTimeout(timer);
+    // Only show install prompt once per session
+    const hasSeenThisSession = sessionStorage.getItem("elocab_install_shown_this_session");
+    const hasDismissedForever = localStorage.getItem("elocab_install_prompt_seen");
+    
+    if (!hasSeenThisSession && !hasDismissedForever) {
+      const timer = setTimeout(() => {
+        setShowInstallPrompt(true);
+        sessionStorage.setItem("elocab_install_shown_this_session", "true");
+      }, 3000);
+      return () => clearTimeout(timer);
+    }
   }, []);
 
   useEffect(() => {
