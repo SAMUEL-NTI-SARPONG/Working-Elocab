@@ -4,6 +4,7 @@ import { useAuth } from "../../context/AuthContext";
 import axios from "axios";
 import toast from "react-hot-toast";
 import ArchiveViewer from "../../components/ArchiveViewer";
+import InstallPrompt from "../../components/InstallPrompt";
 
 const AdminDashboard = () => {
   const { user, logout } = useAuth();
@@ -39,6 +40,18 @@ const AdminDashboard = () => {
     licenseNumber: "",
     seats: 4,
   });
+  const [notificationPermission, setNotificationPermission] = useState(
+    typeof Notification !== "undefined" ? Notification.permission : "default"
+  );
+  const [showInstallPrompt, setShowInstallPrompt] = useState(false);
+
+  useEffect(() => {
+    // Show install prompt after 2 seconds
+    const timer = setTimeout(() => {
+      setShowInstallPrompt(true);
+    }, 2000);
+    return () => clearTimeout(timer);
+  }, []);
 
   useEffect(() => {
     fetchStats();
@@ -239,11 +252,14 @@ const AdminDashboard = () => {
 
     if (Notification.permission === "granted") {
       toast.success("Notifications are already enabled");
+      setNotificationPermission("granted");
       return;
     }
 
     try {
       const permission = await Notification.requestPermission();
+      setNotificationPermission(permission);
+      
       if (permission === "granted") {
         toast.success("Notifications enabled successfully!");
         // Test notification
@@ -255,6 +271,7 @@ const AdminDashboard = () => {
         toast.error("Notification permission denied");
       }
     } catch (error) {
+      console.error("Notification error:", error);
       toast.error("Failed to enable notifications");
     }
   };
@@ -1643,9 +1660,13 @@ const AdminDashboard = () => {
               </p>
               <button
                 onClick={requestNotificationPermission}
-                className="px-6 py-3 bg-blue-600 text-white rounded-lg hover:bg-blue-700 transition-all font-semibold"
+                className={`px-6 py-3 rounded-lg transition-all font-semibold ${
+                  notificationPermission === "granted"
+                    ? "bg-green-600 text-white hover:bg-green-700"
+                    : "bg-blue-600 text-white hover:bg-blue-700"
+                }`}
               >
-                {Notification?.permission === "granted"
+                {notificationPermission === "granted"
                   ? "✅ Notifications Enabled"
                   : "Enable Notifications"}
               </button>
@@ -1830,6 +1851,12 @@ const AdminDashboard = () => {
           </div>
         )}
       </div>
+
+      {/* Install Prompt */}
+      <InstallPrompt
+        show={showInstallPrompt}
+        onClose={() => setShowInstallPrompt(false)}
+      />
     </div>
   );
 };

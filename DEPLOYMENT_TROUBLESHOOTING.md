@@ -24,10 +24,12 @@ Go to vercel.com → Your backend project
 Go to vercel.com → Frontend project → Settings → Environment Variables
 
 **Check**: `VITE_API_URL` should be set to your BACKEND URL
+
 - ✅ Correct: `https://elocab-backend-xyz.vercel.app`
 - ❌ Wrong: `http://localhost:5000` or blank
 
-**Fix**: 
+**Fix**:
+
 1. Edit the variable
 2. Set it to your backend URL
 3. Redeploy frontend (Deployments tab → Redeploy)
@@ -40,12 +42,12 @@ Go to vercel.com → Backend project → Settings → Environment Variables
 
 **Must have these 4 variables**:
 
-| Variable | Value | Status |
-|----------|-------|--------|
-| `MONGODB_URI` | Your MongoDB connection string | ✅ Must be set |
-| `JWT_SECRET` | Any random string | ✅ Must be set |
-| `NODE_ENV` | `production` | ✅ Must be set |
-| `CLIENT_URL` | Your frontend Vercel URL | ✅ Must match actual frontend URL |
+| Variable      | Value                          | Status                            |
+| ------------- | ------------------------------ | --------------------------------- |
+| `MONGODB_URI` | Your MongoDB connection string | ✅ Must be set                    |
+| `JWT_SECRET`  | Any random string              | ✅ Must be set                    |
+| `NODE_ENV`    | `production`                   | ✅ Must be set                    |
+| `CLIENT_URL`  | Your frontend Vercel URL       | ✅ Must match actual frontend URL |
 
 **Common mistake**: `CLIENT_URL` still set to `localhost:5173`
 **Fix**: Update to `https://your-frontend.vercel.app`
@@ -58,13 +60,15 @@ Go to vercel.com → Backend project → Settings → Environment Variables
 
 **Open Browser DevTools** (F12) → Console tab
 
-**If you see**: 
+**If you see**:
+
 ```
-Access to XMLHttpRequest at 'https://backend...' from origin 'https://frontend...' 
+Access to XMLHttpRequest at 'https://backend...' from origin 'https://frontend...'
 has been blocked by CORS policy
 ```
 
 **Fix**:
+
 1. Go to backend project on Vercel
 2. Settings → Environment Variables
 3. Verify `CLIENT_URL` = your exact frontend URL
@@ -77,11 +81,13 @@ has been blocked by CORS policy
 Go to vercel.com → Backend project → Deployments → Click latest deployment
 
 **Look for**:
+
 - ✅ "Build Completed"
 - ✅ No red error messages
 - ✅ Function deployed successfully
 
 **If you see errors**:
+
 - Missing dependencies: Check `package.json`
 - MongoDB connection error: Verify `MONGODB_URI`
 - Port binding errors: Ignore them (Vercel handles ports automatically)
@@ -102,6 +108,7 @@ Open in browser: `https://your-backend-url.vercel.app/api/auth/login`
 Go to vercel.com → Frontend project → Deployments → Click latest deployment
 
 **Look for**:
+
 - ✅ "Build Completed"
 - ✅ No errors about missing VITE_API_URL
 - ⚠️ Warning about env variables is OK
@@ -118,10 +125,12 @@ Go to vercel.com → Frontend project → Deployments → Click latest deploymen
 4. Look at the Network tab
 
 **What you should see**:
+
 - Request to `https://your-backend.vercel.app/api/auth/...`
 - NOT to `localhost:5000`
 
 **If still going to localhost**:
+
 - Clear browser cache (Ctrl+Shift+Delete)
 - Hard refresh (Ctrl+F5)
 - Try incognito mode
@@ -135,6 +144,7 @@ Go to vercel.com → Frontend project → Deployments → Click latest deploymen
 3. Look for the API request
 
 **Click on the failed request**:
+
 - **Status 404**: Backend not found (wrong URL)
 - **Status 401**: Backend found but authentication failed (different issue)
 - **Status CORS error**: CLIENT_URL mismatch
@@ -149,6 +159,7 @@ Go to vercel.com → Frontend project → Deployments → Click latest deploymen
 **Cause**: `VITE_API_URL` not set in Vercel
 
 **Fix**:
+
 ```
 1. Vercel → Frontend → Settings → Environment Variables
 2. Add VITE_API_URL = https://your-backend.vercel.app
@@ -163,6 +174,7 @@ Go to vercel.com → Frontend project → Deployments → Click latest deploymen
 **Cause**: Backend `CLIENT_URL` doesn't match frontend URL
 
 **Fix**:
+
 ```
 1. Vercel → Backend → Settings → Environment Variables
 2. Update CLIENT_URL to exact frontend URL (including https://)
@@ -178,6 +190,7 @@ Go to vercel.com → Frontend project → Deployments → Click latest deploymen
 **Check**: `server/vercel.json` exists in your repo
 
 **Should contain**:
+
 ```json
 {
   "version": 2,
@@ -203,6 +216,7 @@ Go to vercel.com → Frontend project → Deployments → Click latest deploymen
 **Cause**: MongoDB Atlas not whitelisted or wrong connection string
 
 **Fix**:
+
 ```
 1. Go to MongoDB Atlas → Network Access
 2. Add 0.0.0.0/0 to allow all IPs
@@ -216,6 +230,7 @@ Go to vercel.com → Frontend project → Deployments → Click latest deploymen
 **Symptom**: Can see the site, but login/register fails
 
 **Check**:
+
 1. Browser console for specific error
 2. Backend logs on Vercel
 3. Try admin login with default credentials
@@ -261,7 +276,8 @@ If completely broken:
 ---
 
 Need more help? Share:
+
 1. Your frontend Vercel URL
-2. Your backend Vercel URL  
+2. Your backend Vercel URL
 3. Screenshot of browser console error
 4. Screenshot of Network tab showing failed request

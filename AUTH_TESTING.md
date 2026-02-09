@@ -19,6 +19,7 @@ Password: SecureAdmin@2026
 ```
 
 **Steps:**
+
 1. Go to http://localhost:5173/admin/login
 2. Enter the credentials above
 3. Click "Sign in"
@@ -43,7 +44,7 @@ Password: SecureAdmin@2026
 ### Option 3: Register New Driver
 
 1. Go to http://localhost:5173/register
-2. Click "Driver" card  
+2. Click "Driver" card
 3. Fill in the form:
    - Full name: Driver Name
    - Email: driver@example.com
@@ -66,6 +67,7 @@ Password: SecureAdmin@2026
 **Cause**: Backend server not running or wrong API URL
 
 **Fix**:
+
 1. Check backend is running: http://localhost:5000
 2. Verify `.env` file in `client` folder has:
    ```
@@ -80,6 +82,7 @@ Password: SecureAdmin@2026
 **Cause**: Email/password mismatch or user doesn't exist
 
 **Fix**:
+
 1. If registering: Make sure passwords match
 2. If logging in: Verify you registered this account first
 3. For admin: Use exact credentials above
@@ -91,6 +94,7 @@ Password: SecureAdmin@2026
 **Cause**: Role-based routing issue
 
 **Fix**: Check AuthContext routing logic:
+
 - Customer → `/customer/dashboard`
 - Driver → `/driver/dashboard`
 - Admin → Auto-redirected from admin login page
@@ -110,11 +114,12 @@ Password: SecureAdmin@2026
 **Cause**: Backend not allowing frontend origin
 
 **Fix**: Verify `server/server.js` CORS config:
+
 ```javascript
 cors({
   origin: "http://localhost:5173",
   credentials: true,
-})
+});
 ```
 
 ---
@@ -130,14 +135,15 @@ If things are completely broken:
    - Refresh page
 
 2. **Restart both servers**:
+
    ```powershell
    # Kill all node processes
    Get-Process node | Stop-Process -Force
-   
+
    # Start backend
    cd server
    npm run dev
-   
+
    # Start frontend (new terminal)
    cd client
    npm run dev
@@ -152,6 +158,7 @@ If things are completely broken:
 ### Test Backend API Directly:
 
 **Register new user:**
+
 ```powershell
 Invoke-RestMethod -Uri "http://localhost:5000/api/auth/register" `
   -Method POST `
@@ -160,6 +167,7 @@ Invoke-RestMethod -Uri "http://localhost:5000/api/auth/register" `
 ```
 
 **Login:**
+
 ```powershell
 Invoke-RestMethod -Uri "http://localhost:5000/api/auth/login" `
   -Method POST `
@@ -182,6 +190,7 @@ Invoke-RestMethod -Uri "http://localhost:5000/api/auth/login" `
 ## ✅ Expected Behavior
 
 **Successful Login Response:**
+
 ```json
 {
   "_id": "...",
@@ -193,6 +202,7 @@ Invoke-RestMethod -Uri "http://localhost:5000/api/auth/login" `
 ```
 
 **Successful Registration:**
+
 - Shows success toast
 - Auto-logs you in
 - Redirects to dashboard based on role

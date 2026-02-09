@@ -3,6 +3,7 @@ import { useNavigate } from "react-router-dom";
 import { useAuth } from "../../context/AuthContext";
 import axios from "axios";
 import toast from "react-hot-toast";
+import InstallPrompt from "../../components/InstallPrompt";
 
 const CustomerDashboard = () => {
   const { user, logout } = useAuth();
@@ -20,6 +21,15 @@ const CustomerDashboard = () => {
     numberOfPeople: 1,
     notes: "",
   });
+  const [showInstallPrompt, setShowInstallPrompt] = useState(false);
+
+  useEffect(() => {
+    // Show install prompt after 2 seconds
+    const timer = setTimeout(() => {
+      setShowInstallPrompt(true);
+    }, 2000);
+    return () => clearTimeout(timer);
+  }, []);
 
   useEffect(() => {
     fetchProfile();
@@ -520,6 +530,12 @@ const CustomerDashboard = () => {
           </div>
         )}
       </div>
+
+      {/* Install Prompt */}
+      <InstallPrompt
+        show={showInstallPrompt}
+        onClose={() => setShowInstallPrompt(false)}
+      />
     </div>
   );
 };

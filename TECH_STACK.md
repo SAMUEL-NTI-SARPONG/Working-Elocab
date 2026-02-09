@@ -1,6 +1,7 @@
 # ELOCAB Tech Stack 🚀
 
 ## Frontend
+
 - **Framework**: React 18.2.0
 - **Build Tool**: Vite 5.0.11
 - **Routing**: React Router DOM 6.21.1
@@ -13,6 +14,7 @@
 - **Hosting**: Vercel
 
 ## Backend
+
 - **Runtime**: Node.js
 - **Framework**: Express.js
 - **Database**: MongoDB with Mongoose ODM
@@ -25,9 +27,10 @@
 - **Hosting**: Vercel Serverless Functions
 
 ## Database
+
 - **Primary Database**: MongoDB Atlas (Cloud)
 - **Schema Design**: Mongoose ODM
-- **Models**: 
+- **Models**:
   - User (auth & roles)
   - Customer
   - Driver
@@ -36,6 +39,7 @@
   - Statistics (persistent metrics)
 
 ## Architecture
+
 - **Pattern**: MERN Stack (MongoDB, Express, React, Node.js)
 - **Deployment**: Serverless (Vercel)
 - **API Style**: RESTful API
@@ -44,6 +48,7 @@
 - **Authorization**: Role-based (Admin, Driver, Customer)
 
 ## Key Features
+
 - **Responsive Design**: Mobile-first with Tailwind CSS
 - **Real-time Updates**: Socket.io for live booking notifications
 - **Persistent Analytics**: Statistics survive data cleanup
@@ -52,17 +57,20 @@
 - **Progressive Web App**: Service worker for offline support
 
 ## Development Tools
+
 - **Version Control**: Git & GitHub
 - **Package Manager**: npm
 - **Development Server**: Vite (Frontend), Nodemon (Backend)
 - **Code Quality**: Environment-based configuration
 
 ## Environment Configuration
+
 - **Development**: localhost:5173 (frontend), localhost:5000 (backend)
 - **Production**: Vercel deployment with environment variables
 - **Database**: MongoDB Atlas (512MB free tier)
 
 ## Security Features
+
 - Password hashing with bcrypt
 - JWT-based authentication
 - CORS protection
