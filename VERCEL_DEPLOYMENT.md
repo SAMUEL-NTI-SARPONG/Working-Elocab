@@ -1,6 +1,7 @@
 # Quick Vercel Deployment Checklist ✅
 
 ## Step 1: Deploy Backend First
+
 - [ ] Go to Render.com or Railway.app
 - [ ] Connect your GitHub repo
 - [ ] Set root directory to `server`
@@ -13,6 +14,7 @@
 - [ ] Copy your backend URL (e.g., https://elocab-backend.onrender.com)
 
 ## Step 2: Deploy Frontend to Vercel
+
 - [ ] Go to Vercel.com
 - [ ] Click "New Project"
 - [ ] Import your GitHub repository
@@ -28,11 +30,13 @@
 - [ ] Copy your Vercel URL
 
 ## Step 3: Update Backend CORS
+
 - [ ] Go back to Render/Railway
 - [ ] Update `CLIENT_URL` environment variable to your Vercel URL
 - [ ] Redeploy backend
 
 ## Step 4: Test
+
 - [ ] Visit your Vercel app
 - [ ] Try registering a user
 - [ ] Try logging in
@@ -41,21 +45,25 @@
 ## Troubleshooting
 
 ### Still getting 404?
+
 - Ensure `vercel.json` exists in client folder ✅ (already added)
 - Check Vercel build logs
 
 ### API calls failing?
+
 - Verify `VITE_API_URL` is set in Vercel
 - Check backend is running
 - Verify CORS is configured correctly
 
 ### Need to see logs?
+
 - Vercel: Dashboard → Deployments → View logs
 - Render: Dashboard → Logs tab
 
 ---
 
 **Note**: The 404 error issue is now fixed with:
+
 1. ✅ `vercel.json` - Handles React Router routes
 2. ✅ Environment variables - Proper API configuration
 3. ✅ CORS setup - Backend accepts frontend requests

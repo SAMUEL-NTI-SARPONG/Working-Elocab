@@ -26,7 +26,9 @@ const Navbar = () => {
           <Link to="/" className="flex items-center space-x-3 group">
             <div className="relative">
               {/* Logo with animated ring */}
-              <div className={`absolute inset-0 rounded-full transition-all duration-300 ${scrolled ? 'bg-primary/5 scale-110' : 'bg-white/10 scale-100'} group-hover:scale-125`}></div>
+              <div
+                className={`absolute inset-0 rounded-full transition-all duration-300 ${scrolled ? "bg-primary/5 scale-110" : "bg-white/10 scale-100"} group-hover:scale-125`}
+              ></div>
               <img
                 src="/images/logo.png"
                 alt="ELOCAB"
@@ -42,12 +44,20 @@ const Navbar = () => {
                 }`}
                 style={{ display: "none" }}
               >
-                <span className="text-2xl font-black tracking-tight">ELOCAB</span>
+                <span className="text-2xl font-black tracking-tight">
+                  ELOCAB
+                </span>
               </div>
             </div>
-            <div className={`hidden md:block transition-colors duration-300 ${scrolled ? 'text-gray-900' : 'text-white'}`}>
+            <div
+              className={`hidden md:block transition-colors duration-300 ${scrolled ? "text-gray-900" : "text-white"}`}
+            >
               <div className="text-xl font-black tracking-tight">ELOCAB</div>
-              <div className={`text-xs ${scrolled ? 'text-gray-500' : 'text-white/80'}`}>Ride with Ease</div>
+              <div
+                className={`text-xs ${scrolled ? "text-gray-500" : "text-white/80"}`}
+              >
+                Ride with Ease
+              </div>
             </div>
           </Link>
 
@@ -57,22 +67,32 @@ const Navbar = () => {
             <Link
               to="/login"
               className={`group relative px-5 py-2.5 rounded-xl font-semibold transition-all duration-300 overflow-hidden ${
-                scrolled
-                  ? "text-gray-700 hover:text-primary"
-                  : "text-white"
+                scrolled ? "text-gray-700 hover:text-primary" : "text-white"
               }`}
             >
               <span className="relative z-10 flex items-center gap-2">
-                <svg className="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                  <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M11 16l-4-4m0 0l4-4m-4 4h14m-5 4v1a3 3 0 01-3 3H6a3 3 0 01-3-3V7a3 3 0 013-3h7a3 3 0 013 3v1" />
+                <svg
+                  className="w-4 h-4"
+                  fill="none"
+                  stroke="currentColor"
+                  viewBox="0 0 24 24"
+                >
+                  <path
+                    strokeLinecap="round"
+                    strokeLinejoin="round"
+                    strokeWidth={2}
+                    d="M11 16l-4-4m0 0l4-4m-4 4h14m-5 4v1a3 3 0 01-3 3H6a3 3 0 01-3-3V7a3 3 0 013-3h7a3 3 0 013 3v1"
+                  />
                 </svg>
                 <span className="hidden sm:inline">Login</span>
               </span>
-              <div className={`absolute inset-0 rounded-xl transition-all duration-300 ${
-                scrolled
-                  ? "bg-gray-100 opacity-0 group-hover:opacity-100"
-                  : "bg-white/10 opacity-0 group-hover:opacity-100"
-              }`}></div>
+              <div
+                className={`absolute inset-0 rounded-xl transition-all duration-300 ${
+                  scrolled
+                    ? "bg-gray-100 opacity-0 group-hover:opacity-100"
+                    : "bg-white/10 opacity-0 group-hover:opacity-100"
+                }`}
+              ></div>
             </Link>
 
             {/* Get Started Button - Primary CTA */}
@@ -86,8 +106,18 @@ const Navbar = () => {
             >
               <span className="relative z-10 flex items-center gap-2">
                 <span>Get Started</span>
-                <svg className="w-4 h-4 group-hover:translate-x-1 transition-transform" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                  <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M13 7l5 5m0 0l-5 5m5-5H6" />
+                <svg
+                  className="w-4 h-4 group-hover:translate-x-1 transition-transform"
+                  fill="none"
+                  stroke="currentColor"
+                  viewBox="0 0 24 24"
+                >
+                  <path
+                    strokeLinecap="round"
+                    strokeLinejoin="round"
+                    strokeWidth={2}
+                    d="M13 7l5 5m0 0l-5 5m5-5H6"
+                  />
                 </svg>
               </span>
               {/* Shimmer effect */}

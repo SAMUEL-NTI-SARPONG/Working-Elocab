@@ -107,7 +107,9 @@ const CustomerDashboard = () => {
                   />
                 </div>
                 <div>
-                  <h1 className="text-xl font-black tracking-tight text-gray-900">ELOCAB</h1>
+                  <h1 className="text-xl font-black tracking-tight text-gray-900">
+                    ELOCAB
+                  </h1>
                   <p className="text-xs text-gray-500">Customer Dashboard</p>
                 </div>
               </div>
@@ -316,26 +318,39 @@ const CustomerDashboard = () => {
                   <table className="w-full">
                     <thead className="bg-gradient-to-r from-primary to-primary-light text-white">
                       <tr>
-                        <th className="px-6 py-4 text-left text-sm font-semibold">Status</th>
-                        <th className="px-6 py-4 text-left text-sm font-semibold">Service Type</th>
-                        <th className="px-6 py-4 text-left text-sm font-semibold">Date & Time</th>
-                        <th className="px-6 py-4 text-left text-sm font-semibold">Route</th>
-                        <th className="px-6 py-4 text-left text-sm font-semibold">Passengers</th>
+                        <th className="px-6 py-4 text-left text-sm font-semibold">
+                          Status
+                        </th>
+                        <th className="px-6 py-4 text-left text-sm font-semibold">
+                          Service Type
+                        </th>
+                        <th className="px-6 py-4 text-left text-sm font-semibold">
+                          Date & Time
+                        </th>
+                        <th className="px-6 py-4 text-left text-sm font-semibold">
+                          Route
+                        </th>
+                        <th className="px-6 py-4 text-left text-sm font-semibold">
+                          Passengers
+                        </th>
                       </tr>
                     </thead>
                     <tbody className="divide-y divide-gray-200">
                       {bookings.map((booking) => (
-                        <tr key={booking._id} className="hover:bg-gray-50 transition-colors">
+                        <tr
+                          key={booking._id}
+                          className="hover:bg-gray-50 transition-colors"
+                        >
                           <td className="px-6 py-4">
                             <span
                               className={`inline-block px-3 py-1 rounded-full text-xs font-semibold ${
                                 booking.status === "pending"
                                   ? "bg-yellow-100 text-yellow-800"
                                   : booking.status === "accepted"
-                                  ? "bg-blue-100 text-blue-800"
-                                  : booking.status === "completed"
-                                  ? "bg-green-100 text-green-800"
-                                  : "bg-red-100 text-red-800"
+                                    ? "bg-blue-100 text-blue-800"
+                                    : booking.status === "completed"
+                                      ? "bg-green-100 text-green-800"
+                                      : "bg-red-100 text-red-800"
                               }`}
                             >
                               {booking.status.charAt(0).toUpperCase() +
@@ -353,7 +368,9 @@ const CustomerDashboard = () => {
                               <div className="text-gray-800 font-medium">
                                 {booking.pickupPoint}
                               </div>
-                              <div className="text-gray-500 text-xs">→ {booking.destination}</div>
+                              <div className="text-gray-500 text-xs">
+                                → {booking.destination}
+                              </div>
                             </div>
                           </td>
                           <td className="px-6 py-4 text-gray-600">
@@ -382,17 +399,20 @@ const CustomerDashboard = () => {
                 {/* Mobile Cards */}
                 <div className="md:hidden space-y-4 p-4">
                   {bookings.map((booking) => (
-                    <div key={booking._id} className="bg-white border border-gray-200 rounded-lg p-4 shadow-sm">
+                    <div
+                      key={booking._id}
+                      className="bg-white border border-gray-200 rounded-lg p-4 shadow-sm"
+                    >
                       <div className="flex justify-between items-start mb-3">
                         <span
                           className={`inline-block px-3 py-1 rounded-full text-xs font-semibold ${
                             booking.status === "pending"
                               ? "bg-yellow-100 text-yellow-800"
                               : booking.status === "accepted"
-                              ? "bg-blue-100 text-blue-800"
-                              : booking.status === "completed"
-                              ? "bg-green-100 text-green-800"
-                              : "bg-red-100 text-red-800"
+                                ? "bg-blue-100 text-blue-800"
+                                : booking.status === "completed"
+                                  ? "bg-green-100 text-green-800"
+                                  : "bg-red-100 text-red-800"
                           }`}
                         >
                           {booking.status.charAt(0).toUpperCase() +
@@ -405,7 +425,9 @@ const CustomerDashboard = () => {
                       <div className="space-y-2 text-sm">
                         <div>
                           <span className="text-gray-500">Service:</span>
-                          <span className="ml-2 font-semibold">{booking.serviceType}</span>
+                          <span className="ml-2 font-semibold">
+                            {booking.serviceType}
+                          </span>
                         </div>
                         <div>
                           <span className="text-gray-500">From:</span>
@@ -422,7 +444,9 @@ const CustomerDashboard = () => {
                         {booking.driver && (
                           <div>
                             <span className="text-gray-500">Driver:</span>
-                            <span className="ml-2 font-semibold">{booking.driver.name}</span>
+                            <span className="ml-2 font-semibold">
+                              {booking.driver.name}
+                            </span>
                           </div>
                         )}
                       </div>

@@ -66,7 +66,8 @@ const ArchiveViewer = () => {
         Archive Viewer
       </h3>
       <p className="text-gray-600 mb-4">
-        Upload a previously downloaded archive JSON file to view old booking records.
+        Upload a previously downloaded archive JSON file to view old booking
+        records.
       </p>
 
       {/* File Upload */}
@@ -96,7 +97,9 @@ const ArchiveViewer = () => {
               </div>
               <div>
                 <p className="text-sm text-gray-600">Total Bookings</p>
-                <p className="font-semibold text-gray-800">{archiveData.totalBookings}</p>
+                <p className="font-semibold text-gray-800">
+                  {archiveData.totalBookings}
+                </p>
               </div>
               <div>
                 <p className="text-sm text-gray-600">Cutoff Date</p>
@@ -125,7 +128,8 @@ const ArchiveViewer = () => {
 
           {/* Results Count */}
           <p className="text-sm text-gray-600">
-            Showing {filteredBookings.length} of {archiveData.totalBookings} bookings
+            Showing {filteredBookings.length} of {archiveData.totalBookings}{" "}
+            bookings
           </p>
 
           {/* Bookings Table */}
@@ -163,14 +167,19 @@ const ArchiveViewer = () => {
                       <div className="font-medium text-gray-900">
                         {booking.customerId?.name || "N/A"}
                       </div>
-                      <div className="text-gray-500">{booking.customerId?.phoneNumber}</div>
+                      <div className="text-gray-500">
+                        {booking.customerId?.phoneNumber}
+                      </div>
                     </td>
                     <td className="px-4 py-3 text-sm">
                       {booking.driverId ? (
                         <>
-                          <div className="font-medium text-gray-900">{booking.driverId.name}</div>
+                          <div className="font-medium text-gray-900">
+                            {booking.driverId.name}
+                          </div>
                           <div className="text-gray-500">
-                            {booking.driverId.carType} - {booking.driverId.carNumber}
+                            {booking.driverId.carType} -{" "}
+                            {booking.driverId.carNumber}
                           </div>
                         </>
                       ) : (
@@ -178,8 +187,12 @@ const ArchiveViewer = () => {
                       )}
                     </td>
                     <td className="px-4 py-3 text-sm">
-                      <div className="text-gray-900">{booking.pickupLocation}</div>
-                      <div className="text-gray-500">→ {booking.dropoffLocation}</div>
+                      <div className="text-gray-900">
+                        {booking.pickupLocation}
+                      </div>
+                      <div className="text-gray-500">
+                        → {booking.dropoffLocation}
+                      </div>
                     </td>
                     <td className="px-4 py-3 text-sm">
                       <span

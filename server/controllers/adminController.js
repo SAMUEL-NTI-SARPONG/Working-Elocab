@@ -73,12 +73,10 @@ exports.getDashboardStats = async (req, res) => {
       },
     });
   } catch (error) {
-    res
-      .status(500)
-      .json({
-        message: "Error fetching dashboard stats",
-        error: error.message,
-      });
+    res.status(500).json({
+      message: "Error fetching dashboard stats",
+      error: error.message,
+    });
   }
 };
 
@@ -255,8 +253,8 @@ exports.getAllBookings = async (req, res) => {
 // Clear completed bookings to save space
 exports.clearCompletedBookings = async (req, res) => {
   try {
-    const result = await Booking.deleteMany({ 
-      status: { $in: ["completed", "cancelled"] } 
+    const result = await Booking.deleteMany({
+      status: { $in: ["completed", "cancelled"] },
     });
 
     res.json({
@@ -289,12 +287,15 @@ exports.clearAllBookings = async (req, res) => {
 // Create new customer
 exports.createCustomer = async (req, res) => {
   try {
-    const { email, password, name, phoneNumber, city, digitalAddress } = req.body;
+    const { email, password, name, phoneNumber, city, digitalAddress } =
+      req.body;
 
     // Check if user already exists
     const existingUser = await User.findOne({ email });
     if (existingUser) {
-      return res.status(400).json({ message: "User already exists with this email" });
+      return res
+        .status(400)
+        .json({ message: "User already exists with this email" });
     }
 
     // Hash password
@@ -316,8 +317,10 @@ exports.createCustomer = async (req, res) => {
       digitalAddress,
     });
 
-    const populatedCustomer = await Customer.findById(customer._id)
-      .populate("userId", "email createdAt");
+    const populatedCustomer = await Customer.findById(customer._id).populate(
+      "userId",
+      "email createdAt",
+    );
 
     res.status(201).json({
       message: "Customer created successfully",
@@ -348,7 +351,9 @@ exports.createDriver = async (req, res) => {
     // Check if user already exists
     const existingUser = await User.findOne({ email });
     if (existingUser) {
-      return res.status(400).json({ message: "User already exists with this email" });
+      return res
+        .status(400)
+        .json({ message: "User already exists with this email" });
     }
 
     // Hash password
@@ -374,8 +379,10 @@ exports.createDriver = async (req, res) => {
       isAvailable: true,
     });
 
-    const populatedDriver = await Driver.findById(driver._id)
-      .populate("userId", "email createdAt");
+    const populatedDriver = await Driver.findById(driver._id).populate(
+      "userId",
+      "email createdAt",
+    );
 
     res.status(201).json({
       message: "Driver created successfully",
@@ -392,19 +399,19 @@ exports.createDriver = async (req, res) => {
 exports.resetStatistics = async (req, res) => {
   try {
     const stats = await Statistics.getInstance();
-    
+
     // Reset all counters to zero
     stats.totalBookingsAllTime = 0;
     stats.totalCompletedBookingsAllTime = 0;
     stats.totalCancelledBookingsAllTime = 0;
     stats.totalRevenueAllTime = 0;
     stats.dailyBookings = [];
-    
+
     await stats.save();
-    
-    res.json({ 
+
+    res.json({
       message: "Statistics reset successfully",
-      stats 
+      stats,
     });
   } catch (error) {
     res

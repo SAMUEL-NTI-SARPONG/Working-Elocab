@@ -71,7 +71,8 @@ const DriverDashboard = () => {
       toast.success("Booking status updated successfully!");
       fetchBookings();
     } catch (error) {
-      const errorMsg = error.response?.data?.message || "Failed to update status";
+      const errorMsg =
+        error.response?.data?.message || "Failed to update status";
       toast.error(errorMsg);
     }
   };
@@ -112,10 +113,10 @@ const DriverDashboard = () => {
   };
 
   const activeBookings = bookings.filter(
-    (b) => !["completed", "cancelled"].includes(b.status)
+    (b) => !["completed", "cancelled"].includes(b.status),
   );
   const completedBookings = bookings.filter((b) =>
-    ["completed", "cancelled"].includes(b.status)
+    ["completed", "cancelled"].includes(b.status),
   );
 
   return (
@@ -136,7 +137,9 @@ const DriverDashboard = () => {
                   />
                 </div>
                 <div>
-                  <h1 className="text-xl font-black tracking-tight text-gray-900">ELOCAB</h1>
+                  <h1 className="text-xl font-black tracking-tight text-gray-900">
+                    ELOCAB
+                  </h1>
                   <p className="text-xs text-gray-500">Driver Dashboard</p>
                 </div>
               </div>
@@ -152,7 +155,9 @@ const DriverDashboard = () => {
               >
                 {profile?.isAvailable ? "Online" : "Offline"}
               </button>
-              <span className="text-gray-600">{profile?.name || user?.email}</span>
+              <span className="text-gray-600">
+                {profile?.name || user?.email}
+              </span>
               <button
                 onClick={handleLogout}
                 className="px-4 py-2 bg-red-500 text-white rounded-lg hover:bg-red-600 transition-all"
@@ -234,21 +239,36 @@ const DriverDashboard = () => {
                   <table className="w-full">
                     <thead className="bg-gradient-to-r from-primary to-primary-light text-white">
                       <tr>
-                        <th className="px-6 py-4 text-left text-sm font-semibold">Status</th>
-                        <th className="px-6 py-4 text-left text-sm font-semibold">Service</th>
-                        <th className="px-6 py-4 text-left text-sm font-semibold">Date & Time</th>
-                        <th className="px-6 py-4 text-left text-sm font-semibold">Route</th>
-                        <th className="px-6 py-4 text-left text-sm font-semibold">Customer</th>
-                        <th className="px-6 py-4 text-left text-sm font-semibold">Actions</th>
+                        <th className="px-6 py-4 text-left text-sm font-semibold">
+                          Status
+                        </th>
+                        <th className="px-6 py-4 text-left text-sm font-semibold">
+                          Service
+                        </th>
+                        <th className="px-6 py-4 text-left text-sm font-semibold">
+                          Date & Time
+                        </th>
+                        <th className="px-6 py-4 text-left text-sm font-semibold">
+                          Route
+                        </th>
+                        <th className="px-6 py-4 text-left text-sm font-semibold">
+                          Customer
+                        </th>
+                        <th className="px-6 py-4 text-left text-sm font-semibold">
+                          Actions
+                        </th>
                       </tr>
                     </thead>
                     <tbody className="divide-y divide-gray-200">
                       {activeBookings.map((booking) => (
-                        <tr key={booking._id} className="hover:bg-gray-50 transition-colors">
+                        <tr
+                          key={booking._id}
+                          className="hover:bg-gray-50 transition-colors"
+                        >
                           <td className="px-6 py-4">
                             <span
                               className={`px-3 py-1 rounded-full text-xs font-semibold ${getStatusColor(
-                                booking.status
+                                booking.status,
                               )}`}
                             >
                               {booking.status.replace("-", " ").toUpperCase()}
@@ -262,17 +282,30 @@ const DriverDashboard = () => {
                           </td>
                           <td className="px-6 py-4">
                             <div className="text-sm">
-                              <div className="font-semibold text-gray-800">{booking.pickupPoint}</div>
+                              <div className="font-semibold text-gray-800">
+                                {booking.pickupPoint}
+                              </div>
                               <div className="text-gray-500 text-xs">↓</div>
-                              <div className="font-semibold text-gray-800">{booking.destination}</div>
+                              <div className="font-semibold text-gray-800">
+                                {booking.destination}
+                              </div>
                             </div>
                           </td>
                           <td className="px-6 py-4">
                             {booking.customerId && (
                               <div className="text-sm">
-                                <div className="font-bold text-gray-800">{booking.customerId.name}</div>
-                                <div className="text-primary font-semibold">{booking.customerId.phoneNumber}</div>
-                                <div className="text-gray-600">{booking.numberOfPeople} {booking.numberOfPeople > 1 ? "people" : "person"}</div>
+                                <div className="font-bold text-gray-800">
+                                  {booking.customerId.name}
+                                </div>
+                                <div className="text-primary font-semibold">
+                                  {booking.customerId.phoneNumber}
+                                </div>
+                                <div className="text-gray-600">
+                                  {booking.numberOfPeople}{" "}
+                                  {booking.numberOfPeople > 1
+                                    ? "people"
+                                    : "person"}
+                                </div>
                               </div>
                             )}
                           </td>
@@ -280,7 +313,12 @@ const DriverDashboard = () => {
                             <div className="flex flex-col gap-2">
                               {booking.status === "accepted" && (
                                 <button
-                                  onClick={() => updateBookingStatus(booking._id, "on-the-way")}
+                                  onClick={() =>
+                                    updateBookingStatus(
+                                      booking._id,
+                                      "on-the-way",
+                                    )
+                                  }
                                   className="px-4 py-2 bg-blue-500 text-white rounded-lg hover:bg-blue-600 font-semibold transition-all text-sm whitespace-nowrap"
                                 >
                                   On The Way
@@ -288,7 +326,12 @@ const DriverDashboard = () => {
                               )}
                               {booking.status === "on-the-way" && (
                                 <button
-                                  onClick={() => updateBookingStatus(booking._id, "picked-up")}
+                                  onClick={() =>
+                                    updateBookingStatus(
+                                      booking._id,
+                                      "picked-up",
+                                    )
+                                  }
                                   className="px-4 py-2 bg-purple-500 text-white rounded-lg hover:bg-purple-600 font-semibold transition-all text-sm whitespace-nowrap"
                                 >
                                   Picked Up
@@ -296,7 +339,12 @@ const DriverDashboard = () => {
                               )}
                               {booking.status === "picked-up" && (
                                 <button
-                                  onClick={() => updateBookingStatus(booking._id, "completed")}
+                                  onClick={() =>
+                                    updateBookingStatus(
+                                      booking._id,
+                                      "completed",
+                                    )
+                                  }
                                   className="px-4 py-2 bg-green-600 text-white rounded-lg hover:bg-green-700 font-semibold transition-all text-sm whitespace-nowrap"
                                 >
                                   Complete Ride
@@ -313,49 +361,77 @@ const DriverDashboard = () => {
                 {/* Mobile Cards */}
                 <div className="md:hidden space-y-4 p-4">
                   {activeBookings.map((booking) => (
-                    <div key={booking._id} className="border border-gray-200 rounded-lg p-4 shadow-sm">
+                    <div
+                      key={booking._id}
+                      className="border border-gray-200 rounded-lg p-4 shadow-sm"
+                    >
                       <div className="flex justify-between items-start mb-3">
                         <div>
-                          <div className="font-bold text-gray-800">{booking.serviceType}</div>
-                          <div className="text-sm text-gray-600">{new Date(booking.dateTime).toLocaleString()}</div>
+                          <div className="font-bold text-gray-800">
+                            {booking.serviceType}
+                          </div>
+                          <div className="text-sm text-gray-600">
+                            {new Date(booking.dateTime).toLocaleString()}
+                          </div>
                         </div>
                         <span
                           className={`px-3 py-1 rounded-full text-xs font-semibold ${getStatusColor(
-                            booking.status
+                            booking.status,
                           )}`}
                         >
                           {booking.status.replace("-", " ").toUpperCase()}
                         </span>
                       </div>
-                      
+
                       <div className="space-y-2 mb-3">
                         <div>
-                          <div className="text-xs text-gray-500 font-semibold">Route</div>
-                          <div className="font-semibold text-gray-800">{booking.pickupPoint}</div>
+                          <div className="text-xs text-gray-500 font-semibold">
+                            Route
+                          </div>
+                          <div className="font-semibold text-gray-800">
+                            {booking.pickupPoint}
+                          </div>
                           <div className="text-xs text-gray-500">↓</div>
-                          <div className="font-semibold text-gray-800">{booking.destination}</div>
+                          <div className="font-semibold text-gray-800">
+                            {booking.destination}
+                          </div>
                         </div>
-                        
+
                         {booking.customerId && (
                           <div>
-                            <div className="text-xs text-gray-500 font-semibold">Customer</div>
-                            <div className="font-bold text-gray-800">{booking.customerId.name}</div>
-                            <div className="text-primary font-semibold text-sm">{booking.customerId.phoneNumber}</div>
-                            <div className="text-sm text-gray-600">{booking.numberOfPeople} {booking.numberOfPeople > 1 ? "people" : "person"}</div>
+                            <div className="text-xs text-gray-500 font-semibold">
+                              Customer
+                            </div>
+                            <div className="font-bold text-gray-800">
+                              {booking.customerId.name}
+                            </div>
+                            <div className="text-primary font-semibold text-sm">
+                              {booking.customerId.phoneNumber}
+                            </div>
+                            <div className="text-sm text-gray-600">
+                              {booking.numberOfPeople}{" "}
+                              {booking.numberOfPeople > 1 ? "people" : "person"}
+                            </div>
                           </div>
                         )}
-                        
+
                         {booking.notes && (
                           <div className="bg-amber-50 border border-amber-200 p-2 rounded">
-                            <div className="text-xs font-semibold text-amber-700">Note:</div>
-                            <div className="text-sm text-gray-700">{booking.notes}</div>
+                            <div className="text-xs font-semibold text-amber-700">
+                              Note:
+                            </div>
+                            <div className="text-sm text-gray-700">
+                              {booking.notes}
+                            </div>
                           </div>
                         )}
                       </div>
-                      
+
                       {booking.status === "accepted" && (
                         <button
-                          onClick={() => updateBookingStatus(booking._id, "on-the-way")}
+                          onClick={() =>
+                            updateBookingStatus(booking._id, "on-the-way")
+                          }
                           className="w-full px-4 py-2 bg-blue-500 text-white rounded-lg hover:bg-blue-600 font-semibold transition-all text-sm"
                         >
                           On The Way
@@ -363,7 +439,9 @@ const DriverDashboard = () => {
                       )}
                       {booking.status === "on-the-way" && (
                         <button
-                          onClick={() => updateBookingStatus(booking._id, "picked-up")}
+                          onClick={() =>
+                            updateBookingStatus(booking._id, "picked-up")
+                          }
                           className="w-full px-4 py-2 bg-purple-500 text-white rounded-lg hover:bg-purple-600 font-semibold transition-all text-sm"
                         >
                           Picked Up
@@ -371,7 +449,9 @@ const DriverDashboard = () => {
                       )}
                       {booking.status === "picked-up" && (
                         <button
-                          onClick={() => updateBookingStatus(booking._id, "completed")}
+                          onClick={() =>
+                            updateBookingStatus(booking._id, "completed")
+                          }
                           className="w-full px-4 py-2 bg-green-600 text-white rounded-lg hover:bg-green-700 font-semibold transition-all text-sm"
                         >
                           Complete Ride
@@ -394,7 +474,9 @@ const DriverDashboard = () => {
 
             {completedBookings.length === 0 ? (
               <div className="card text-center py-12">
-                <p className="text-gray-500">Your completed rides will appear here</p>
+                <p className="text-gray-500">
+                  Your completed rides will appear here
+                </p>
               </div>
             ) : (
               <div className="bg-white rounded-lg shadow-md overflow-hidden">
@@ -403,16 +485,29 @@ const DriverDashboard = () => {
                   <table className="w-full">
                     <thead className="bg-gradient-to-r from-primary to-primary-light text-white">
                       <tr>
-                        <th className="px-6 py-4 text-left text-sm font-semibold">Status</th>
-                        <th className="px-6 py-4 text-left text-sm font-semibold">Service Type</th>
-                        <th className="px-6 py-4 text-left text-sm font-semibold">Date</th>
-                        <th className="px-6 py-4 text-left text-sm font-semibold">Route</th>
-                        <th className="px-6 py-4 text-left text-sm font-semibold">Passengers</th>
+                        <th className="px-6 py-4 text-left text-sm font-semibold">
+                          Status
+                        </th>
+                        <th className="px-6 py-4 text-left text-sm font-semibold">
+                          Service Type
+                        </th>
+                        <th className="px-6 py-4 text-left text-sm font-semibold">
+                          Date
+                        </th>
+                        <th className="px-6 py-4 text-left text-sm font-semibold">
+                          Route
+                        </th>
+                        <th className="px-6 py-4 text-left text-sm font-semibold">
+                          Passengers
+                        </th>
                       </tr>
                     </thead>
                     <tbody className="divide-y divide-gray-200">
                       {completedBookings.map((booking) => (
-                        <tr key={booking._id} className="hover:bg-gray-50 transition-colors">
+                        <tr
+                          key={booking._id}
+                          className="hover:bg-gray-50 transition-colors"
+                        >
                           <td className="px-6 py-4">
                             <span
                               className={`px-3 py-1 rounded-full text-xs font-semibold ${
@@ -432,8 +527,12 @@ const DriverDashboard = () => {
                           </td>
                           <td className="px-6 py-4">
                             <div className="text-sm">
-                              <div className="text-gray-800">{booking.pickupPoint}</div>
-                              <div className="text-gray-500 text-xs">→ {booking.destination}</div>
+                              <div className="text-gray-800">
+                                {booking.pickupPoint}
+                              </div>
+                              <div className="text-gray-500 text-xs">
+                                → {booking.destination}
+                              </div>
                             </div>
                           </td>
                           <td className="px-6 py-4 text-gray-600">
@@ -448,7 +547,10 @@ const DriverDashboard = () => {
                 {/* Mobile Cards */}
                 <div className="md:hidden space-y-4 p-4">
                   {completedBookings.map((booking) => (
-                    <div key={booking._id} className="bg-white border border-gray-200 rounded-lg p-4 shadow-sm">
+                    <div
+                      key={booking._id}
+                      className="bg-white border border-gray-200 rounded-lg p-4 shadow-sm"
+                    >
                       <div className="flex justify-between items-start mb-3">
                         <span
                           className={`px-3 py-1 rounded-full text-xs font-semibold ${
@@ -464,10 +566,24 @@ const DriverDashboard = () => {
                         </span>
                       </div>
                       <div className="space-y-2 text-sm">
-                        <div><span className="text-gray-500">Service:</span> <span className="ml-2 font-semibold">{booking.serviceType}</span></div>
-                        <div><span className="text-gray-500">From:</span> <span className="ml-2">{booking.pickupPoint}</span></div>
-                        <div><span className="text-gray-500">To:</span> <span className="ml-2">{booking.destination}</span></div>
-                        <div><span className="text-gray-500">Passengers:</span> <span className="ml-2">{booking.numberOfPeople}</span></div>
+                        <div>
+                          <span className="text-gray-500">Service:</span>{" "}
+                          <span className="ml-2 font-semibold">
+                            {booking.serviceType}
+                          </span>
+                        </div>
+                        <div>
+                          <span className="text-gray-500">From:</span>{" "}
+                          <span className="ml-2">{booking.pickupPoint}</span>
+                        </div>
+                        <div>
+                          <span className="text-gray-500">To:</span>{" "}
+                          <span className="ml-2">{booking.destination}</span>
+                        </div>
+                        <div>
+                          <span className="text-gray-500">Passengers:</span>{" "}
+                          <span className="ml-2">{booking.numberOfPeople}</span>
+                        </div>
                       </div>
                     </div>
                   ))}
@@ -641,7 +757,10 @@ const DriverDashboard = () => {
                       type="number"
                       value={profileForm.seats}
                       onChange={(e) =>
-                        setProfileForm({ ...profileForm, seats: e.target.value })
+                        setProfileForm({
+                          ...profileForm,
+                          seats: e.target.value,
+                        })
                       }
                       className="input-field"
                       placeholder="Number of seats"

@@ -136,7 +136,7 @@ exports.adminLogin = async (req, res) => {
 
     // Check password using model method
     const isMatch = await adminUser.comparePassword(password);
-    
+
     if (!isMatch) {
       return res.status(401).json({ message: "Invalid admin credentials" });
     }

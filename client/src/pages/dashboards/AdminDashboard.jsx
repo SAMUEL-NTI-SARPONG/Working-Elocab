@@ -45,7 +45,7 @@ const AdminDashboard = () => {
     fetchDrivers();
     fetchCustomers();
     fetchBookings();
-    
+
     // Request notification permission on mount
     if ("Notification" in window && Notification.permission === "default") {
       Notification.requestPermission();
@@ -64,13 +64,15 @@ const AdminDashboard = () => {
     const checkForNewBookings = () => {
       // This will trigger when bookings change
       if (bookings.length > 0 && Notification.permission === "granted") {
-        const pendingCount = bookings.filter(b => b.status === "pending").length;
+        const pendingCount = bookings.filter(
+          (b) => b.status === "pending",
+        ).length;
         if (pendingCount > 0 && activeTab !== "bookings") {
           // Show notification if there are pending bookings and user is not on bookings tab
           new Notification("New Booking Alert", {
             body: `You have ${pendingCount} pending booking(s) awaiting assignment`,
             icon: "/logo.png",
-            badge: "/logo.png"
+            badge: "/logo.png",
           });
         }
       }
@@ -180,11 +182,18 @@ const AdminDashboard = () => {
   };
 
   const clearCompletedBookings = async () => {
-    if (!confirm("Are you sure you want to delete all completed and cancelled bookings? This cannot be undone!")) return;
+    if (
+      !confirm(
+        "Are you sure you want to delete all completed and cancelled bookings? This cannot be undone!",
+      )
+    )
+      return;
 
     setLoading(true);
     try {
-      const { data } = await axios.delete("/api/admin/bookings/clear-completed");
+      const { data } = await axios.delete(
+        "/api/admin/bookings/clear-completed",
+      );
       toast.success(data.message);
       fetchBookings();
       fetchStats();
@@ -196,8 +205,18 @@ const AdminDashboard = () => {
   };
 
   const clearAllBookings = async () => {
-    if (!confirm("⚠️ WARNING: This will delete ALL bookings including active ones! Are you absolutely sure?")) return;
-    if (!confirm("This is your final warning. All booking data will be permanently deleted. Continue?")) return;
+    if (
+      !confirm(
+        "⚠️ WARNING: This will delete ALL bookings including active ones! Are you absolutely sure?",
+      )
+    )
+      return;
+    if (
+      !confirm(
+        "This is your final warning. All booking data will be permanently deleted. Continue?",
+      )
+    )
+      return;
 
     setLoading(true);
     try {
@@ -230,7 +249,7 @@ const AdminDashboard = () => {
         // Test notification
         new Notification("ELOCAB Admin", {
           body: "You will now receive notifications for new bookings",
-          icon: "/logo.png"
+          icon: "/logo.png",
         });
       } else {
         toast.error("Notification permission denied");
@@ -250,8 +269,18 @@ const AdminDashboard = () => {
   };
 
   const resetStatistics = async () => {
-    if (!confirm("⚠️ WARNING: This will reset ALL lifetime statistics to zero! Are you absolutely sure?")) return;
-    if (!confirm("This is your final warning. All statistics data will be permanently reset. Continue?")) return;
+    if (
+      !confirm(
+        "⚠️ WARNING: This will reset ALL lifetime statistics to zero! Are you absolutely sure?",
+      )
+    )
+      return;
+    if (
+      !confirm(
+        "This is your final warning. All statistics data will be permanently reset. Continue?",
+      )
+    )
+      return;
 
     setLoading(true);
     try {
@@ -273,11 +302,18 @@ const AdminDashboard = () => {
         toast("No bookings available for archiving", { icon: "ℹ️" });
         return;
       }
-      
+
       const message = `Found ${data.count} booking(s) older than 90 days that will be archived.\n\nCutoff date: ${new Date(data.cutoffDate).toLocaleDateString()}`;
-      if (confirm(message + "\n\nClick OK to preview the bookings or Cancel to go back.")) {
+      if (
+        confirm(
+          message +
+            "\n\nClick OK to preview the bookings or Cancel to go back.",
+        )
+      ) {
         console.log("Archivable bookings:", data.bookings);
-        toast.success(`${data.count} bookings ready for archiving. Check console for details.`);
+        toast.success(
+          `${data.count} bookings ready for archiving. Check console for details.`,
+        );
       }
     } catch (error) {
       toast.error("Failed to preview archive");
@@ -298,9 +334,11 @@ const AdminDashboard = () => {
     setArchiveLoading(true);
     try {
       const { data } = await axios.post("/api/admin/archive/execute");
-      
+
       // Create and download JSON file
-      const blob = new Blob([JSON.stringify(data.data, null, 2)], { type: "application/json" });
+      const blob = new Blob([JSON.stringify(data.data, null, 2)], {
+        type: "application/json",
+      });
       const url = URL.createObjectURL(blob);
       const link = document.createElement("a");
       link.href = url;
@@ -311,7 +349,7 @@ const AdminDashboard = () => {
       URL.revokeObjectURL(url);
 
       toast.success(data.message);
-      
+
       // Refresh data
       fetchBookings();
       fetchStats();
@@ -396,10 +434,10 @@ const AdminDashboard = () => {
   const pendingBookings = bookings.filter((b) => b.status === "pending");
   const assignedBookings = bookings.filter((b) => b.status === "assigned");
   const activeBookings = bookings.filter(
-    (b) => !["completed", "cancelled"].includes(b.status)
+    (b) => !["completed", "cancelled"].includes(b.status),
   );
   const completedBookings = bookings.filter((b) =>
-    ["completed", "cancelled"].includes(b.status)
+    ["completed", "cancelled"].includes(b.status),
   );
 
   return (
@@ -420,7 +458,9 @@ const AdminDashboard = () => {
                   />
                 </div>
                 <div>
-                  <h1 className="text-xl font-black tracking-tight text-white">ELOCAB</h1>
+                  <h1 className="text-xl font-black tracking-tight text-white">
+                    ELOCAB
+                  </h1>
                   <p className="text-xs text-gray-300">Admin Dashboard</p>
                 </div>
               </div>
@@ -439,19 +479,21 @@ const AdminDashboard = () => {
       <div className="bg-white border-b">
         <div className="container mx-auto px-6">
           <div className="flex space-x-4 md:space-x-8 overflow-x-auto">
-            {["dashboard", "bookings", "drivers", "customers", "settings"].map((tab) => (
-              <button
-                key={tab}
-                onClick={() => setActiveTab(tab)}
-                className={`py-4 px-2 border-b-2 font-semibold capitalize transition-all whitespace-nowrap ${
-                  activeTab === tab
-                    ? "border-primary text-primary"
-                    : "border-transparent text-gray-500 hover:text-gray-700"
-                }`}
-              >
-                {tab}
-              </button>
-            ))}
+            {["dashboard", "bookings", "drivers", "customers", "settings"].map(
+              (tab) => (
+                <button
+                  key={tab}
+                  onClick={() => setActiveTab(tab)}
+                  className={`py-4 px-2 border-b-2 font-semibold capitalize transition-all whitespace-nowrap ${
+                    activeTab === tab
+                      ? "border-primary text-primary"
+                      : "border-transparent text-gray-500 hover:text-gray-700"
+                  }`}
+                >
+                  {tab}
+                </button>
+              ),
+            )}
           </div>
         </div>
       </div>
@@ -505,7 +547,9 @@ const AdminDashboard = () => {
             {stats.lifetime && (
               <div className="mb-8">
                 <div className="flex justify-between items-center mb-4">
-                  <h3 className="text-lg font-bold text-gray-700">📊 Lifetime Statistics (Persists After Data Cleanup)</h3>
+                  <h3 className="text-lg font-bold text-gray-700">
+                    📊 Lifetime Statistics (Persists After Data Cleanup)
+                  </h3>
                   <button
                     onClick={resetStatistics}
                     className="px-4 py-2 bg-red-600 text-white text-sm rounded-lg hover:bg-red-700 transition-all"
@@ -516,37 +560,57 @@ const AdminDashboard = () => {
                 </div>
                 <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4">
                   <div className="card bg-gradient-to-br from-blue-100 to-blue-50">
-                    <h4 className="text-gray-600 text-xs mb-1">Total Bookings</h4>
-                    <p className="text-2xl font-bold text-blue-700">{stats.lifetime.totalBookings}</p>
+                    <h4 className="text-gray-600 text-xs mb-1">
+                      Total Bookings
+                    </h4>
+                    <p className="text-2xl font-bold text-blue-700">
+                      {stats.lifetime.totalBookings}
+                    </p>
                     <p className="text-xs text-gray-500 mt-1">All time</p>
                   </div>
                   <div className="card bg-gradient-to-br from-green-100 to-green-50">
                     <h4 className="text-gray-600 text-xs mb-1">Completed</h4>
-                    <p className="text-2xl font-bold text-green-700">{stats.lifetime.totalCompleted}</p>
+                    <p className="text-2xl font-bold text-green-700">
+                      {stats.lifetime.totalCompleted}
+                    </p>
                     <p className="text-xs text-gray-500 mt-1">All time</p>
                   </div>
                   <div className="card bg-gradient-to-br from-red-100 to-red-50">
                     <h4 className="text-gray-600 text-xs mb-1">Cancelled</h4>
-                    <p className="text-2xl font-bold text-red-700">{stats.lifetime.totalCancelled}</p>
+                    <p className="text-2xl font-bold text-red-700">
+                      {stats.lifetime.totalCancelled}
+                    </p>
                     <p className="text-xs text-gray-500 mt-1">All time</p>
                   </div>
                 </div>
-                {stats.lifetime.last7Days && stats.lifetime.last7Days.length > 0 && (
-                  <div className="mt-4 card">
-                    <h4 className="text-sm font-bold text-gray-700 mb-3">📅 Last 7 Days Activity</h4>
-                    <div className="space-y-2">
-                      {stats.lifetime.last7Days.map((day, idx) => (
-                        <div key={idx} className="flex justify-between items-center text-sm">
-                          <span className="text-gray-600">{new Date(day.date).toLocaleDateString()}</span>
-                          <div className="flex gap-4">
-                            <span className="text-blue-600">{day.bookingCount} bookings</span>
-                            <span className="text-green-600">{day.completedCount} completed</span>
+                {stats.lifetime.last7Days &&
+                  stats.lifetime.last7Days.length > 0 && (
+                    <div className="mt-4 card">
+                      <h4 className="text-sm font-bold text-gray-700 mb-3">
+                        📅 Last 7 Days Activity
+                      </h4>
+                      <div className="space-y-2">
+                        {stats.lifetime.last7Days.map((day, idx) => (
+                          <div
+                            key={idx}
+                            className="flex justify-between items-center text-sm"
+                          >
+                            <span className="text-gray-600">
+                              {new Date(day.date).toLocaleDateString()}
+                            </span>
+                            <div className="flex gap-4">
+                              <span className="text-blue-600">
+                                {day.bookingCount} bookings
+                              </span>
+                              <span className="text-green-600">
+                                {day.completedCount} completed
+                              </span>
+                            </div>
                           </div>
-                        </div>
-                      ))}
+                        ))}
+                      </div>
                     </div>
-                  </div>
-                )}
+                  )}
               </div>
             )}
 
@@ -589,17 +653,32 @@ const AdminDashboard = () => {
                     <table className="w-full">
                       <thead className="bg-gradient-to-r from-yellow-500 to-yellow-400 text-white">
                         <tr>
-                          <th className="px-6 py-4 text-left text-sm font-semibold">Service</th>
-                          <th className="px-6 py-4 text-left text-sm font-semibold">Date & Time</th>
-                          <th className="px-6 py-4 text-left text-sm font-semibold">Route</th>
-                          <th className="px-6 py-4 text-left text-sm font-semibold">Customer</th>
-                          <th className="px-6 py-4 text-left text-sm font-semibold">Passengers</th>
-                          <th className="px-6 py-4 text-left text-sm font-semibold">Assign Driver</th>
+                          <th className="px-6 py-4 text-left text-sm font-semibold">
+                            Service
+                          </th>
+                          <th className="px-6 py-4 text-left text-sm font-semibold">
+                            Date & Time
+                          </th>
+                          <th className="px-6 py-4 text-left text-sm font-semibold">
+                            Route
+                          </th>
+                          <th className="px-6 py-4 text-left text-sm font-semibold">
+                            Customer
+                          </th>
+                          <th className="px-6 py-4 text-left text-sm font-semibold">
+                            Passengers
+                          </th>
+                          <th className="px-6 py-4 text-left text-sm font-semibold">
+                            Assign Driver
+                          </th>
                         </tr>
                       </thead>
                       <tbody className="divide-y divide-gray-200">
                         {pendingBookings.map((booking) => (
-                          <tr key={booking._id} className="hover:bg-gray-50 transition-colors">
+                          <tr
+                            key={booking._id}
+                            className="hover:bg-gray-50 transition-colors"
+                          >
                             <td className="px-6 py-4 font-medium text-gray-800">
                               {booking.serviceType}
                             </td>
@@ -608,16 +687,24 @@ const AdminDashboard = () => {
                             </td>
                             <td className="px-6 py-4">
                               <div className="text-sm">
-                                <div className="font-semibold text-gray-800">{booking.pickupPoint}</div>
+                                <div className="font-semibold text-gray-800">
+                                  {booking.pickupPoint}
+                                </div>
                                 <div className="text-gray-500 text-xs">→</div>
-                                <div className="font-semibold text-gray-800">{booking.destination}</div>
+                                <div className="font-semibold text-gray-800">
+                                  {booking.destination}
+                                </div>
                               </div>
                             </td>
                             <td className="px-6 py-4">
                               {booking.customerId && (
                                 <div className="text-sm">
-                                  <div className="font-bold text-gray-800">{booking.customerId.name}</div>
-                                  <div className="text-gray-600">{booking.customerId.phoneNumber}</div>
+                                  <div className="font-bold text-gray-800">
+                                    {booking.customerId.name}
+                                  </div>
+                                  <div className="text-gray-600">
+                                    {booking.customerId.phoneNumber}
+                                  </div>
                                 </div>
                               )}
                             </td>
@@ -628,7 +715,11 @@ const AdminDashboard = () => {
                               <div className="flex gap-2">
                                 <select
                                   className="flex-1 min-w-[180px] px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-primary focus:border-transparent text-sm"
-                                  value={selectedBooking === booking._id ? selectedDriver : ""}
+                                  value={
+                                    selectedBooking === booking._id
+                                      ? selectedDriver
+                                      : ""
+                                  }
                                   onChange={(e) => {
                                     setSelectedBooking(booking._id);
                                     setSelectedDriver(e.target.value);
@@ -637,13 +728,19 @@ const AdminDashboard = () => {
                                   <option value="">Select driver...</option>
                                   {drivers.map((driver) => (
                                     <option key={driver._id} value={driver._id}>
-                                      {driver.name} - {driver.carType} ({driver.numberOfSeats} seats) {driver.isAvailable ? "✅" : "⚫"}
+                                      {driver.name} - {driver.carType} (
+                                      {driver.numberOfSeats} seats){" "}
+                                      {driver.isAvailable ? "✅" : "⚫"}
                                     </option>
                                   ))}
                                 </select>
                                 <button
                                   onClick={assignDriver}
-                                  disabled={selectedBooking !== booking._id || !selectedDriver || loading}
+                                  disabled={
+                                    selectedBooking !== booking._id ||
+                                    !selectedDriver ||
+                                    loading
+                                  }
                                   className="px-4 py-2 bg-green-600 text-white rounded-lg hover:bg-green-700 disabled:opacity-50 disabled:cursor-not-allowed font-semibold text-sm whitespace-nowrap"
                                 >
                                   Assign
@@ -659,37 +756,64 @@ const AdminDashboard = () => {
                   {/* Mobile Cards */}
                   <div className="md:hidden space-y-4 p-4">
                     {pendingBookings.map((booking) => (
-                      <div key={booking._id} className="border border-yellow-200 rounded-lg p-4 shadow-sm bg-yellow-50">
+                      <div
+                        key={booking._id}
+                        className="border border-yellow-200 rounded-lg p-4 shadow-sm bg-yellow-50"
+                      >
                         <div className="mb-3">
-                          <div className="font-bold text-gray-800 text-lg">{booking.serviceType}</div>
-                          <div className="text-sm text-gray-600">{new Date(booking.dateTime).toLocaleString()}</div>
+                          <div className="font-bold text-gray-800 text-lg">
+                            {booking.serviceType}
+                          </div>
+                          <div className="text-sm text-gray-600">
+                            {new Date(booking.dateTime).toLocaleString()}
+                          </div>
                         </div>
-                        
+
                         <div className="space-y-2 mb-3">
                           <div>
-                            <div className="text-xs text-gray-500 font-semibold">Route</div>
-                            <div className="font-semibold text-gray-800">{booking.pickupPoint} → {booking.destination}</div>
+                            <div className="text-xs text-gray-500 font-semibold">
+                              Route
+                            </div>
+                            <div className="font-semibold text-gray-800">
+                              {booking.pickupPoint} → {booking.destination}
+                            </div>
                           </div>
-                          
+
                           {booking.customerId && (
                             <div>
-                              <div className="text-xs text-gray-500 font-semibold">Customer</div>
-                              <div className="font-bold text-gray-800">{booking.customerId.name}</div>
-                              <div className="text-sm text-gray-600">{booking.customerId.phoneNumber}</div>
+                              <div className="text-xs text-gray-500 font-semibold">
+                                Customer
+                              </div>
+                              <div className="font-bold text-gray-800">
+                                {booking.customerId.name}
+                              </div>
+                              <div className="text-sm text-gray-600">
+                                {booking.customerId.phoneNumber}
+                              </div>
                             </div>
                           )}
-                          
+
                           <div>
-                            <div className="text-xs text-gray-500 font-semibold">Passengers</div>
-                            <div className="text-gray-800">{booking.numberOfPeople}</div>
+                            <div className="text-xs text-gray-500 font-semibold">
+                              Passengers
+                            </div>
+                            <div className="text-gray-800">
+                              {booking.numberOfPeople}
+                            </div>
                           </div>
                         </div>
-                        
+
                         <div className="border-t pt-3">
-                          <label className="block text-sm font-semibold text-gray-700 mb-2">Assign Driver</label>
+                          <label className="block text-sm font-semibold text-gray-700 mb-2">
+                            Assign Driver
+                          </label>
                           <select
                             className="w-full px-3 py-2 border border-gray-300 rounded-lg mb-2 text-sm"
-                            value={selectedBooking === booking._id ? selectedDriver : ""}
+                            value={
+                              selectedBooking === booking._id
+                                ? selectedDriver
+                                : ""
+                            }
                             onChange={(e) => {
                               setSelectedBooking(booking._id);
                               setSelectedDriver(e.target.value);
@@ -698,13 +822,19 @@ const AdminDashboard = () => {
                             <option value="">Select driver...</option>
                             {drivers.map((driver) => (
                               <option key={driver._id} value={driver._id}>
-                                {driver.name} - {driver.carType} ({driver.numberOfSeats} seats) {driver.isAvailable ? "✅" : "⚫"}
+                                {driver.name} - {driver.carType} (
+                                {driver.numberOfSeats} seats){" "}
+                                {driver.isAvailable ? "✅" : "⚫"}
                               </option>
                             ))}
                           </select>
                           <button
                             onClick={assignDriver}
-                            disabled={selectedBooking !== booking._id || !selectedDriver || loading}
+                            disabled={
+                              selectedBooking !== booking._id ||
+                              !selectedDriver ||
+                              loading
+                            }
                             className="w-full px-4 py-2 bg-green-600 text-white rounded-lg hover:bg-green-700 disabled:opacity-50 disabled:cursor-not-allowed font-semibold text-sm"
                           >
                             Assign
@@ -729,21 +859,36 @@ const AdminDashboard = () => {
                     <table className="w-full">
                       <thead className="bg-gradient-to-r from-primary to-primary-light text-white">
                         <tr>
-                          <th className="px-6 py-4 text-left text-sm font-semibold">Status</th>
-                          <th className="px-6 py-4 text-left text-sm font-semibold">Service</th>
-                          <th className="px-6 py-4 text-left text-sm font-semibold">Date & Time</th>
-                          <th className="px-6 py-4 text-left text-sm font-semibold">Route</th>
-                          <th className="px-6 py-4 text-left text-sm font-semibold">Driver</th>
-                          <th className="px-6 py-4 text-left text-sm font-semibold">Customer</th>
+                          <th className="px-6 py-4 text-left text-sm font-semibold">
+                            Status
+                          </th>
+                          <th className="px-6 py-4 text-left text-sm font-semibold">
+                            Service
+                          </th>
+                          <th className="px-6 py-4 text-left text-sm font-semibold">
+                            Date & Time
+                          </th>
+                          <th className="px-6 py-4 text-left text-sm font-semibold">
+                            Route
+                          </th>
+                          <th className="px-6 py-4 text-left text-sm font-semibold">
+                            Driver
+                          </th>
+                          <th className="px-6 py-4 text-left text-sm font-semibold">
+                            Customer
+                          </th>
                         </tr>
                       </thead>
                       <tbody className="divide-y divide-gray-200">
                         {assignedBookings.map((booking) => (
-                          <tr key={booking._id} className="hover:bg-gray-50 transition-colors">
+                          <tr
+                            key={booking._id}
+                            className="hover:bg-gray-50 transition-colors"
+                          >
                             <td className="px-6 py-4">
                               <span
                                 className={`px-3 py-1 rounded-full text-xs font-semibold ${getStatusColor(
-                                  booking.status
+                                  booking.status,
                                 )}`}
                               >
                                 {booking.status.replace("-", " ").toUpperCase()}
@@ -757,25 +902,39 @@ const AdminDashboard = () => {
                             </td>
                             <td className="px-6 py-4">
                               <div className="text-sm">
-                                <div className="font-semibold text-gray-800">{booking.pickupPoint}</div>
+                                <div className="font-semibold text-gray-800">
+                                  {booking.pickupPoint}
+                                </div>
                                 <div className="text-gray-500 text-xs">→</div>
-                                <div className="font-semibold text-gray-800">{booking.destination}</div>
+                                <div className="font-semibold text-gray-800">
+                                  {booking.destination}
+                                </div>
                               </div>
                             </td>
                             <td className="px-6 py-4">
                               {booking.driverId && (
                                 <div className="text-sm">
-                                  <div className="font-bold text-gray-800">{booking.driverId.name}</div>
-                                  <div className="text-gray-600">{booking.driverId.contactNumber}</div>
+                                  <div className="font-bold text-gray-800">
+                                    {booking.driverId.name}
+                                  </div>
+                                  <div className="text-gray-600">
+                                    {booking.driverId.contactNumber}
+                                  </div>
                                 </div>
                               )}
                             </td>
                             <td className="px-6 py-4">
                               {booking.customerId && (
                                 <div className="text-sm">
-                                  <div className="font-bold text-gray-800">{booking.customerId.name}</div>
-                                  <div className="text-gray-600">{booking.customerId.phoneNumber}</div>
-                                  <div className="text-gray-500 text-xs">{booking.numberOfPeople} passengers</div>
+                                  <div className="font-bold text-gray-800">
+                                    {booking.customerId.name}
+                                  </div>
+                                  <div className="text-gray-600">
+                                    {booking.customerId.phoneNumber}
+                                  </div>
+                                  <div className="text-gray-500 text-xs">
+                                    {booking.numberOfPeople} passengers
+                                  </div>
                                 </div>
                               )}
                             </td>
@@ -788,41 +947,66 @@ const AdminDashboard = () => {
                   {/* Mobile Cards */}
                   <div className="md:hidden space-y-4 p-4">
                     {assignedBookings.map((booking) => (
-                      <div key={booking._id} className="border border-blue-200 rounded-lg p-4 shadow-sm bg-blue-50">
+                      <div
+                        key={booking._id}
+                        className="border border-blue-200 rounded-lg p-4 shadow-sm bg-blue-50"
+                      >
                         <div className="flex justify-between items-start mb-3">
                           <div>
-                            <div className="font-bold text-gray-800 text-lg">{booking.serviceType}</div>
-                            <div className="text-sm text-gray-600">{new Date(booking.dateTime).toLocaleString()}</div>
+                            <div className="font-bold text-gray-800 text-lg">
+                              {booking.serviceType}
+                            </div>
+                            <div className="text-sm text-gray-600">
+                              {new Date(booking.dateTime).toLocaleString()}
+                            </div>
                           </div>
                           <span
                             className={`px-3 py-1 rounded-full text-xs font-semibold ${getStatusColor(
-                              booking.status
+                              booking.status,
                             )}`}
                           >
                             {booking.status.replace("-", " ").toUpperCase()}
                           </span>
                         </div>
-                        
+
                         <div className="space-y-2">
                           <div>
-                            <div className="text-xs text-gray-500 font-semibold">Route</div>
-                            <div className="font-semibold text-gray-800">{booking.pickupPoint} → {booking.destination}</div>
+                            <div className="text-xs text-gray-500 font-semibold">
+                              Route
+                            </div>
+                            <div className="font-semibold text-gray-800">
+                              {booking.pickupPoint} → {booking.destination}
+                            </div>
                           </div>
-                          
+
                           {booking.driverId && (
                             <div>
-                              <div className="text-xs text-gray-500 font-semibold">Driver</div>
-                              <div className="font-bold text-gray-800">{booking.driverId.name}</div>
-                              <div className="text-sm text-gray-600">{booking.driverId.contactNumber}</div>
+                              <div className="text-xs text-gray-500 font-semibold">
+                                Driver
+                              </div>
+                              <div className="font-bold text-gray-800">
+                                {booking.driverId.name}
+                              </div>
+                              <div className="text-sm text-gray-600">
+                                {booking.driverId.contactNumber}
+                              </div>
                             </div>
                           )}
-                          
+
                           {booking.customerId && (
                             <div>
-                              <div className="text-xs text-gray-500 font-semibold">Customer</div>
-                              <div className="font-bold text-gray-800">{booking.customerId.name}</div>
-                              <div className="text-sm text-gray-600">{booking.customerId.phoneNumber}</div>
-                              <div className="text-xs text-gray-500">{booking.numberOfPeople} passengers</div>
+                              <div className="text-xs text-gray-500 font-semibold">
+                                Customer
+                              </div>
+                              <div className="font-bold text-gray-800">
+                                {booking.customerId.name}
+                              </div>
+                              <div className="text-sm text-gray-600">
+                                {booking.customerId.phoneNumber}
+                              </div>
+                              <div className="text-xs text-gray-500">
+                                {booking.numberOfPeople} passengers
+                              </div>
                             </div>
                           )}
                         </div>
@@ -853,7 +1037,7 @@ const AdminDashboard = () => {
                         </div>
                         <span
                           className={`px-3 py-1 rounded-full text-sm font-semibold ${getStatusColor(
-                            booking.status
+                            booking.status,
                           )}`}
                         >
                           {booking.status.toUpperCase()}
@@ -885,98 +1069,157 @@ const AdminDashboard = () => {
             {/* Create Driver Form*/}
             {showCreateDriver && (
               <div className="card mb-6 bg-blue-50 border-l-4 border-primary">
-                <h3 className="font-bold text-gray-800 mb-4">Create New Driver</h3>
+                <h3 className="font-bold text-gray-800 mb-4">
+                  Create New Driver
+                </h3>
                 <form onSubmit={createDriver} className="space-y-4">
                   <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
                     <div>
-                      <label className="block text-sm font-medium text-gray-700 mb-1">Email *</label>
+                      <label className="block text-sm font-medium text-gray-700 mb-1">
+                        Email *
+                      </label>
                       <input
                         type="email"
                         required
                         value={newDriver.email}
-                        onChange={(e) => setNewDriver({ ...newDriver, email: e.target.value })}
+                        onChange={(e) =>
+                          setNewDriver({ ...newDriver, email: e.target.value })
+                        }
                         className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-primary focus:border-transparent"
                       />
                     </div>
                     <div>
-                      <label className="block text-sm font-medium text-gray-700 mb-1">Password *</label>
+                      <label className="block text-sm font-medium text-gray-700 mb-1">
+                        Password *
+                      </label>
                       <input
                         type="password"
                         required
                         value={newDriver.password}
-                        onChange={(e) => setNewDriver({ ...newDriver, password: e.target.value })}
+                        onChange={(e) =>
+                          setNewDriver({
+                            ...newDriver,
+                            password: e.target.value,
+                          })
+                        }
                         className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-primary focus:border-transparent"
                       />
                     </div>
                     <div>
-                      <label className="block text-sm font-medium text-gray-700 mb-1">Name *</label>
+                      <label className="block text-sm font-medium text-gray-700 mb-1">
+                        Name *
+                      </label>
                       <input
                         type="text"
                         required
                         value={newDriver.name}
-                        onChange={(e) => setNewDriver({ ...newDriver, name: e.target.value })}
+                        onChange={(e) =>
+                          setNewDriver({ ...newDriver, name: e.target.value })
+                        }
                         className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-primary focus:border-transparent"
                       />
                     </div>
                     <div>
-                      <label className="block text-sm font-medium text-gray-700 mb-1">Contact Number *</label>
+                      <label className="block text-sm font-medium text-gray-700 mb-1">
+                        Contact Number *
+                      </label>
                       <input
                         type="text"
                         required
                         value={newDriver.contactNumber}
-                        onChange={(e) => setNewDriver({ ...newDriver, contactNumber: e.target.value })}
+                        onChange={(e) =>
+                          setNewDriver({
+                            ...newDriver,
+                            contactNumber: e.target.value,
+                          })
+                        }
                         className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-primary focus:border-transparent"
                       />
                     </div>
                     <div>
-                      <label className="block text-sm font-medium text-gray-700 mb-1">Base Location *</label>
+                      <label className="block text-sm font-medium text-gray-700 mb-1">
+                        Base Location *
+                      </label>
                       <input
                         type="text"
                         required
                         value={newDriver.baseLocation}
-                        onChange={(e) => setNewDriver({ ...newDriver, baseLocation: e.target.value })}
+                        onChange={(e) =>
+                          setNewDriver({
+                            ...newDriver,
+                            baseLocation: e.target.value,
+                          })
+                        }
                         className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-primary focus:border-transparent"
                       />
                     </div>
                     <div>
-                      <label className="block text-sm font-medium text-gray-700 mb-1">Car Type *</label>
+                      <label className="block text-sm font-medium text-gray-700 mb-1">
+                        Car Type *
+                      </label>
                       <input
                         type="text"
                         required
                         value={newDriver.carType}
-                        onChange={(e) => setNewDriver({ ...newDriver, carType: e.target.value })}
+                        onChange={(e) =>
+                          setNewDriver({
+                            ...newDriver,
+                            carType: e.target.value,
+                          })
+                        }
                         placeholder="e.g., Sedan, SUV"
                         className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-primary focus:border-transparent"
                       />
                     </div>
                     <div>
-                      <label className="block text-sm font-medium text-gray-700 mb-1">Car Number *</label>
+                      <label className="block text-sm font-medium text-gray-700 mb-1">
+                        Car Number *
+                      </label>
                       <input
                         type="text"
                         required
                         value={newDriver.carNumber}
-                        onChange={(e) => setNewDriver({ ...newDriver, carNumber: e.target.value })}
+                        onChange={(e) =>
+                          setNewDriver({
+                            ...newDriver,
+                            carNumber: e.target.value,
+                          })
+                        }
                         className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-primary focus:border-transparent"
                       />
                     </div>
                     <div>
-                      <label className="block text-sm font-medium text-gray-700 mb-1">License Number *</label>
+                      <label className="block text-sm font-medium text-gray-700 mb-1">
+                        License Number *
+                      </label>
                       <input
                         type="text"
                         required
                         value={newDriver.licenseNumber}
-                        onChange={(e) => setNewDriver({ ...newDriver, licenseNumber: e.target.value })}
+                        onChange={(e) =>
+                          setNewDriver({
+                            ...newDriver,
+                            licenseNumber: e.target.value,
+                          })
+                        }
                         className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-primary focus:border-transparent"
                       />
                     </div>
                     <div>
-                      <label className="block text-sm font-medium text-gray-700 mb-1">Seats</label>
+                      <label className="block text-sm font-medium text-gray-700 mb-1">
+                        Seats
+                      </label>
                       <input
                         type="number"
                         min="1"
                         max="20"
                         value={newDriver.seats}
-                        onChange={(e) => setNewDriver({ ...newDriver, seats: parseInt(e.target.value) })}
+                        onChange={(e) =>
+                          setNewDriver({
+                            ...newDriver,
+                            seats: parseInt(e.target.value),
+                          })
+                        }
                         className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-primary focus:border-transparent"
                       />
                     </div>
@@ -1003,18 +1246,35 @@ const AdminDashboard = () => {
                   <table className="w-full">
                     <thead className="bg-gradient-to-r from-primary to-primary-light text-white">
                       <tr>
-                        <th className="px-6 py-4 text-left text-sm font-semibold">Name</th>
-                        <th className="px-6 py-4 text-left text-sm font-semibold">Status</th>
-                        <th className="px-6 py-4 text-left text-sm font-semibold">Email</th>
-                        <th className="px-6 py-4 text-left text-sm font-semibold">Vehicle</th>
-                        <th className="px-6 py-4 text-left text-sm font-semibold">Contact</th>
-                        <th className="px-6 py-4 text-left text-sm font-semibold">Location</th>
-                        <th className="px-6 py-4 text-left text-sm font-semibold">Actions</th>
+                        <th className="px-6 py-4 text-left text-sm font-semibold">
+                          Name
+                        </th>
+                        <th className="px-6 py-4 text-left text-sm font-semibold">
+                          Status
+                        </th>
+                        <th className="px-6 py-4 text-left text-sm font-semibold">
+                          Email
+                        </th>
+                        <th className="px-6 py-4 text-left text-sm font-semibold">
+                          Vehicle
+                        </th>
+                        <th className="px-6 py-4 text-left text-sm font-semibold">
+                          Contact
+                        </th>
+                        <th className="px-6 py-4 text-left text-sm font-semibold">
+                          Location
+                        </th>
+                        <th className="px-6 py-4 text-left text-sm font-semibold">
+                          Actions
+                        </th>
                       </tr>
                     </thead>
                     <tbody className="divide-y divide-gray-200">
                       {drivers.map((driver) => (
-                        <tr key={driver._id} className="hover:bg-gray-50 transition-colors">
+                        <tr
+                          key={driver._id}
+                          className="hover:bg-gray-50 transition-colors"
+                        >
                           <td className="px-6 py-4 font-semibold text-gray-800">
                             {driver.name}
                           </td>
@@ -1034,9 +1294,12 @@ const AdminDashboard = () => {
                           </td>
                           <td className="px-6 py-4">
                             <div className="text-sm">
-                              <div className="font-medium text-gray-800">{driver.carType}</div>
+                              <div className="font-medium text-gray-800">
+                                {driver.carType}
+                              </div>
                               <div className="text-gray-500 text-xs">
-                                {driver.carNumber} • {driver.numberOfSeats} seats
+                                {driver.carNumber} • {driver.numberOfSeats}{" "}
+                                seats
                               </div>
                             </div>
                           </td>
@@ -1063,9 +1326,14 @@ const AdminDashboard = () => {
                 {/* Mobile/Tablet Cards */}
                 <div className="lg:hidden space-y-4 p-4">
                   {drivers.map((driver) => (
-                    <div key={driver._id} className="bg-white border border-gray-200 rounded-lg p-4 shadow-sm">
+                    <div
+                      key={driver._id}
+                      className="bg-white border border-gray-200 rounded-lg p-4 shadow-sm"
+                    >
                       <div className="flex justify-between items-start mb-3">
-                        <h3 className="font-bold text-gray-800">{driver.name}</h3>
+                        <h3 className="font-bold text-gray-800">
+                          {driver.name}
+                        </h3>
                         <span
                           className={`px-3 py-1 rounded-full text-xs font-semibold ${
                             driver.isAvailable
@@ -1077,11 +1345,30 @@ const AdminDashboard = () => {
                         </span>
                       </div>
                       <div className="space-y-2 text-sm mb-4">
-                        <div><span className="text-gray-500">Email:</span> <span className="ml-2">{driver.userId?.email || "Not set"}</span></div>
-                        <div><span className="text-gray-500">Vehicle:</span> <span className="ml-2">{driver.carType} ({driver.carNumber})</span></div>
-                        <div><span className="text-gray-500">Seats:</span> <span className="ml-2">{driver.numberOfSeats}</span></div>
-                        <div><span className="text-gray-500">Contact:</span> <span className="ml-2">{driver.contactNumber}</span></div>
-                        <div><span className="text-gray-500">Location:</span> <span className="ml-2">{driver.baseLocation}</span></div>
+                        <div>
+                          <span className="text-gray-500">Email:</span>{" "}
+                          <span className="ml-2">
+                            {driver.userId?.email || "Not set"}
+                          </span>
+                        </div>
+                        <div>
+                          <span className="text-gray-500">Vehicle:</span>{" "}
+                          <span className="ml-2">
+                            {driver.carType} ({driver.carNumber})
+                          </span>
+                        </div>
+                        <div>
+                          <span className="text-gray-500">Seats:</span>{" "}
+                          <span className="ml-2">{driver.numberOfSeats}</span>
+                        </div>
+                        <div>
+                          <span className="text-gray-500">Contact:</span>{" "}
+                          <span className="ml-2">{driver.contactNumber}</span>
+                        </div>
+                        <div>
+                          <span className="text-gray-500">Location:</span>{" "}
+                          <span className="ml-2">{driver.baseLocation}</span>
+                        </div>
                       </div>
                       <button
                         onClick={() => deleteDriver(driver._id)}
@@ -1115,65 +1402,109 @@ const AdminDashboard = () => {
             {/* Create Customer Form */}
             {showCreateCustomer && (
               <div className="card mb-6 bg-green-50 border-l-4 border-green-500">
-                <h3 className="font-bold text-gray-800 mb-4">Create New Customer</h3>
+                <h3 className="font-bold text-gray-800 mb-4">
+                  Create New Customer
+                </h3>
                 <form onSubmit={createCustomer} className="space-y-4">
                   <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
                     <div>
-                      <label className="block text-sm font-medium text-gray-700 mb-1">Email *</label>
+                      <label className="block text-sm font-medium text-gray-700 mb-1">
+                        Email *
+                      </label>
                       <input
                         type="email"
                         required
                         value={newCustomer.email}
-                        onChange={(e) => setNewCustomer({ ...newCustomer, email: e.target.value })}
+                        onChange={(e) =>
+                          setNewCustomer({
+                            ...newCustomer,
+                            email: e.target.value,
+                          })
+                        }
                         className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-green-500 focus:border-transparent"
                       />
                     </div>
                     <div>
-                      <label className="block text-sm font-medium text-gray-700 mb-1">Password *</label>
+                      <label className="block text-sm font-medium text-gray-700 mb-1">
+                        Password *
+                      </label>
                       <input
                         type="password"
                         required
                         value={newCustomer.password}
-                        onChange={(e) => setNewCustomer({ ...newCustomer, password: e.target.value })}
+                        onChange={(e) =>
+                          setNewCustomer({
+                            ...newCustomer,
+                            password: e.target.value,
+                          })
+                        }
                         className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-green-500 focus:border-transparent"
                       />
                     </div>
                     <div>
-                      <label className="block text-sm font-medium text-gray-700 mb-1">Name *</label>
+                      <label className="block text-sm font-medium text-gray-700 mb-1">
+                        Name *
+                      </label>
                       <input
                         type="text"
                         required
                         value={newCustomer.name}
-                        onChange={(e) => setNewCustomer({ ...newCustomer, name: e.target.value })}
+                        onChange={(e) =>
+                          setNewCustomer({
+                            ...newCustomer,
+                            name: e.target.value,
+                          })
+                        }
                         className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-green-500 focus:border-transparent"
                       />
                     </div>
                     <div>
-                      <label className="block text-sm font-medium text-gray-700 mb-1">Phone Number *</label>
+                      <label className="block text-sm font-medium text-gray-700 mb-1">
+                        Phone Number *
+                      </label>
                       <input
                         type="text"
                         required
                         value={newCustomer.phoneNumber}
-                        onChange={(e) => setNewCustomer({ ...newCustomer, phoneNumber: e.target.value })}
+                        onChange={(e) =>
+                          setNewCustomer({
+                            ...newCustomer,
+                            phoneNumber: e.target.value,
+                          })
+                        }
                         className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-green-500 focus:border-transparent"
                       />
                     </div>
                     <div>
-                      <label className="block text-sm font-medium text-gray-700 mb-1">City *</label>
+                      <label className="block text-sm font-medium text-gray-700 mb-1">
+                        City *
+                      </label>
                       <input
                         type="text"
                         required
                         value={newCustomer.city}
-                        onChange={(e) => setNewCustomer({ ...newCustomer, city: e.target.value })}
+                        onChange={(e) =>
+                          setNewCustomer({
+                            ...newCustomer,
+                            city: e.target.value,
+                          })
+                        }
                         className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-green-500 focus:border-transparent"
                       />
                     </div>
                     <div>
-                      <label className="block text-sm font-medium text-gray-700 mb-1">Digital Address</label>
+                      <label className="block text-sm font-medium text-gray-700 mb-1">
+                        Digital Address
+                      </label>
                       <input
                         type="text"
                         value={newCustomer.digitalAddress}
-                        onChange={(e) => setNewCustomer({ ...newCustomer, digitalAddress: e.target.value })}
+                        onChange={(e) =>
+                          setNewCustomer({
+                            ...newCustomer,
+                            digitalAddress: e.target.value,
+                          })
+                        }
                         className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-green-500 focus:border-transparent"
                       />
                     </div>
@@ -1200,16 +1531,29 @@ const AdminDashboard = () => {
                   <table className="w-full">
                     <thead className="bg-gradient-to-r from-primary to-primary-light text-white">
                       <tr>
-                        <th className="px-6 py-4 text-left text-sm font-semibold">Name</th>
-                        <th className="px-6 py-4 text-left text-sm font-semibold">Email</th>
-                        <th className="px-6 py-4 text-left text-sm font-semibold">Phone</th>
-                        <th className="px-6 py-4 text-left text-sm font-semibold">City</th>
-                        <th className="px-6 py-4 text-left text-sm font-semibold">Actions</th>
+                        <th className="px-6 py-4 text-left text-sm font-semibold">
+                          Name
+                        </th>
+                        <th className="px-6 py-4 text-left text-sm font-semibold">
+                          Email
+                        </th>
+                        <th className="px-6 py-4 text-left text-sm font-semibold">
+                          Phone
+                        </th>
+                        <th className="px-6 py-4 text-left text-sm font-semibold">
+                          City
+                        </th>
+                        <th className="px-6 py-4 text-left text-sm font-semibold">
+                          Actions
+                        </th>
                       </tr>
                     </thead>
                     <tbody className="divide-y divide-gray-200">
                       {customers.map((customer) => (
-                        <tr key={customer._id} className="hover:bg-gray-50 transition-colors">
+                        <tr
+                          key={customer._id}
+                          className="hover:bg-gray-50 transition-colors"
+                        >
                           <td className="px-6 py-4 font-semibold text-gray-800">
                             {customer.name || "No Name"}
                           </td>
@@ -1239,14 +1583,32 @@ const AdminDashboard = () => {
                 {/* Mobile Cards */}
                 <div className="md:hidden space-y-4 p-4">
                   {customers.map((customer) => (
-                    <div key={customer._id} className="bg-white border border-gray-200 rounded-lg p-4 shadow-sm">
+                    <div
+                      key={customer._id}
+                      className="bg-white border border-gray-200 rounded-lg p-4 shadow-sm"
+                    >
                       <h3 className="font-bold text-gray-800 mb-3">
                         {customer.name || "No Name"}
                       </h3>
                       <div className="space-y-2 text-sm mb-4">
-                        <div><span className="text-gray-500">Email:</span> <span className="ml-2">{customer.userId?.email || "Not set"}</span></div>
-                        <div><span className="text-gray-500">Phone:</span> <span className="ml-2">{customer.phoneNumber || "Not set"}</span></div>
-                        <div><span className="text-gray-500">City:</span> <span className="ml-2">{customer.city || "Not set"}</span></div>
+                        <div>
+                          <span className="text-gray-500">Email:</span>{" "}
+                          <span className="ml-2">
+                            {customer.userId?.email || "Not set"}
+                          </span>
+                        </div>
+                        <div>
+                          <span className="text-gray-500">Phone:</span>{" "}
+                          <span className="ml-2">
+                            {customer.phoneNumber || "Not set"}
+                          </span>
+                        </div>
+                        <div>
+                          <span className="text-gray-500">City:</span>{" "}
+                          <span className="ml-2">
+                            {customer.city || "Not set"}
+                          </span>
+                        </div>
                       </div>
                       <button
                         onClick={() => deleteCustomer(customer._id)}
@@ -1276,14 +1638,15 @@ const AdminDashboard = () => {
                 Push Notifications
               </h3>
               <p className="text-gray-600 mb-4">
-                Enable push notifications to receive alerts when new bookings are created.
+                Enable push notifications to receive alerts when new bookings
+                are created.
               </p>
               <button
                 onClick={requestNotificationPermission}
                 className="px-6 py-3 bg-blue-600 text-white rounded-lg hover:bg-blue-700 transition-all font-semibold"
               >
-                {Notification?.permission === "granted" 
-                  ? "✅ Notifications Enabled" 
+                {Notification?.permission === "granted"
+                  ? "✅ Notifications Enabled"
                   : "Enable Notifications"}
               </button>
             </div>
@@ -1295,18 +1658,23 @@ const AdminDashboard = () => {
                 Data Management
               </h3>
               <p className="text-gray-600 mb-4">
-                Manage your booking data to free up space and maintain optimal performance.
+                Manage your booking data to free up space and maintain optimal
+                performance.
               </p>
-              
+
               <div className="space-y-4">
                 {/* Clear Completed Bookings */}
                 <div className="bg-yellow-50 border border-yellow-200 rounded-lg p-4">
                   <div className="flex items-start justify-between">
                     <div className="flex-1">
-                      <h4 className="font-bold text-gray-800 mb-1">Clear Completed Bookings</h4>
+                      <h4 className="font-bold text-gray-800 mb-1">
+                        Clear Completed Bookings
+                      </h4>
                       <p className="text-sm text-gray-600 mb-3">
-                        Remove all completed and cancelled bookings. This will help reduce database size.
-                        Currently: <strong>{completedBookings.length}</strong> completed/cancelled bookings
+                        Remove all completed and cancelled bookings. This will
+                        help reduce database size. Currently:{" "}
+                        <strong>{completedBookings.length}</strong>{" "}
+                        completed/cancelled bookings
                       </p>
                     </div>
                   </div>
@@ -1315,7 +1683,9 @@ const AdminDashboard = () => {
                     disabled={loading || completedBookings.length === 0}
                     className="px-4 py-2 bg-yellow-600 text-white rounded-lg hover:bg-yellow-700 disabled:opacity-50 disabled:cursor-not-allowed transition-all font-semibold"
                   >
-                    {loading ? "Clearing..." : `Clear ${completedBookings.length} Bookings`}
+                    {loading
+                      ? "Clearing..."
+                      : `Clear ${completedBookings.length} Bookings`}
                   </button>
                 </div>
 
@@ -1328,8 +1698,9 @@ const AdminDashboard = () => {
                         Danger Zone: Clear All Bookings
                       </h4>
                       <p className="text-sm text-red-700 mb-3">
-                        <strong>WARNING:</strong> This will permanently delete ALL bookings including active ones. 
-                        This action cannot be undone! Use only when absolutely necessary.
+                        <strong>WARNING:</strong> This will permanently delete
+                        ALL bookings including active ones. This action cannot
+                        be undone! Use only when absolutely necessary.
                       </p>
                     </div>
                   </div>
@@ -1338,7 +1709,9 @@ const AdminDashboard = () => {
                     disabled={loading || bookings.length === 0}
                     className="px-4 py-2 bg-red-600 text-white rounded-lg hover:bg-red-700 disabled:opacity-50 disabled:cursor-not-allowed transition-all font-semibold"
                   >
-                    {loading ? "Clearing..." : `Delete All ${bookings.length} Bookings`}
+                    {loading
+                      ? "Clearing..."
+                      : `Delete All ${bookings.length} Bookings`}
                   </button>
                 </div>
               </div>
@@ -1351,33 +1724,48 @@ const AdminDashboard = () => {
                 Archive & Download Bookings
               </h3>
               <p className="text-gray-600 mb-4">
-                Archive old bookings (older than 90 days) to save storage space. Data is downloaded as JSON before deletion.
+                Archive old bookings (older than 90 days) to save storage space.
+                Data is downloaded as JSON before deletion.
               </p>
 
               {archiveStats && (
                 <div className="bg-blue-50 border border-blue-200 rounded-lg p-4 mb-4">
                   <div className="grid grid-cols-1 md:grid-cols-3 gap-4 mb-4">
                     <div>
-                      <p className="text-sm text-gray-600">Archivable Bookings</p>
-                      <p className="text-2xl font-bold text-blue-600">{archiveStats.archivable}</p>
-                      <p className="text-xs text-gray-500">Older than 90 days</p>
+                      <p className="text-sm text-gray-600">
+                        Archivable Bookings
+                      </p>
+                      <p className="text-2xl font-bold text-blue-600">
+                        {archiveStats.archivable}
+                      </p>
+                      <p className="text-xs text-gray-500">
+                        Older than 90 days
+                      </p>
                     </div>
                     <div>
                       <p className="text-sm text-gray-600">Recent Completed</p>
-                      <p className="text-2xl font-bold text-green-600">{archiveStats.recentCompleted}</p>
+                      <p className="text-2xl font-bold text-green-600">
+                        {archiveStats.recentCompleted}
+                      </p>
                       <p className="text-xs text-gray-500">Last 90 days</p>
                     </div>
                     <div>
                       <p className="text-sm text-gray-600">Active Bookings</p>
-                      <p className="text-2xl font-bold text-orange-600">{archiveStats.active}</p>
+                      <p className="text-2xl font-bold text-orange-600">
+                        {archiveStats.active}
+                      </p>
                       <p className="text-xs text-gray-500">Will be kept</p>
                     </div>
                   </div>
 
                   {archiveStats.cutoffDate && (
                     <p className="text-sm text-gray-600 mb-4">
-                      <strong>Cutoff Date:</strong> {new Date(archiveStats.cutoffDate).toLocaleDateString()} 
-                      <span className="text-gray-500"> (bookings before this date will be archived)</span>
+                      <strong>Cutoff Date:</strong>{" "}
+                      {new Date(archiveStats.cutoffDate).toLocaleDateString()}
+                      <span className="text-gray-500">
+                        {" "}
+                        (bookings before this date will be archived)
+                      </span>
                     </p>
                   )}
 
@@ -1395,7 +1783,9 @@ const AdminDashboard = () => {
                       className="px-4 py-2 bg-green-600 text-white rounded-lg hover:bg-green-700 disabled:opacity-50 disabled:cursor-not-allowed transition-all font-semibold flex items-center gap-2"
                     >
                       <span>📥</span>
-                      {archiveLoading ? "Archiving..." : `Download & Archive ${archiveStats.archivable} Bookings`}
+                      {archiveLoading
+                        ? "Archiving..."
+                        : `Download & Archive ${archiveStats.archivable} Bookings`}
                     </button>
                   </div>
                 </div>
@@ -1409,8 +1799,10 @@ const AdminDashboard = () => {
 
               <div className="mt-4 bg-gray-50 border border-gray-200 rounded-lg p-3">
                 <p className="text-sm text-gray-700">
-                  <strong>ℹ️ How it works:</strong> Archive downloads a JSON file containing all bookings older than 90 days (completed or cancelled), 
-                  then safely deletes them from the database to free up space. Active bookings are never archived.
+                  <strong>ℹ️ How it works:</strong> Archive downloads a JSON
+                  file containing all bookings older than 90 days (completed or
+                  cancelled), then safely deletes them from the database to free
+                  up space. Active bookings are never archived.
                 </p>
               </div>
             </div>
@@ -1422,12 +1814,14 @@ const AdminDashboard = () => {
                 Progressive Web App (PWA)
               </h3>
               <p className="text-gray-600 mb-2">
-                This application is PWA-enabled. You can install it on your device for a better experience.
+                This application is PWA-enabled. You can install it on your
+                device for a better experience.
               </p>
               <p className="text-sm text-gray-500">
-                ✅ Offline support enabled<br />
-                ✅ Push notifications available<br />
-                ✅ Can be installed on mobile and desktop
+                ✅ Offline support enabled
+                <br />
+                ✅ Push notifications available
+                <br />✅ Can be installed on mobile and desktop
               </p>
             </div>
 

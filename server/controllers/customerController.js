@@ -11,12 +11,10 @@ exports.getProfile = async (req, res) => {
     }
     res.json(customer);
   } catch (error) {
-    res
-      .status(500)
-      .json({
-        message: "Error fetching customer profile",
-        error: error.message,
-      });
+    res.status(500).json({
+      message: "Error fetching customer profile",
+      error: error.message,
+    });
   }
 };
 
@@ -45,12 +43,10 @@ exports.updateProfile = async (req, res) => {
 
     res.json(updatedCustomer);
   } catch (error) {
-    res
-      .status(500)
-      .json({
-        message: "Error updating customer profile",
-        error: error.message,
-      });
+    res.status(500).json({
+      message: "Error updating customer profile",
+      error: error.message,
+    });
   }
 };
 

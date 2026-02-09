@@ -8,7 +8,7 @@ exports.getArchivableBookings = async (req, res) => {
 
     const archivableBookings = await Booking.find({
       status: { $in: ["completed", "cancelled"] },
-      createdAt: { $lt: ninetyDaysAgo }
+      createdAt: { $lt: ninetyDaysAgo },
     })
       .populate("customerId", "name phoneNumber city")
       .populate("driverId", "name contactNumber carType carNumber")
@@ -17,12 +17,15 @@ exports.getArchivableBookings = async (req, res) => {
     res.json({
       count: archivableBookings.length,
       bookings: archivableBookings,
-      cutoffDate: ninetyDaysAgo
+      cutoffDate: ninetyDaysAgo,
     });
   } catch (error) {
     res
       .status(500)
-      .json({ message: "Error fetching archivable bookings", error: error.message });
+      .json({
+        message: "Error fetching archivable bookings",
+        error: error.message,
+      });
   }
 };
 
@@ -35,7 +38,7 @@ exports.archiveAndCleanup = async (req, res) => {
     // Get bookings to archive
     const bookingsToArchive = await Booking.find({
       status: { $in: ["completed", "cancelled"] },
-      createdAt: { $lt: ninetyDaysAgo }
+      createdAt: { $lt: ninetyDaysAgo },
     })
       .populate("customerId", "name phoneNumber city")
       .populate("driverId", "name contactNumber carType carNumber")
@@ -46,7 +49,7 @@ exports.archiveAndCleanup = async (req, res) => {
       return res.json({
         message: "No bookings to archive",
         archived: 0,
-        data: null
+        data: null,
       });
     }
 
@@ -55,20 +58,20 @@ exports.archiveAndCleanup = async (req, res) => {
       exportDate: new Date().toISOString(),
       cutoffDate: ninetyDaysAgo.toISOString(),
       totalBookings: bookingsToArchive.length,
-      bookings: bookingsToArchive
+      bookings: bookingsToArchive,
     };
 
     // Delete from database
     const deleteResult = await Booking.deleteMany({
       status: { $in: ["completed", "cancelled"] },
-      createdAt: { $lt: ninetyDaysAgo }
+      createdAt: { $lt: ninetyDaysAgo },
     });
 
     res.json({
       message: `Successfully archived and deleted ${deleteResult.deletedCount} bookings`,
       archived: deleteResult.deletedCount,
       data: archiveData,
-      filename: `elocab-archive-${new Date().toISOString().split('T')[0]}.json`
+      filename: `elocab-archive-${new Date().toISOString().split("T")[0]}.json`,
     });
   } catch (error) {
     res
@@ -85,16 +88,16 @@ exports.getArchiveStats = async (req, res) => {
 
     const archivableCount = await Booking.countDocuments({
       status: { $in: ["completed", "cancelled"] },
-      createdAt: { $lt: ninetyDaysAgo }
+      createdAt: { $lt: ninetyDaysAgo },
     });
 
     const recentCompletedCount = await Booking.countDocuments({
       status: { $in: ["completed", "cancelled"] },
-      createdAt: { $gte: ninetyDaysAgo }
+      createdAt: { $gte: ninetyDaysAgo },
     });
 
     const activeCount = await Booking.countDocuments({
-      status: { $nin: ["completed", "cancelled"] }
+      status: { $nin: ["completed", "cancelled"] },
     });
 
     res.json({
@@ -102,7 +105,7 @@ exports.getArchiveStats = async (req, res) => {
       recentCompleted: recentCompletedCount,
       active: activeCount,
       cutoffDate: ninetyDaysAgo,
-      total: archivableCount + recentCompletedCount + activeCount
+      total: archivableCount + recentCompletedCount + activeCount,
     });
   } catch (error) {
     res

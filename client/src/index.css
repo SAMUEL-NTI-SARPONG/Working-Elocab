@@ -36,7 +36,9 @@ html {
 
 /* Smooth transitions */
 * {
-  transition-property: color, background-color, border-color, text-decoration-color, fill, stroke, opacity, box-shadow, transform, filter, backdrop-filter;
+  transition-property:
+    color, background-color, border-color, text-decoration-color, fill, stroke,
+    opacity, box-shadow, transform, filter, backdrop-filter;
   transition-timing-function: cubic-bezier(0.4, 0, 0.2, 1);
   transition-duration: 200ms;
 }
@@ -61,12 +63,12 @@ html {
   .btn-primary {
     @apply relative bg-gradient-to-r from-primary to-primary-light text-white px-8 py-4 rounded-xl font-semibold shadow-soft hover:shadow-medium transition-all transform hover:-translate-y-0.5 active:translate-y-0 overflow-hidden;
   }
-  
+
   .btn-primary::before {
-    content: '';
+    content: "";
     @apply absolute inset-0 bg-gradient-to-r from-transparent via-white/20 to-transparent -translate-x-full transition-transform duration-700;
   }
-  
+
   .btn-primary:hover::before {
     @apply translate-x-full;
   }
@@ -74,12 +76,12 @@ html {
   .btn-secondary {
     @apply relative bg-gradient-to-r from-secondary to-secondary-light text-white px-8 py-4 rounded-xl font-semibold shadow-soft hover:shadow-medium transition-all transform hover:-translate-y-0.5 active:translate-y-0 overflow-hidden;
   }
-  
+
   .btn-secondary::before {
-    content: '';
+    content: "";
     @apply absolute inset-0 bg-gradient-to-r from-transparent via-white/20 to-transparent -translate-x-full transition-transform duration-700;
   }
-  
+
   .btn-secondary:hover::before {
     @apply translate-x-full;
   }
@@ -91,7 +93,7 @@ html {
   .card {
     @apply bg-white rounded-2xl shadow-soft p-6 hover:shadow-medium transition-all transform hover:-translate-y-1;
   }
-  
+
   .card-glass {
     @apply glass rounded-2xl p-6 hover:bg-white/20 transition-all transform hover:-translate-y-1;
   }

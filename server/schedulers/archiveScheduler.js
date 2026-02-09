@@ -13,7 +13,7 @@ const startArchiveScheduler = () => {
   // Format: minute hour day-of-month month day-of-week
   cron.schedule("0 2 1 * *", async () => {
     console.log("🗄️  Running automatic monthly archive cleanup...");
-    
+
     try {
       const ninetyDaysAgo = new Date();
       ninetyDaysAgo.setDate(ninetyDaysAgo.getDate() - 90);
@@ -40,7 +40,10 @@ const startArchiveScheduler = () => {
         totalBookings: bookings.length,
         bookings: bookings,
         automated: true,
-        monthYear: new Date().toLocaleDateString("en-US", { month: "long", year: "numeric" }),
+        monthYear: new Date().toLocaleDateString("en-US", {
+          month: "long",
+          year: "numeric",
+        }),
       };
 
       // Create archives directory if it doesn't exist
@@ -70,7 +73,9 @@ const startArchiveScheduler = () => {
     }
   });
 
-  console.log("✅ Archive scheduler started - runs on 1st of every month at 2:00 AM");
+  console.log(
+    "✅ Archive scheduler started - runs on 1st of every month at 2:00 AM",
+  );
 };
 
 module.exports = { startArchiveScheduler };

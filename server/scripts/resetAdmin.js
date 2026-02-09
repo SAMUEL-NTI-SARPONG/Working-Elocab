@@ -9,11 +9,11 @@ const resetAdmin = async () => {
     console.log("✅ Connected to MongoDB");
 
     // Delete existing admin user
-    const deletedAdmin = await User.deleteOne({ 
+    const deletedAdmin = await User.deleteOne({
       email: process.env.ADMIN_EMAIL,
-      role: "admin" 
+      role: "admin",
     });
-    
+
     if (deletedAdmin.deletedCount > 0) {
       console.log("🗑️  Deleted existing admin user");
     } else {

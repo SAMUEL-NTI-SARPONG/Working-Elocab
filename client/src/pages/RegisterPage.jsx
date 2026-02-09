@@ -93,10 +93,13 @@ const RegisterPage = () => {
       <div className="hidden lg:flex lg:w-1/2 bg-gradient-to-br from-primary via-primary-light to-secondary items-center justify-center p-12 relative overflow-hidden">
         {/* Subtle pattern overlay */}
         <div className="absolute inset-0 bg-[url('data:image/svg+xml;base64,PHN2ZyB3aWR0aD0iNjAiIGhlaWdodD0iNjAiIHZpZXdCb3g9IjAgMCA2MCA2MCIgeG1sbnM9Imh0dHA6Ly93d3cudzMub3JnLzIwMDAvc3ZnIj48ZyBmaWxsPSJub25lIiBmaWxsLXJ1bGU9ImV2ZW5vZGQiPjxwYXRoIGQ9Ik0zNiAxOGMzLjMxNCAwIDYgMi42ODYgNiA2cy0yLjY4NiA2LTYgNi02LTIuNjg2LTYtNiAyLjY4Ni02IDYtNnoiIHN0cm9rZT0iI2ZmZiIgc3Ryb2tlLW9wYWNpdHk9Ii4xIi8+PC9nPjwvc3ZnPg==')] opacity-10"></div>
-        
+
         {/* Floating orbs */}
         <div className="absolute top-20 left-10 w-64 h-64 bg-secondary/20 rounded-full blur-3xl animate-float"></div>
-        <div className="absolute bottom-20 right-10 w-80 h-80 bg-white/10 rounded-full blur-3xl animate-float" style={{ animationDelay: '2s' }}></div>
+        <div
+          className="absolute bottom-20 right-10 w-80 h-80 bg-white/10 rounded-full blur-3xl animate-float"
+          style={{ animationDelay: "2s" }}
+        ></div>
 
         <div className="text-white text-center max-w-md relative z-10 animate-fade-in">
           {/* Logo with animated ring - matching navbar style */}
@@ -122,11 +125,15 @@ const RegisterPage = () => {
             </div>
             {/* Brand text */}
             <div className="text-center">
-              <h2 className="text-5xl font-black mb-2 drop-shadow-lg">ELOCAB</h2>
-              <p className="text-lg text-white/90 drop-shadow-md">Ride with Ease</p>
+              <h2 className="text-5xl font-black mb-2 drop-shadow-lg">
+                ELOCAB
+              </h2>
+              <p className="text-lg text-white/90 drop-shadow-md">
+                Ride with Ease
+              </p>
             </div>
           </div>
-          
+
           <p className="text-2xl font-light mb-4 drop-shadow-lg">
             Join us today
           </p>

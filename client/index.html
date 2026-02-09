@@ -5,17 +5,23 @@
     <link rel="icon" type="image/svg+xml" href="/logo.png" />
     <meta name="viewport" content="width=device-width, initial-scale=1.0" />
     <meta name="theme-color" content="#F59E0B" />
-    <meta name="description" content="ELOCAB - Reliable Rides Anytime, Your Journey Our Priority" />
+    <meta
+      name="description"
+      content="ELOCAB - Reliable Rides Anytime, Your Journey Our Priority"
+    />
     <link rel="manifest" href="/manifest.json" />
     <link rel="apple-touch-icon" href="/logo.png" />
     <title>ELOCAB - Reliable Rides Anytime, Your Journey Our Priority</title>
     <script>
       // Register service worker
-      if ('serviceWorker' in navigator) {
-        window.addEventListener('load', () => {
-          navigator.serviceWorker.register('/sw.js')
-            .then(reg => console.log('Service Worker registered'))
-            .catch(err => console.log('Service Worker registration failed:', err));
+      if ("serviceWorker" in navigator) {
+        window.addEventListener("load", () => {
+          navigator.serviceWorker
+            .register("/sw.js")
+            .then((reg) => console.log("Service Worker registered"))
+            .catch((err) =>
+              console.log("Service Worker registration failed:", err),
+            );
         });
       }
     </script>

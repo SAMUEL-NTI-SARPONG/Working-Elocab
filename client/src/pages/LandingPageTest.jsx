@@ -12,7 +12,9 @@ const LandingPageTest = () => {
       {/* Hero Section */}
       <section className="relative min-h-screen flex items-center overflow-hidden">
         <div className="relative z-10">
-          <h1 className="text-6xl font-bold text-gray-900">Welcome to ELOCAB</h1>
+          <h1 className="text-6xl font-bold text-gray-900">
+            Welcome to ELOCAB
+          </h1>
           <button onClick={() => navigate("/register")}>Get Started</button>
         </div>
       </section>
