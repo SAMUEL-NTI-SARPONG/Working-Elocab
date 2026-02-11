@@ -47,7 +47,9 @@ const CustomerDashboard = () => {
       const { data } = await axios.get("/api/customers/profile");
       setProfile(data);
     } catch (error) {
-      toast.error("Failed to fetch profile");
+      if (error.response?.status !== 401) {
+        toast.error(error.response?.data?.message || "Failed to fetch profile");
+      }
     }
   };
 
@@ -56,7 +58,9 @@ const CustomerDashboard = () => {
       const { data } = await axios.get("/api/customers/bookings");
       setBookings(data);
     } catch (error) {
-      toast.error("Failed to fetch bookings");
+      if (error.response?.status !== 401) {
+        toast.error(error.response?.data?.message || "Failed to fetch bookings");
+      }
     }
   };
 
@@ -93,7 +97,7 @@ const CustomerDashboard = () => {
       toast.success("Profile updated successfully!");
       fetchProfile();
     } catch (error) {
-      toast.error("Failed to update profile");
+      toast.error(error.response?.data?.message || "Failed to update profile");
     } finally {
       setLoading(false);
     }

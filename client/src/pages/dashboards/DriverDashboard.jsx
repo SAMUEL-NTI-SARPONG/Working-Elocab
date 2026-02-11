@@ -58,7 +58,9 @@ const DriverDashboard = () => {
         contactNumber: data.contactNumber || "",
       });
     } catch (error) {
-      toast.error("Failed to fetch profile");
+      if (error.response?.status !== 401) {
+        toast.error(error.response?.data?.message || "Failed to fetch profile");
+      }
     }
   };
 
@@ -67,7 +69,9 @@ const DriverDashboard = () => {
       const { data } = await axios.get("/api/drivers/bookings");
       setBookings(data);
     } catch (error) {
-      toast.error("Failed to fetch bookings");
+      if (error.response?.status !== 401) {
+        toast.error(error.response?.data?.message || "Failed to fetch bookings");
+      }
     }
   };
 
@@ -77,7 +81,7 @@ const DriverDashboard = () => {
       toast.success(data.message);
       fetchProfile();
     } catch (error) {
-      toast.error("Failed to toggle availability");
+      toast.error(error.response?.data?.message || "Failed to toggle availability");
     }
   };
 
@@ -103,7 +107,7 @@ const DriverDashboard = () => {
       setEditMode(false);
       fetchProfile();
     } catch (error) {
-      toast.error("Failed to update profile");
+      toast.error(error.response?.data?.message || "Failed to update profile");
     } finally {
       setLoading(false);
     }

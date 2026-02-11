@@ -19,17 +19,23 @@ export const SocketProvider = ({ children }) => {
 
   useEffect(() => {
     if (isAuthenticated && user) {
-      // Connect to socket server
+      // Connect to socket server — use VITE_API_URL if set, otherwise same origin (Vercel proxy)
       const socketUrl = import.meta.env.VITE_API_URL || window.location.origin;
       const newSocket = io(socketUrl, {
         withCredentials: true,
-        transports: ["websocket", "polling"],
+        transports: ["polling", "websocket"],
+        reconnectionAttempts: 5,
+        reconnectionDelay: 2000,
       });
 
       newSocket.on("connect", () => {
         console.log("Socket connected");
         // Join with user ID
         newSocket.emit("join", user._id);
+      });
+
+      newSocket.on("connect_error", (err) => {
+        console.log("Socket connection error (non-critical):", err.message);
       });
 
       // Listen for new bookings (admin)

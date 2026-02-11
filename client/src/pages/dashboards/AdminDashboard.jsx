@@ -65,10 +65,8 @@ const AdminDashboard = () => {
     fetchCustomers();
     fetchBookings();
 
-    // Request notification permission on mount
-    if ("Notification" in window && Notification.permission === "default") {
-      Notification.requestPermission();
-    }
+    // Note: Do NOT auto-request notification permission on mount
+    // Modern browsers block this — permission must be requested via user gesture (button click)
   }, []);
 
   // Fetch archive stats when settings tab is opened
@@ -82,17 +80,21 @@ const AdminDashboard = () => {
   useEffect(() => {
     const checkForNewBookings = () => {
       // This will trigger when bookings change
-      if (bookings.length > 0 && Notification.permission === "granted") {
+      if (bookings.length > 0 && "Notification" in window && Notification.permission === "granted") {
         const pendingCount = bookings.filter(
           (b) => b.status === "pending",
         ).length;
         if (pendingCount > 0 && activeTab !== "bookings") {
           // Show notification if there are pending bookings and user is not on bookings tab
-          new Notification("New Booking Alert", {
-            body: `You have ${pendingCount} pending booking(s) awaiting assignment`,
-            icon: "/logo.png",
-            badge: "/logo.png",
-          });
+          try {
+            new Notification("New Booking Alert", {
+              body: `You have ${pendingCount} pending booking(s) awaiting assignment`,
+              icon: "/images/logo.png",
+              badge: "/images/logo.png",
+            });
+          } catch (e) {
+            console.log("Notification failed:", e);
+          }
         }
       }
     };
@@ -109,7 +111,9 @@ const AdminDashboard = () => {
       const { data } = await axios.get("/api/admin/stats");
       setStats(data);
     } catch (error) {
-      toast.error("Failed to fetch statistics");
+      if (error.response?.status !== 401) {
+        toast.error(error.response?.data?.message || "Failed to fetch statistics");
+      }
     }
   };
 
@@ -118,7 +122,9 @@ const AdminDashboard = () => {
       const { data } = await axios.get("/api/admin/drivers");
       setDrivers(data);
     } catch (error) {
-      toast.error("Failed to fetch drivers");
+      if (error.response?.status !== 401) {
+        toast.error(error.response?.data?.message || "Failed to fetch drivers");
+      }
     }
   };
 
@@ -127,7 +133,9 @@ const AdminDashboard = () => {
       const { data } = await axios.get("/api/admin/customers");
       setCustomers(data);
     } catch (error) {
-      toast.error("Failed to fetch customers");
+      if (error.response?.status !== 401) {
+        toast.error(error.response?.data?.message || "Failed to fetch customers");
+      }
     }
   };
 
@@ -136,7 +144,9 @@ const AdminDashboard = () => {
       const { data } = await axios.get("/api/admin/bookings");
       setBookings(data);
     } catch (error) {
-      toast.error("Failed to fetch bookings");
+      if (error.response?.status !== 401) {
+        toast.error(error.response?.data?.message || "Failed to fetch bookings");
+      }
     }
   };
 
@@ -158,7 +168,7 @@ const AdminDashboard = () => {
       fetchBookings();
       fetchStats();
     } catch (error) {
-      toast.error("Failed to assign driver");
+      toast.error(error.response?.data?.message || "Failed to assign driver");
     } finally {
       setLoading(false);
     }
@@ -173,7 +183,7 @@ const AdminDashboard = () => {
       fetchDrivers();
       fetchStats();
     } catch (error) {
-      toast.error("Failed to delete driver");
+      toast.error(error.response?.data?.message || "Failed to delete driver");
     }
   };
 
@@ -186,7 +196,7 @@ const AdminDashboard = () => {
       fetchCustomers();
       fetchStats();
     } catch (error) {
-      toast.error("Failed to delete customer");
+      toast.error(error.response?.data?.message || "Failed to delete customer");
     }
   };
 
@@ -196,7 +206,7 @@ const AdminDashboard = () => {
       toast.success("Driver status updated");
       fetchDrivers();
     } catch (error) {
-      toast.error("Failed to update driver status");
+      toast.error(error.response?.data?.message || "Failed to update driver status");
     }
   };
 
@@ -217,7 +227,7 @@ const AdminDashboard = () => {
       fetchBookings();
       fetchStats();
     } catch (error) {
-      toast.error("Failed to clear completed bookings");
+      toast.error(error.response?.data?.message || "Failed to clear completed bookings");
     } finally {
       setLoading(false);
     }
@@ -244,7 +254,7 @@ const AdminDashboard = () => {
       fetchBookings();
       fetchStats();
     } catch (error) {
-      toast.error("Failed to clear all bookings");
+      toast.error(error.response?.data?.message || "Failed to clear all bookings");
     } finally {
       setLoading(false);
     }
@@ -257,8 +267,25 @@ const AdminDashboard = () => {
     }
 
     if (Notification.permission === "granted") {
-      toast.success("Notifications are already enabled");
+      toast.success("Notifications are already enabled!");
       setNotificationPermission("granted");
+      // Show a test notification
+      try {
+        new Notification("ELOCAB Admin", {
+          body: "Notifications are working correctly",
+          icon: "/images/logo.png",
+        });
+      } catch (e) {
+        console.log("Test notification failed:", e);
+      }
+      return;
+    }
+
+    if (Notification.permission === "denied") {
+      toast.error(
+        "Notifications are blocked. Please enable them in your browser settings (click the lock icon in the address bar).",
+        { duration: 6000 }
+      );
       return;
     }
 
@@ -268,17 +295,25 @@ const AdminDashboard = () => {
       
       if (permission === "granted") {
         toast.success("Notifications enabled successfully!");
-        // Test notification
-        new Notification("ELOCAB Admin", {
-          body: "You will now receive notifications for new bookings",
-          icon: "/logo.png",
-        });
+        try {
+          new Notification("ELOCAB Admin", {
+            body: "You will now receive notifications for new bookings",
+            icon: "/images/logo.png",
+          });
+        } catch (e) {
+          console.log("Test notification failed:", e);
+        }
+      } else if (permission === "denied") {
+        toast.error(
+          "Notifications were denied. You can enable them later in browser settings.",
+          { duration: 5000 }
+        );
       } else {
-        toast.error("Notification permission denied");
+        toast.error("Notification permission was dismissed. Try again.");
       }
     } catch (error) {
       console.error("Notification error:", error);
-      toast.error("Failed to enable notifications");
+      toast.error("Failed to enable notifications. Try using Chrome or Edge.");
     }
   };
 
@@ -287,7 +322,9 @@ const AdminDashboard = () => {
       const { data } = await axios.get("/api/admin/archive/stats");
       setArchiveStats(data);
     } catch (error) {
-      toast.error("Failed to fetch archive statistics");
+      if (error.response?.status !== 401) {
+        toast.error(error.response?.data?.message || "Failed to fetch archive statistics");
+      }
     }
   };
 
@@ -311,7 +348,7 @@ const AdminDashboard = () => {
       toast.success(data.message);
       fetchStats();
     } catch (error) {
-      toast.error("Failed to reset statistics");
+      toast.error(error.response?.data?.message || "Failed to reset statistics");
     } finally {
       setLoading(false);
     }
@@ -339,7 +376,7 @@ const AdminDashboard = () => {
         );
       }
     } catch (error) {
-      toast.error("Failed to preview archive");
+      toast.error(error.response?.data?.message || "Failed to preview archive");
     } finally {
       setArchiveLoading(false);
     }
@@ -378,7 +415,7 @@ const AdminDashboard = () => {
       fetchStats();
       fetchArchiveStats();
     } catch (error) {
-      toast.error("Failed to execute archive");
+      toast.error(error.response?.data?.message || "Failed to execute archive");
     } finally {
       setArchiveLoading(false);
     }
