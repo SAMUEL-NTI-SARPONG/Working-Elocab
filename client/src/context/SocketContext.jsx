@@ -20,7 +20,8 @@ export const SocketProvider = ({ children }) => {
   useEffect(() => {
     if (isAuthenticated && user) {
       // Connect to socket server
-      const newSocket = io(import.meta.env.VITE_API_URL || "http://localhost:5000", {
+      const socketUrl = import.meta.env.VITE_API_URL || window.location.origin;
+      const newSocket = io(socketUrl, {
         withCredentials: true,
         transports: ["websocket", "polling"],
       });

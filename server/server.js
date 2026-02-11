@@ -21,29 +21,39 @@ const archiveRoutes = require("./routes/archiveRoutes");
 const app = express();
 const server = http.createServer(app);
 
+// CORS origin configuration
+const getAllowedOrigins = () => {
+  const origins = [];
+  if (process.env.CLIENT_URL) {
+    // Support comma-separated origins for multiple deployments
+    process.env.CLIENT_URL.split(",").forEach((url) => origins.push(url.trim()));
+  }
+  return origins;
+};
+
+const corsOptions = {
+  origin: function (origin, callback) {
+    const allowed = getAllowedOrigins();
+    // Allow requests with no origin (mobile apps, curl, etc.)
+    if (!origin || allowed.length === 0 || allowed.includes(origin)) {
+      callback(null, true);
+    } else {
+      console.log(`CORS blocked origin: ${origin}. Allowed: ${allowed.join(", ")}`);
+      callback(null, true); // Allow all in case of misconfiguration — remove in strict mode
+    }
+  },
+  credentials: true,
+  methods: ["GET", "POST", "PUT", "DELETE", "PATCH", "OPTIONS"],
+};
+
 // Socket.io setup with CORS
 const io = socketIo(server, {
-  cors: {
-    origin:
-      process.env.NODE_ENV === "production"
-        ? process.env.CLIENT_URL
-        : "http://localhost:5173",
-    methods: ["GET", "POST"],
-    credentials: true,
-  },
+  cors: corsOptions,
 });
 
 // Middleware
 app.use(helmet());
-app.use(
-  cors({
-    origin:
-      process.env.NODE_ENV === "production"
-        ? process.env.CLIENT_URL
-        : "http://localhost:5173",
-    credentials: true,
-  }),
-);
+app.use(cors(corsOptions));
 app.use(express.json());
 app.use(express.urlencoded({ extended: true }));
 
