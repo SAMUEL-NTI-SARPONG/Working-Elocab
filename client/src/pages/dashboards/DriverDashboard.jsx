@@ -138,45 +138,51 @@ const DriverDashboard = () => {
   return (
     <div className="min-h-screen bg-gray-50">
       {/* Header */}
-      <header className="bg-white shadow-sm">
-        <div className="container mx-auto px-6 py-4">
+      <header className="bg-white shadow-sm border-b border-gray-100">
+        <div className="container mx-auto px-4 sm:px-6 py-4">
           <div className="flex items-center justify-between">
-            <div className="flex items-center space-x-4">
-              <div className="flex items-center space-x-3 group">
-                <div className="relative">
-                  <div className="absolute inset-0 rounded-full bg-primary/5 scale-110 group-hover:scale-125 transition-all duration-300"></div>
-                  <img
-                    src="/images/logo.png"
-                    alt="ELOCAB"
-                    className="h-14 w-auto relative z-10 group-hover:scale-105 transition-all duration-500 drop-shadow-2xl"
-                    onError={(e) => (e.target.style.display = "none")}
-                  />
-                </div>
-                <div>
-                  <h1 className="text-xl font-black tracking-tight text-gray-900">
-                    ELOCAB
-                  </h1>
-                  <p className="text-xs text-gray-500">Driver Dashboard</p>
-                </div>
+            <div className="flex items-center space-x-3 group">
+              <div className="relative">
+                <div className="absolute inset-0 rounded-full bg-primary/5 scale-110 group-hover:scale-125" style={{ transition: "all 0.3s ease" }}></div>
+                <img
+                  src="/images/logo.png"
+                  alt="ELOCAB"
+                  className="h-12 w-auto relative z-10 drop-shadow-lg"
+                  style={{ transition: "transform 0.3s ease" }}
+                  onError={(e) => (e.target.style.display = "none")}
+                />
+              </div>
+              <div>
+                <h1 className="text-lg font-black tracking-tight text-gray-900">
+                  ELOCAB
+                </h1>
+                <p className="text-xs text-gray-500">Driver Portal</p>
               </div>
             </div>
-            <div className="flex items-center space-x-4">
+            <div className="flex items-center gap-2 sm:gap-3">
               <button
                 onClick={toggleAvailability}
-                className={`px-4 py-2 rounded-lg font-semibold transition-all ${
+                className={`flex items-center gap-2 px-3 sm:px-4 py-2 rounded-xl font-semibold text-sm border ${
                   profile?.isAvailable
-                    ? "bg-green-500 hover:bg-green-600 text-white"
-                    : "bg-gray-600 hover:bg-gray-700 text-white"
+                    ? "bg-green-50 text-green-700 border-green-200"
+                    : "bg-gray-100 text-gray-600 border-gray-200"
                 }`}
+                style={{ transition: "all 0.2s ease" }}
               >
-                {profile?.isAvailable ? "Online" : "Offline"}
+                <span className={`w-2 h-2 rounded-full ${profile?.isAvailable ? "bg-green-500 animate-pulse" : "bg-gray-400"}`}></span>
+                <span className="hidden sm:inline">{profile?.isAvailable ? "Online" : "Offline"}</span>
               </button>
-              <span className="text-gray-600">
-                {profile?.name || user?.email}
-              </span>
+              <div className="hidden sm:flex items-center gap-2 bg-gray-50 px-3 py-2 rounded-xl">
+                <div className="w-8 h-8 bg-gradient-to-br from-secondary to-secondary-light rounded-full flex items-center justify-center text-white text-xs font-bold">
+                  {(profile?.name || user?.email || "D").charAt(0).toUpperCase()}
+                </div>
+                <span className="text-sm text-gray-700 font-medium">
+                  {profile?.name || user?.email}
+                </span>
+              </div>
               <button
                 onClick={handleLogout}
-                className="px-4 py-2 bg-red-500 text-white rounded-lg hover:bg-red-600 transition-all"
+                className="px-4 py-2 bg-red-50 text-red-600 rounded-xl hover:bg-red-100 font-semibold text-sm border border-red-200"
               >
                 Logout
               </button>
@@ -186,63 +192,88 @@ const DriverDashboard = () => {
       </header>
 
       {/* Tabs */}
-      <div className="bg-white border-b">
-        <div className="container mx-auto px-6">
-          <div className="flex space-x-8">
-            <button
-              onClick={() => setActiveTab("bookings")}
-              className={`py-4 px-2 border-b-2 font-semibold transition-all ${
-                activeTab === "bookings"
-                  ? "border-primary text-primary"
-                  : "border-transparent text-gray-500 hover:text-gray-700"
-              }`}
-            >
-              My Rides
-            </button>
-            <button
-              onClick={() => setActiveTab("history")}
-              className={`py-4 px-2 border-b-2 font-semibold transition-all ${
-                activeTab === "history"
-                  ? "border-primary text-primary"
-                  : "border-transparent text-gray-500 hover:text-gray-700"
-              }`}
-            >
-              History
-            </button>
-            <button
-              onClick={() => setActiveTab("profile")}
-              className={`py-4 px-2 border-b-2 font-semibold transition-all ${
-                activeTab === "profile"
-                  ? "border-primary text-primary"
-                  : "border-transparent text-gray-500 hover:text-gray-700"
-              }`}
-            >
-              Profile
-            </button>
+      <div className="bg-white border-b border-gray-100">
+        <div className="container mx-auto px-4 sm:px-6">
+          <div className="flex space-x-1">
+            {[
+              { key: "bookings", label: "My Rides", icon: (
+                <svg className="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                  <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M13 10V3L4 14h7v7l9-11h-7z" />
+                </svg>
+              )},
+              { key: "history", label: "History", icon: (
+                <svg className="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                  <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M12 8v4l3 3m6-3a9 9 0 11-18 0 9 9 0 0118 0z" />
+                </svg>
+              )},
+              { key: "profile", label: "Profile", icon: (
+                <svg className="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                  <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M16 7a4 4 0 11-8 0 4 4 0 018 0zM12 14a7 7 0 00-7 7h14a7 7 0 00-7-7z" />
+                </svg>
+              )},
+            ].map((tab) => (
+              <button
+                key={tab.key}
+                onClick={() => setActiveTab(tab.key)}
+                className={`flex items-center gap-2 py-4 px-4 border-b-2 font-semibold text-sm ${
+                  activeTab === tab.key
+                    ? "border-secondary text-secondary"
+                    : "border-transparent text-gray-500 hover:text-gray-700"
+                }`}
+                style={{ transition: "all 0.2s ease" }}
+              >
+                {tab.icon}
+                <span className="hidden sm:inline">{tab.label}</span>
+              </button>
+            ))}
           </div>
         </div>
       </div>
 
       {/* Content */}
-      <div className="container mx-auto px-6 py-8">
+      <div className="container mx-auto px-4 sm:px-6 py-8">
         {/* Active Bookings Tab */}
         {activeTab === "bookings" && (
           <div className="max-w-4xl mx-auto">
-            <h2 className="text-2xl font-bold text-primary mb-6">
-              Assigned Rides
-            </h2>
+            <div className="flex items-center gap-3 mb-6">
+              <div className="p-3 bg-secondary/10 rounded-xl">
+                <svg className="w-5 h-5 text-secondary" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                  <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M13 10V3L4 14h7v7l9-11h-7z" />
+                </svg>
+              </div>
+              <div>
+                <h2 className="text-xl font-bold text-gray-800">Assigned Rides</h2>
+                <p className="text-sm text-gray-500">{activeBookings.length} active ride{activeBookings.length !== 1 ? "s" : ""}</p>
+              </div>
+            </div>
 
             {activeBookings.length === 0 ? (
-              <div className="card text-center py-12">
-                <p className="text-gray-500 text-lg mb-2">
+              <div className="bg-white rounded-2xl shadow-soft text-center py-16 border border-gray-100">
+                <div className={`p-4 rounded-full w-16 h-16 mx-auto mb-4 flex items-center justify-center ${profile?.isAvailable ? "bg-green-100" : "bg-gray-100"}`}>
+                  {profile?.isAvailable ? (
+                    <svg className="w-8 h-8 text-green-500" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                      <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M5 13l4 4L19 7" />
+                    </svg>
+                  ) : (
+                    <svg className="w-8 h-8 text-gray-400" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                      <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M18.364 5.636a9 9 0 010 12.728m0 0l-2.829-2.829m2.829 2.829L21 21M15.536 8.464a5 5 0 010 7.072m0 0l-2.829-2.829m-4.243 2.829a4.978 4.978 0 01-1.414-2.83m-1.414 5.658a9 9 0 01-2.167-9.238m7.824 2.167a1 1 0 111.414 1.414m-1.414-1.414L3 3" />
+                    </svg>
+                  )}
+                </div>
+                <p className="text-gray-700 font-medium text-lg mb-1">
                   {profile?.isAvailable
-                    ? "You're online. We'll notify you when a ride is assigned."
-                    : "Turn on availability to receive ride assignments."}
+                    ? "You're online and ready!"
+                    : "You're currently offline"}
+                </p>
+                <p className="text-gray-500 text-sm mb-4">
+                  {profile?.isAvailable
+                    ? "We'll notify you when a ride is assigned."
+                    : "Go online to start receiving ride assignments."}
                 </p>
                 {!profile?.isAvailable && (
                   <button
                     onClick={toggleAvailability}
-                    className="mt-4 bg-green-500 text-white px-6 py-2 rounded-lg hover:bg-green-600 transition-all"
+                    className="px-6 py-2.5 bg-green-600 text-white rounded-xl hover:bg-green-700 font-semibold text-sm"
                   >
                     Go Online Now
                   </button>
@@ -375,18 +406,18 @@ const DriverDashboard = () => {
                 </div>
 
                 {/* Mobile Cards */}
-                <div className="md:hidden space-y-4 p-4">
+                <div className="md:hidden divide-y divide-gray-100">
                   {activeBookings.map((booking) => (
                     <div
                       key={booking._id}
-                      className="border border-gray-200 rounded-lg p-4 shadow-sm"
+                      className="p-4"
                     >
                       <div className="flex justify-between items-start mb-3">
                         <div>
                           <div className="font-bold text-gray-800">
                             {booking.serviceType}
                           </div>
-                          <div className="text-sm text-gray-600">
+                          <div className="text-xs text-gray-500 mt-0.5">
                             {new Date(booking.dateTime).toLocaleString()}
                           </div>
                         </div>
@@ -399,76 +430,64 @@ const DriverDashboard = () => {
                         </span>
                       </div>
 
-                      <div className="space-y-2 mb-3">
-                        <div>
-                          <div className="text-xs text-gray-500 font-semibold">
-                            Route
-                          </div>
-                          <div className="font-semibold text-gray-800">
-                            {booking.pickupPoint}
-                          </div>
-                          <div className="text-xs text-gray-500">↓</div>
-                          <div className="font-semibold text-gray-800">
-                            {booking.destination}
+                      <div className="grid grid-cols-1 gap-3 mb-3">
+                        <div className="bg-gray-50 rounded-xl p-3">
+                          <div className="text-xs text-gray-500 font-medium mb-1">Route</div>
+                          <div className="flex items-center gap-2 text-sm">
+                            <span className="font-semibold text-gray-800">{booking.pickupPoint}</span>
+                            <svg className="w-4 h-4 text-gray-400 shrink-0" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                              <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M14 5l7 7m0 0l-7 7m7-7H3" />
+                            </svg>
+                            <span className="font-semibold text-gray-800">{booking.destination}</span>
                           </div>
                         </div>
 
                         {booking.customerId && (
-                          <div>
-                            <div className="text-xs text-gray-500 font-semibold">
-                              Customer
-                            </div>
-                            <div className="font-bold text-gray-800">
-                              {booking.customerId.name}
-                            </div>
-                            <div className="text-primary font-semibold text-sm">
-                              {booking.customerId.phoneNumber}
-                            </div>
-                            <div className="text-sm text-gray-600">
-                              {booking.numberOfPeople}{" "}
-                              {booking.numberOfPeople > 1 ? "people" : "person"}
+                          <div className="bg-gray-50 rounded-xl p-3">
+                            <div className="text-xs text-gray-500 font-medium mb-1">Customer</div>
+                            <div className="flex items-center gap-2">
+                              <div className="w-7 h-7 bg-primary rounded-full flex items-center justify-center text-white text-xs font-bold">
+                                {(booking.customerId.name || "C").charAt(0)}
+                              </div>
+                              <div>
+                                <div className="font-bold text-gray-800 text-sm">{booking.customerId.name}</div>
+                                <div className="text-secondary font-semibold text-xs">{booking.customerId.phoneNumber}</div>
+                              </div>
+                              <span className="ml-auto text-xs text-gray-500 bg-white px-2 py-0.5 rounded-md">
+                                {booking.numberOfPeople} {booking.numberOfPeople > 1 ? "people" : "person"}
+                              </span>
                             </div>
                           </div>
                         )}
 
                         {booking.notes && (
-                          <div className="bg-amber-50 border border-amber-200 p-2 rounded">
-                            <div className="text-xs font-semibold text-amber-700">
-                              Note:
-                            </div>
-                            <div className="text-sm text-gray-700">
-                              {booking.notes}
-                            </div>
+                          <div className="bg-amber-50 border border-amber-200 p-3 rounded-xl">
+                            <div className="text-xs font-semibold text-amber-700 mb-0.5">Note</div>
+                            <div className="text-sm text-gray-700">{booking.notes}</div>
                           </div>
                         )}
                       </div>
 
                       {booking.status === "accepted" && (
                         <button
-                          onClick={() =>
-                            updateBookingStatus(booking._id, "on-the-way")
-                          }
-                          className="w-full px-4 py-2 bg-blue-500 text-white rounded-lg hover:bg-blue-600 font-semibold transition-all text-sm"
+                          onClick={() => updateBookingStatus(booking._id, "on-the-way")}
+                          className="w-full px-4 py-2.5 bg-blue-600 text-white rounded-xl hover:bg-blue-700 font-semibold text-sm"
                         >
                           On The Way
                         </button>
                       )}
                       {booking.status === "on-the-way" && (
                         <button
-                          onClick={() =>
-                            updateBookingStatus(booking._id, "picked-up")
-                          }
-                          className="w-full px-4 py-2 bg-purple-500 text-white rounded-lg hover:bg-purple-600 font-semibold transition-all text-sm"
+                          onClick={() => updateBookingStatus(booking._id, "picked-up")}
+                          className="w-full px-4 py-2.5 bg-purple-600 text-white rounded-xl hover:bg-purple-700 font-semibold text-sm"
                         >
                           Picked Up
                         </button>
                       )}
                       {booking.status === "picked-up" && (
                         <button
-                          onClick={() =>
-                            updateBookingStatus(booking._id, "completed")
-                          }
-                          className="w-full px-4 py-2 bg-green-600 text-white rounded-lg hover:bg-green-700 font-semibold transition-all text-sm"
+                          onClick={() => updateBookingStatus(booking._id, "completed")}
+                          className="w-full px-4 py-2.5 bg-green-600 text-white rounded-xl hover:bg-green-700 font-semibold text-sm"
                         >
                           Complete Ride
                         </button>
@@ -484,15 +503,27 @@ const DriverDashboard = () => {
         {/* History Tab */}
         {activeTab === "history" && (
           <div className="max-w-4xl mx-auto">
-            <h2 className="text-2xl font-bold text-primary mb-6">
-              Ride History ({completedBookings.length} total)
-            </h2>
+            <div className="flex items-center gap-3 mb-6">
+              <div className="p-3 bg-secondary/10 rounded-xl">
+                <svg className="w-5 h-5 text-secondary" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                  <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M12 8v4l3 3m6-3a9 9 0 11-18 0 9 9 0 0118 0z" />
+                </svg>
+              </div>
+              <div>
+                <h2 className="text-xl font-bold text-gray-800">Ride History</h2>
+                <p className="text-sm text-gray-500">{completedBookings.length} completed ride{completedBookings.length !== 1 ? "s" : ""}</p>
+              </div>
+            </div>
 
             {completedBookings.length === 0 ? (
-              <div className="card text-center py-12">
-                <p className="text-gray-500">
-                  Your completed rides will appear here
-                </p>
+              <div className="bg-white rounded-2xl shadow-soft text-center py-16 border border-gray-100">
+                <div className="p-4 bg-gray-100 rounded-full w-16 h-16 mx-auto mb-4 flex items-center justify-center">
+                  <svg className="w-8 h-8 text-gray-400" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                    <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M12 8v4l3 3m6-3a9 9 0 11-18 0 9 9 0 0118 0z" />
+                  </svg>
+                </div>
+                <p className="text-gray-500 font-medium">No completed rides yet</p>
+                <p className="text-gray-400 text-sm mt-1">Your ride history will appear here</p>
               </div>
             ) : (
               <div className="bg-white rounded-lg shadow-md overflow-hidden">
@@ -561,11 +592,11 @@ const DriverDashboard = () => {
                 </div>
 
                 {/* Mobile Cards */}
-                <div className="md:hidden space-y-4 p-4">
+                <div className="md:hidden divide-y divide-gray-100">
                   {completedBookings.map((booking) => (
                     <div
                       key={booking._id}
-                      className="bg-white border border-gray-200 rounded-lg p-4 shadow-sm"
+                      className="p-4"
                     >
                       <div className="flex justify-between items-start mb-3">
                         <span
@@ -577,28 +608,28 @@ const DriverDashboard = () => {
                         >
                           {booking.status.toUpperCase()}
                         </span>
-                        <span className="text-gray-500 text-xs">
+                        <span className="text-gray-400 text-xs">
                           {new Date(booking.dateTime).toLocaleDateString()}
                         </span>
                       </div>
-                      <div className="space-y-2 text-sm">
-                        <div>
-                          <span className="text-gray-500">Service:</span>{" "}
-                          <span className="ml-2 font-semibold">
-                            {booking.serviceType}
-                          </span>
+                      <div className="grid grid-cols-2 gap-3 text-sm">
+                        <div className="bg-gray-50 rounded-xl p-3">
+                          <span className="text-gray-500 text-xs block">Service</span>
+                          <span className="font-semibold text-gray-800">{booking.serviceType}</span>
                         </div>
-                        <div>
-                          <span className="text-gray-500">From:</span>{" "}
-                          <span className="ml-2">{booking.pickupPoint}</span>
+                        <div className="bg-gray-50 rounded-xl p-3">
+                          <span className="text-gray-500 text-xs block">Passengers</span>
+                          <span className="font-semibold text-gray-800">{booking.numberOfPeople}</span>
                         </div>
-                        <div>
-                          <span className="text-gray-500">To:</span>{" "}
-                          <span className="ml-2">{booking.destination}</span>
-                        </div>
-                        <div>
-                          <span className="text-gray-500">Passengers:</span>{" "}
-                          <span className="ml-2">{booking.numberOfPeople}</span>
+                      </div>
+                      <div className="mt-3 bg-gray-50 rounded-xl p-3">
+                        <span className="text-gray-500 text-xs block mb-1">Route</span>
+                        <div className="flex items-center gap-2 text-sm">
+                          <span className="font-medium text-gray-800">{booking.pickupPoint}</span>
+                          <svg className="w-4 h-4 text-gray-400" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                            <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M14 5l7 7m0 0l-7 7m7-7H3" />
+                          </svg>
+                          <span className="font-medium text-gray-800">{booking.destination}</span>
                         </div>
                       </div>
                     </div>
@@ -612,58 +643,66 @@ const DriverDashboard = () => {
         {/* Profile Tab */}
         {activeTab === "profile" && (
           <div className="max-w-2xl mx-auto">
-            <div className="card">
-              <h2 className="text-2xl font-bold text-secondary mb-6">
-                Driver Profile
-              </h2>
+            <div className="bg-white rounded-2xl shadow-soft p-6 sm:p-8 border border-gray-100">
+              <div className="flex items-center gap-3 mb-6">
+                <div className="p-3 bg-secondary/10 rounded-xl">
+                  <svg className="w-6 h-6 text-secondary" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                    <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M16 7a4 4 0 11-8 0 4 4 0 018 0zM12 14a7 7 0 00-7 7h14a7 7 0 00-7-7z" />
+                  </svg>
+                </div>
+                <div>
+                  <h2 className="text-xl font-bold text-gray-800">Driver Profile</h2>
+                  <p className="text-sm text-gray-500">Manage your profile and vehicle info</p>
+                </div>
+              </div>
 
               {!editMode ? (
                 <div>
-                  <div className="space-y-4 mb-6">
-                    <div>
-                      <p className="text-gray-600 text-sm">Name</p>
+                  <div className="grid grid-cols-1 sm:grid-cols-2 gap-4 mb-6">
+                    <div className="bg-gray-50 rounded-xl p-4">
+                      <p className="text-gray-500 text-xs font-medium mb-1">Name</p>
                       <p className="text-gray-800 font-semibold">
                         {profile?.name || "Not set"}
                       </p>
                     </div>
-                    <div>
-                      <p className="text-gray-600 text-sm">Email</p>
+                    <div className="bg-gray-50 rounded-xl p-4">
+                      <p className="text-gray-500 text-xs font-medium mb-1">Email</p>
                       <p className="text-gray-800 font-semibold">
                         {user?.email}
                       </p>
                     </div>
-                    <div>
-                      <p className="text-gray-600 text-sm">Base Location</p>
+                    <div className="bg-gray-50 rounded-xl p-4">
+                      <p className="text-gray-500 text-xs font-medium mb-1">Base Location</p>
                       <p className="text-gray-800 font-semibold">
                         {profile?.baseLocation || "Not set"}
                       </p>
                     </div>
-                    <div>
-                      <p className="text-gray-600 text-sm">Car Type</p>
+                    <div className="bg-gray-50 rounded-xl p-4">
+                      <p className="text-gray-500 text-xs font-medium mb-1">Car Type</p>
                       <p className="text-gray-800 font-semibold">
                         {profile?.carType || "Not set"}
                       </p>
                     </div>
-                    <div>
-                      <p className="text-gray-600 text-sm">Car Number</p>
+                    <div className="bg-gray-50 rounded-xl p-4">
+                      <p className="text-gray-500 text-xs font-medium mb-1">Car Number</p>
                       <p className="text-gray-800 font-semibold">
                         {profile?.carNumber || "Not set"}
                       </p>
                     </div>
-                    <div>
-                      <p className="text-gray-600 text-sm">License Number</p>
+                    <div className="bg-gray-50 rounded-xl p-4">
+                      <p className="text-gray-500 text-xs font-medium mb-1">License Number</p>
                       <p className="text-gray-800 font-semibold">
                         {profile?.licenseNumber || "Not set"}
                       </p>
                     </div>
-                    <div>
-                      <p className="text-gray-600 text-sm">Seats</p>
+                    <div className="bg-gray-50 rounded-xl p-4">
+                      <p className="text-gray-500 text-xs font-medium mb-1">Seats</p>
                       <p className="text-gray-800 font-semibold">
                         {profile?.seats || "Not set"}
                       </p>
                     </div>
-                    <div>
-                      <p className="text-gray-600 text-sm">Contact Number</p>
+                    <div className="bg-gray-50 rounded-xl p-4">
+                      <p className="text-gray-500 text-xs font-medium mb-1">Contact Number</p>
                       <p className="text-gray-800 font-semibold">
                         {profile?.contactNumber || "Not set"}
                       </p>

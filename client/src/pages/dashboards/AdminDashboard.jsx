@@ -455,7 +455,9 @@ const AdminDashboard = () => {
   };
 
   const pendingBookings = bookings.filter((b) => b.status === "pending");
-  const assignedBookings = bookings.filter((b) => b.status === "assigned");
+  const assignedBookings = bookings.filter(
+    (b) => !["pending", "completed", "cancelled"].includes(b.status),
+  );
   const activeBookings = bookings.filter(
     (b) => !["completed", "cancelled"].includes(b.status),
   );
@@ -466,31 +468,30 @@ const AdminDashboard = () => {
   return (
     <div className="min-h-screen bg-gray-50">
       {/* Header */}
-      <header className="bg-primary shadow-lg">
-        <div className="container mx-auto px-6 py-4">
+      <header className="bg-gradient-to-r from-primary to-primary-light shadow-lg">
+        <div className="container mx-auto px-4 sm:px-6 py-4">
           <div className="flex items-center justify-between">
-            <div className="flex items-center space-x-4">
-              <div className="flex items-center space-x-3 group">
-                <div className="relative">
-                  <div className="absolute inset-0 rounded-full bg-white/10 scale-100 group-hover:scale-125 transition-all duration-300"></div>
-                  <img
-                    src="/images/logo.png"
-                    alt="ELOCAB"
-                    className="h-14 w-auto relative z-10 group-hover:scale-105 transition-all duration-500 drop-shadow-2xl"
-                    onError={(e) => (e.target.style.display = "none")}
-                  />
-                </div>
-                <div>
-                  <h1 className="text-xl font-black tracking-tight text-white">
-                    ELOCAB
-                  </h1>
-                  <p className="text-xs text-gray-300">Admin Dashboard</p>
-                </div>
+            <div className="flex items-center space-x-3 group">
+              <div className="relative">
+                <div className="absolute inset-0 rounded-full bg-white/10 scale-100 group-hover:scale-125" style={{ transition: "all 0.3s ease" }}></div>
+                <img
+                  src="/images/logo.png"
+                  alt="ELOCAB"
+                  className="h-12 w-auto relative z-10 drop-shadow-lg"
+                  style={{ transition: "transform 0.3s ease" }}
+                  onError={(e) => (e.target.style.display = "none")}
+                />
+              </div>
+              <div>
+                <h1 className="text-lg font-black tracking-tight text-white">
+                  ELOCAB
+                </h1>
+                <p className="text-xs text-gray-300">Admin Control Panel</p>
               </div>
             </div>
             <button
               onClick={handleLogout}
-              className="px-4 py-2 bg-white/20 text-white rounded-lg hover:bg-white/30 transition-all"
+              className="px-4 py-2 bg-white/15 text-white rounded-xl hover:bg-white/25 font-semibold text-sm border border-white/20"
             >
               Logout
             </button>
@@ -522,111 +523,168 @@ const AdminDashboard = () => {
       </div>
 
       {/* Content */}
-      <div className="container mx-auto px-6 py-8">
+      <div className="container mx-auto px-4 sm:px-6 py-8">
         {/* Dashboard Tab */}
         {activeTab === "dashboard" && stats && (
           <div>
-            <h2 className="text-2xl font-bold text-primary mb-6">
+            <h2 className="text-2xl font-bold text-gray-800 mb-2">
               Dashboard Overview
             </h2>
+            <p className="text-gray-500 mb-8">Real-time overview of your fleet operations</p>
 
             {/* Stats Grid */}
-            <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-6 mb-8">
-              <div className="card bg-blue-50">
-                <h3 className="text-gray-600 text-sm mb-2">Total Drivers</h3>
-                <p className="text-3xl font-bold text-blue-600">
+            <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-6 mb-8">
+              <div className="stat-card border-blue-500 animate-fade-in-up" style={{ animationDelay: "0s" }}>
+                <div className="flex items-center justify-between mb-4">
+                  <div className="p-3 bg-blue-100 rounded-xl">
+                    <svg className="w-6 h-6 text-blue-600" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                      <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M17 20h5v-2a3 3 0 00-5.356-1.857M17 20H7m10 0v-2c0-.656-.126-1.283-.356-1.857M7 20H2v-2a3 3 0 015.356-1.857M7 20v-2c0-.656.126-1.283.356-1.857m0 0a5.002 5.002 0 019.288 0M15 7a3 3 0 11-6 0 3 3 0 016 0z" />
+                    </svg>
+                  </div>
+                  <span className="text-xs font-semibold text-green-600 bg-green-50 px-2.5 py-1 rounded-full">
+                    {stats.drivers.active} active
+                  </span>
+                </div>
+                <p className="text-3xl font-black text-gray-800 stat-number">
                   {stats.drivers.total}
                 </p>
-                <p className="text-sm text-gray-500 mt-2">
-                  Active: {stats.drivers.active}
-                </p>
+                <p className="text-sm text-gray-500 mt-1 font-medium">Total Drivers</p>
               </div>
 
-              <div className="card bg-green-50">
-                <h3 className="text-gray-600 text-sm mb-2">Total Customers</h3>
-                <p className="text-3xl font-bold text-green-600">
+              <div className="stat-card border-emerald-500 animate-fade-in-up" style={{ animationDelay: "0.1s" }}>
+                <div className="flex items-center justify-between mb-4">
+                  <div className="p-3 bg-emerald-100 rounded-xl">
+                    <svg className="w-6 h-6 text-emerald-600" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                      <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M12 4.354a4 4 0 110 5.292M15 21H3v-1a6 6 0 0112 0v1zm0 0h6v-1a6 6 0 00-9-5.197m13.5-9a2.5 2.5 0 11-5 0 2.5 2.5 0 015 0z" />
+                    </svg>
+                  </div>
+                </div>
+                <p className="text-3xl font-black text-gray-800 stat-number">
                   {stats.customers.total}
                 </p>
+                <p className="text-sm text-gray-500 mt-1 font-medium">Total Customers</p>
               </div>
 
-              <div className="card bg-yellow-50">
-                <h3 className="text-gray-600 text-sm mb-2">Pending Bookings</h3>
-                <p className="text-3xl font-bold text-yellow-600">
+              <div className="stat-card border-amber-500 animate-fade-in-up" style={{ animationDelay: "0.2s" }}>
+                <div className="flex items-center justify-between mb-4">
+                  <div className="p-3 bg-amber-100 rounded-xl">
+                    <svg className="w-6 h-6 text-amber-600" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                      <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M12 8v4l3 3m6-3a9 9 0 11-18 0 9 9 0 0118 0z" />
+                    </svg>
+                  </div>
+                  {stats.bookings.pending > 0 && (
+                    <span className="text-xs font-semibold text-amber-600 bg-amber-50 px-2.5 py-1 rounded-full animate-pulse">
+                      Needs action
+                    </span>
+                  )}
+                </div>
+                <p className="text-3xl font-black text-gray-800 stat-number">
                   {stats.bookings.pending}
                 </p>
+                <p className="text-sm text-gray-500 mt-1 font-medium">Pending Bookings</p>
               </div>
 
-              <div className="card bg-purple-50">
-                <h3 className="text-gray-600 text-sm mb-2">
-                  Completed Bookings
-                </h3>
-                <p className="text-3xl font-bold text-purple-600">
+              <div className="stat-card border-violet-500 animate-fade-in-up" style={{ animationDelay: "0.3s" }}>
+                <div className="flex items-center justify-between mb-4">
+                  <div className="p-3 bg-violet-100 rounded-xl">
+                    <svg className="w-6 h-6 text-violet-600" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                      <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M9 12l2 2 4-4m6 2a9 9 0 11-18 0 9 9 0 0118 0z" />
+                    </svg>
+                  </div>
+                </div>
+                <p className="text-3xl font-black text-gray-800 stat-number">
                   {stats.bookings.completed}
                 </p>
+                <p className="text-sm text-gray-500 mt-1 font-medium">Completed Bookings</p>
               </div>
             </div>
 
             {/* Lifetime Statistics */}
             {stats.lifetime && (
               <div className="mb-8">
-                <div className="flex justify-between items-center mb-4">
-                  <h3 className="text-lg font-bold text-gray-700">
-                    📊 Lifetime Statistics (Persists After Data Cleanup)
-                  </h3>
+                <div className="flex flex-col sm:flex-row justify-between items-start sm:items-center mb-4 gap-3">
+                  <div>
+                    <h3 className="text-lg font-bold text-gray-800">
+                      Lifetime Statistics
+                    </h3>
+                    <p className="text-sm text-gray-500">Persists after data cleanup</p>
+                  </div>
                   <button
                     onClick={resetStatistics}
-                    className="px-4 py-2 bg-red-600 text-white text-sm rounded-lg hover:bg-red-700 transition-all"
+                    className="px-4 py-2 bg-red-50 text-red-600 text-sm rounded-xl hover:bg-red-100 border border-red-200 font-semibold"
                     disabled={loading}
                   >
                     Reset Stats
                   </button>
                 </div>
-                <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4">
-                  <div className="card bg-gradient-to-br from-blue-100 to-blue-50">
-                    <h4 className="text-gray-600 text-xs mb-1">
-                      Total Bookings
-                    </h4>
-                    <p className="text-2xl font-bold text-blue-700">
+                <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
+                  <div className="bg-gradient-to-br from-blue-500 to-blue-600 rounded-2xl p-6 text-white shadow-lg">
+                    <div className="flex items-center justify-between mb-3">
+                      <div className="p-2 bg-white/20 rounded-lg">
+                        <svg className="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                          <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M9 5H7a2 2 0 00-2 2v12a2 2 0 002 2h10a2 2 0 002-2V7a2 2 0 00-2-2h-2M9 5a2 2 0 002 2h2a2 2 0 002-2M9 5a2 2 0 012-2h2a2 2 0 012 2" />
+                        </svg>
+                      </div>
+                      <span className="text-xs font-medium text-blue-200">All time</span>
+                    </div>
+                    <p className="text-3xl font-black">
                       {stats.lifetime.totalBookings}
                     </p>
-                    <p className="text-xs text-gray-500 mt-1">All time</p>
+                    <p className="text-sm text-blue-200 mt-1">Total Bookings</p>
                   </div>
-                  <div className="card bg-gradient-to-br from-green-100 to-green-50">
-                    <h4 className="text-gray-600 text-xs mb-1">Completed</h4>
-                    <p className="text-2xl font-bold text-green-700">
+                  <div className="bg-gradient-to-br from-emerald-500 to-emerald-600 rounded-2xl p-6 text-white shadow-lg">
+                    <div className="flex items-center justify-between mb-3">
+                      <div className="p-2 bg-white/20 rounded-lg">
+                        <svg className="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                          <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M5 13l4 4L19 7" />
+                        </svg>
+                      </div>
+                      <span className="text-xs font-medium text-emerald-200">All time</span>
+                    </div>
+                    <p className="text-3xl font-black">
                       {stats.lifetime.totalCompleted}
                     </p>
-                    <p className="text-xs text-gray-500 mt-1">All time</p>
+                    <p className="text-sm text-emerald-200 mt-1">Completed</p>
                   </div>
-                  <div className="card bg-gradient-to-br from-red-100 to-red-50">
-                    <h4 className="text-gray-600 text-xs mb-1">Cancelled</h4>
-                    <p className="text-2xl font-bold text-red-700">
+                  <div className="bg-gradient-to-br from-rose-500 to-rose-600 rounded-2xl p-6 text-white shadow-lg">
+                    <div className="flex items-center justify-between mb-3">
+                      <div className="p-2 bg-white/20 rounded-lg">
+                        <svg className="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                          <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M6 18L18 6M6 6l12 12" />
+                        </svg>
+                      </div>
+                      <span className="text-xs font-medium text-rose-200">All time</span>
+                    </div>
+                    <p className="text-3xl font-black">
                       {stats.lifetime.totalCancelled}
                     </p>
-                    <p className="text-xs text-gray-500 mt-1">All time</p>
+                    <p className="text-sm text-rose-200 mt-1">Cancelled</p>
                   </div>
                 </div>
                 {stats.lifetime.last7Days &&
                   stats.lifetime.last7Days.length > 0 && (
-                    <div className="mt-4 card">
-                      <h4 className="text-sm font-bold text-gray-700 mb-3">
-                        📅 Last 7 Days Activity
+                    <div className="mt-4 bg-white rounded-2xl shadow-soft p-6">
+                      <h4 className="text-sm font-bold text-gray-700 mb-4 flex items-center gap-2">
+                        <svg className="w-4 h-4 text-primary" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                          <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M8 7V3m8 4V3m-9 8h10M5 21h14a2 2 0 002-2V7a2 2 0 00-2-2H5a2 2 0 00-2 2v12a2 2 0 002 2z" />
+                        </svg>
+                        Last 7 Days Activity
                       </h4>
-                      <div className="space-y-2">
+                      <div className="space-y-3">
                         {stats.lifetime.last7Days.map((day, idx) => (
                           <div
                             key={idx}
-                            className="flex justify-between items-center text-sm"
+                            className="flex justify-between items-center text-sm py-2 px-3 rounded-lg hover:bg-gray-50"
                           >
-                            <span className="text-gray-600">
-                              {new Date(day.date).toLocaleDateString()}
+                            <span className="text-gray-600 font-medium">
+                              {new Date(day.date).toLocaleDateString("en-US", { weekday: "short", month: "short", day: "numeric" })}
                             </span>
                             <div className="flex gap-4">
-                              <span className="text-blue-600">
+                              <span className="text-blue-600 font-semibold bg-blue-50 px-2 py-0.5 rounded-md text-xs">
                                 {day.bookingCount} bookings
                               </span>
-                              <span className="text-green-600">
-                                {day.completedCount} completed
+                              <span className="text-green-600 font-semibold bg-green-50 px-2 py-0.5 rounded-md text-xs">
+                                {day.completedCount} done
                               </span>
                             </div>
                           </div>
@@ -638,19 +696,25 @@ const AdminDashboard = () => {
             )}
 
             {pendingBookings.length > 0 && (
-              <div className="card bg-yellow-50 border-l-4 border-yellow-500">
-                <h3 className="font-bold text-yellow-800 mb-2">
-                  ⚠️ Pending Bookings Require Action
-                </h3>
-                <p className="text-yellow-700">
-                  You have {pendingBookings.length} pending booking(s) that need
-                  driver assignment.
-                </p>
+              <div className="bg-amber-50 border border-amber-200 rounded-2xl p-6 flex flex-col sm:flex-row items-start sm:items-center gap-4">
+                <div className="p-3 bg-amber-100 rounded-xl shrink-0">
+                  <svg className="w-6 h-6 text-amber-600" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                    <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M12 9v2m0 4h.01m-6.938 4h13.856c1.54 0 2.502-1.667 1.732-2.5L13.732 4.5c-.77-.833-2.694-.833-3.464 0L3.34 16.5c-.77.833.192 2.5 1.732 2.5z" />
+                  </svg>
+                </div>
+                <div className="flex-1">
+                  <h3 className="font-bold text-amber-800 text-lg">
+                    {pendingBookings.length} Pending Booking{pendingBookings.length > 1 ? "s" : ""} Require Action
+                  </h3>
+                  <p className="text-amber-700 text-sm mt-1">
+                    Assign drivers to these bookings to keep your service running smoothly.
+                  </p>
+                </div>
                 <button
                   onClick={() => setActiveTab("bookings")}
-                  className="mt-4 px-4 py-2 bg-yellow-600 text-white rounded-lg hover:bg-yellow-700 transition-all"
+                  className="px-5 py-2.5 bg-amber-600 text-white rounded-xl hover:bg-amber-700 font-semibold text-sm shrink-0"
                 >
-                  View Pending Bookings
+                  View & Assign
                 </button>
               </div>
             )}
@@ -1043,29 +1107,41 @@ const AdminDashboard = () => {
             {/* Completed Bookings */}
             {completedBookings.length > 0 && (
               <div>
-                <h3 className="text-xl font-bold text-gray-600 mb-4">
-                  ✅ Completed Rides ({completedBookings.length})
+                <h3 className="text-xl font-bold text-gray-700 mb-4 flex items-center gap-2">
+                  <svg className="w-5 h-5 text-green-500" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                    <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M9 12l2 2 4-4m6 2a9 9 0 11-18 0 9 9 0 0118 0z" />
+                  </svg>
+                  Completed Rides ({completedBookings.length})
                 </h3>
-                <div className="space-y-4">
+                <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
                   {completedBookings.slice(0, 10).map((booking) => (
-                    <div key={booking._id} className="card">
-                      <div className="flex items-center justify-between">
-                        <div>
-                          <h4 className="font-bold">
-                            {booking.pickupPoint} → {booking.destination}
-                          </h4>
-                          <p className="text-sm text-gray-600">
-                            {new Date(booking.dateTime).toLocaleDateString()}
-                          </p>
-                        </div>
-                        <span
-                          className={`px-3 py-1 rounded-full text-sm font-semibold ${getStatusColor(
-                            booking.status,
-                          )}`}
-                        >
-                          {booking.status.toUpperCase()}
-                        </span>
+                    <div key={booking._id} className="bg-white rounded-2xl shadow-soft p-5 flex items-center gap-4 border border-gray-100">
+                      <div className={`p-2.5 rounded-xl shrink-0 ${booking.status === "completed" ? "bg-green-100" : "bg-red-100"}`}>
+                        {booking.status === "completed" ? (
+                          <svg className="w-5 h-5 text-green-600" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                            <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M5 13l4 4L19 7" />
+                          </svg>
+                        ) : (
+                          <svg className="w-5 h-5 text-red-600" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                            <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M6 18L18 6M6 6l12 12" />
+                          </svg>
+                        )}
                       </div>
+                      <div className="flex-1 min-w-0">
+                        <h4 className="font-bold text-gray-800 text-sm truncate">
+                          {booking.pickupPoint} → {booking.destination}
+                        </h4>
+                        <p className="text-xs text-gray-500 mt-0.5">
+                          {new Date(booking.dateTime).toLocaleDateString("en-US", { month: "short", day: "numeric", year: "numeric" })}
+                        </p>
+                      </div>
+                      <span
+                        className={`px-3 py-1 rounded-full text-xs font-semibold shrink-0 ${getStatusColor(
+                          booking.status,
+                        )}`}
+                      >
+                        {booking.status.toUpperCase()}
+                      </span>
                     </div>
                   ))}
                 </div>
@@ -1351,54 +1427,57 @@ const AdminDashboard = () => {
                   {drivers.map((driver) => (
                     <div
                       key={driver._id}
-                      className="bg-white border border-gray-200 rounded-lg p-4 shadow-sm"
+                      className="bg-white border border-gray-100 rounded-2xl p-5 shadow-soft"
                     >
-                      <div className="flex justify-between items-start mb-3">
-                        <h3 className="font-bold text-gray-800">
-                          {driver.name}
-                        </h3>
+                      <div className="flex justify-between items-start mb-4">
+                        <div className="flex items-center gap-3">
+                          <div className="w-10 h-10 bg-gradient-to-br from-primary to-primary-light rounded-full flex items-center justify-center text-white font-bold text-sm">
+                            {driver.name?.charAt(0) || "D"}
+                          </div>
+                          <div>
+                            <h3 className="font-bold text-gray-800">
+                              {driver.name}
+                            </h3>
+                            <p className="text-xs text-gray-500">{driver.userId?.email || "No email"}</p>
+                          </div>
+                        </div>
                         <span
                           className={`px-3 py-1 rounded-full text-xs font-semibold ${
                             driver.isAvailable
                               ? "bg-green-100 text-green-700"
-                              : "bg-gray-100 text-gray-700"
+                              : "bg-gray-100 text-gray-600"
                           }`}
                         >
                           {driver.isAvailable ? "Online" : "Offline"}
                         </span>
                       </div>
-                      <div className="space-y-2 text-sm mb-4">
-                        <div>
-                          <span className="text-gray-500">Email:</span>{" "}
-                          <span className="ml-2">
-                            {driver.userId?.email || "Not set"}
-                          </span>
+                      <div className="grid grid-cols-2 gap-3 text-sm mb-4">
+                        <div className="bg-gray-50 rounded-xl p-3">
+                          <span className="text-gray-500 text-xs block">Vehicle</span>
+                          <span className="font-semibold text-gray-800">{driver.carType}</span>
                         </div>
-                        <div>
-                          <span className="text-gray-500">Vehicle:</span>{" "}
-                          <span className="ml-2">
-                            {driver.carType} ({driver.carNumber})
-                          </span>
+                        <div className="bg-gray-50 rounded-xl p-3">
+                          <span className="text-gray-500 text-xs block">Plate</span>
+                          <span className="font-semibold text-gray-800">{driver.carNumber}</span>
                         </div>
-                        <div>
-                          <span className="text-gray-500">Seats:</span>{" "}
-                          <span className="ml-2">{driver.numberOfSeats}</span>
+                        <div className="bg-gray-50 rounded-xl p-3">
+                          <span className="text-gray-500 text-xs block">Seats</span>
+                          <span className="font-semibold text-gray-800">{driver.numberOfSeats}</span>
                         </div>
-                        <div>
-                          <span className="text-gray-500">Contact:</span>{" "}
-                          <span className="ml-2">{driver.contactNumber}</span>
-                        </div>
-                        <div>
-                          <span className="text-gray-500">Location:</span>{" "}
-                          <span className="ml-2">{driver.baseLocation}</span>
+                        <div className="bg-gray-50 rounded-xl p-3">
+                          <span className="text-gray-500 text-xs block">Location</span>
+                          <span className="font-semibold text-gray-800">{driver.baseLocation}</span>
                         </div>
                       </div>
-                      <button
-                        onClick={() => deleteDriver(driver._id)}
-                        className="w-full px-4 py-2 bg-red-500 text-white rounded-lg hover:bg-red-600 transition-all text-sm font-medium"
-                      >
-                        Delete Driver
-                      </button>
+                      <div className="flex items-center justify-between pt-3 border-t border-gray-100">
+                        <span className="text-sm text-gray-600 font-medium">{driver.contactNumber}</span>
+                        <button
+                          onClick={() => deleteDriver(driver._id)}
+                          className="px-4 py-2 bg-red-50 text-red-600 rounded-xl hover:bg-red-100 text-sm font-semibold border border-red-200"
+                        >
+                          Delete
+                        </button>
+                      </div>
                     </div>
                   ))}
                 </div>
@@ -1608,34 +1687,32 @@ const AdminDashboard = () => {
                   {customers.map((customer) => (
                     <div
                       key={customer._id}
-                      className="bg-white border border-gray-200 rounded-lg p-4 shadow-sm"
+                      className="bg-white border border-gray-100 rounded-2xl p-5 shadow-soft"
                     >
-                      <h3 className="font-bold text-gray-800 mb-3">
-                        {customer.name || "No Name"}
-                      </h3>
-                      <div className="space-y-2 text-sm mb-4">
-                        <div>
-                          <span className="text-gray-500">Email:</span>{" "}
-                          <span className="ml-2">
-                            {customer.userId?.email || "Not set"}
-                          </span>
+                      <div className="flex items-center gap-3 mb-4">
+                        <div className="w-10 h-10 bg-gradient-to-br from-emerald-500 to-emerald-600 rounded-full flex items-center justify-center text-white font-bold text-sm">
+                          {(customer.name || "C").charAt(0)}
                         </div>
                         <div>
-                          <span className="text-gray-500">Phone:</span>{" "}
-                          <span className="ml-2">
-                            {customer.phoneNumber || "Not set"}
-                          </span>
+                          <h3 className="font-bold text-gray-800">
+                            {customer.name || "No Name"}
+                          </h3>
+                          <p className="text-xs text-gray-500">{customer.userId?.email || "No email"}</p>
                         </div>
-                        <div>
-                          <span className="text-gray-500">City:</span>{" "}
-                          <span className="ml-2">
-                            {customer.city || "Not set"}
-                          </span>
+                      </div>
+                      <div className="grid grid-cols-2 gap-3 text-sm mb-4">
+                        <div className="bg-gray-50 rounded-xl p-3">
+                          <span className="text-gray-500 text-xs block">Phone</span>
+                          <span className="font-semibold text-gray-800">{customer.phoneNumber || "Not set"}</span>
+                        </div>
+                        <div className="bg-gray-50 rounded-xl p-3">
+                          <span className="text-gray-500 text-xs block">City</span>
+                          <span className="font-semibold text-gray-800">{customer.city || "Not set"}</span>
                         </div>
                       </div>
                       <button
                         onClick={() => deleteCustomer(customer._id)}
-                        className="w-full px-4 py-2 bg-red-500 text-white rounded-lg hover:bg-red-600 transition-all text-sm font-medium"
+                        className="w-full px-4 py-2 bg-red-50 text-red-600 rounded-xl hover:bg-red-100 text-sm font-semibold border border-red-200"
                       >
                         Delete Customer
                       </button>
@@ -1649,207 +1726,228 @@ const AdminDashboard = () => {
 
         {/* Settings Tab */}
         {activeTab === "settings" && (
-          <div>
-            <h2 className="text-2xl font-bold text-primary mb-6">
+          <div className="max-w-4xl mx-auto">
+            <h2 className="text-2xl font-bold text-gray-800 mb-2">
               System Settings
             </h2>
+            <p className="text-gray-500 mb-8">Manage notifications, data, and application settings</p>
 
             {/* Notification Settings */}
-            <div className="card mb-6">
-              <h3 className="text-lg font-bold text-gray-800 mb-4 flex items-center">
-                <span className="text-2xl mr-2">🔔</span>
-                Push Notifications
-              </h3>
-              <p className="text-gray-600 mb-4">
-                Enable push notifications to receive alerts when new bookings
-                are created.
-              </p>
-              <button
-                onClick={requestNotificationPermission}
-                className={`px-6 py-3 rounded-lg transition-all font-semibold ${
-                  notificationPermission === "granted"
-                    ? "bg-green-600 text-white hover:bg-green-700"
-                    : "bg-blue-600 text-white hover:bg-blue-700"
-                }`}
-              >
-                {notificationPermission === "granted"
-                  ? "✅ Notifications Enabled"
-                  : "Enable Notifications"}
-              </button>
-            </div>
-
-            {/* Data Management */}
-            <div className="card mb-6 border-l-4 border-yellow-500">
-              <h3 className="text-lg font-bold text-gray-800 mb-4 flex items-center">
-                <span className="text-2xl mr-2">🗄️</span>
-                Data Management
-              </h3>
-              <p className="text-gray-600 mb-4">
-                Manage your booking data to free up space and maintain optimal
-                performance.
-              </p>
-
-              <div className="space-y-4">
-                {/* Clear Completed Bookings */}
-                <div className="bg-yellow-50 border border-yellow-200 rounded-lg p-4">
-                  <div className="flex items-start justify-between">
-                    <div className="flex-1">
-                      <h4 className="font-bold text-gray-800 mb-1">
-                        Clear Completed Bookings
-                      </h4>
-                      <p className="text-sm text-gray-600 mb-3">
-                        Remove all completed and cancelled bookings. This will
-                        help reduce database size. Currently:{" "}
-                        <strong>{completedBookings.length}</strong>{" "}
-                        completed/cancelled bookings
-                      </p>
-                    </div>
-                  </div>
-                  <button
-                    onClick={clearCompletedBookings}
-                    disabled={loading || completedBookings.length === 0}
-                    className="px-4 py-2 bg-yellow-600 text-white rounded-lg hover:bg-yellow-700 disabled:opacity-50 disabled:cursor-not-allowed transition-all font-semibold"
-                  >
-                    {loading
-                      ? "Clearing..."
-                      : `Clear ${completedBookings.length} Bookings`}
-                  </button>
+            <div className="bg-white rounded-2xl shadow-soft p-6 mb-6 border border-gray-100">
+              <div className="flex items-start gap-4">
+                <div className="p-3 bg-blue-100 rounded-xl shrink-0">
+                  <svg className="w-6 h-6 text-blue-600" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                    <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M15 17h5l-1.405-1.405A2.032 2.032 0 0118 14.158V11a6.002 6.002 0 00-4-5.659V5a2 2 0 10-4 0v.341C7.67 6.165 6 8.388 6 11v3.159c0 .538-.214 1.055-.595 1.436L4 17h5m6 0v1a3 3 0 11-6 0v-1m6 0H9" />
+                  </svg>
                 </div>
-
-                {/* Clear All Bookings - Danger Zone */}
-                <div className="bg-red-50 border-2 border-red-300 rounded-lg p-4">
-                  <div className="flex items-start justify-between">
-                    <div className="flex-1">
-                      <h4 className="font-bold text-red-800 mb-1 flex items-center">
-                        <span className="mr-2">⚠️</span>
-                        Danger Zone: Clear All Bookings
-                      </h4>
-                      <p className="text-sm text-red-700 mb-3">
-                        <strong>WARNING:</strong> This will permanently delete
-                        ALL bookings including active ones. This action cannot
-                        be undone! Use only when absolutely necessary.
-                      </p>
-                    </div>
-                  </div>
+                <div className="flex-1">
+                  <h3 className="text-lg font-bold text-gray-800">
+                    Push Notifications
+                  </h3>
+                  <p className="text-gray-500 text-sm mt-1 mb-4">
+                    Get real-time alerts when new bookings are created so you can respond quickly.
+                  </p>
                   <button
-                    onClick={clearAllBookings}
-                    disabled={loading || bookings.length === 0}
-                    className="px-4 py-2 bg-red-600 text-white rounded-lg hover:bg-red-700 disabled:opacity-50 disabled:cursor-not-allowed transition-all font-semibold"
+                    onClick={requestNotificationPermission}
+                    className={`px-5 py-2.5 rounded-xl font-semibold text-sm ${
+                      notificationPermission === "granted"
+                        ? "bg-green-50 text-green-700 border border-green-200"
+                        : "bg-blue-600 text-white hover:bg-blue-700"
+                    }`}
                   >
-                    {loading
-                      ? "Clearing..."
-                      : `Delete All ${bookings.length} Bookings`}
+                    {notificationPermission === "granted"
+                      ? "Notifications Enabled"
+                      : "Enable Notifications"}
                   </button>
                 </div>
               </div>
             </div>
 
+            {/* Data Management */}
+            <div className="bg-white rounded-2xl shadow-soft p-6 mb-6 border border-gray-100">
+              <div className="flex items-center gap-3 mb-6">
+                <div className="p-3 bg-amber-100 rounded-xl">
+                  <svg className="w-6 h-6 text-amber-600" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                    <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M4 7v10c0 2.21 3.582 4 8 4s8-1.79 8-4V7M4 7c0 2.21 3.582 4 8 4s8-1.79 8-4M4 7c0-2.21 3.582-4 8-4s8 1.79 8 4m0 5c0 2.21-3.582 4-8 4s-8-1.79-8-4" />
+                  </svg>
+                </div>
+                <div>
+                  <h3 className="text-lg font-bold text-gray-800">Data Management</h3>
+                  <p className="text-sm text-gray-500">Clean up booking data to maintain performance</p>
+                </div>
+              </div>
+
+              <div className="space-y-4">
+                {/* Clear Completed Bookings */}
+                <div className="bg-amber-50 border border-amber-200 rounded-xl p-5">
+                  <div className="flex flex-col sm:flex-row items-start sm:items-center justify-between gap-4">
+                    <div>
+                      <h4 className="font-bold text-gray-800 mb-1">
+                        Clear Completed Bookings
+                      </h4>
+                      <p className="text-sm text-gray-600">
+                        Remove <strong>{completedBookings.length}</strong> completed/cancelled bookings to reduce database size.
+                      </p>
+                    </div>
+                    <button
+                      onClick={clearCompletedBookings}
+                      disabled={loading || completedBookings.length === 0}
+                      className="px-5 py-2.5 bg-amber-600 text-white rounded-xl hover:bg-amber-700 disabled:opacity-50 disabled:cursor-not-allowed font-semibold text-sm shrink-0"
+                    >
+                      {loading ? "Clearing..." : `Clear ${completedBookings.length}`}
+                    </button>
+                  </div>
+                </div>
+
+                {/* Clear All Bookings - Danger Zone */}
+                <div className="bg-red-50 border-2 border-red-200 rounded-xl p-5">
+                  <div className="flex flex-col sm:flex-row items-start sm:items-center justify-between gap-4">
+                    <div>
+                      <h4 className="font-bold text-red-800 mb-1 flex items-center gap-2">
+                        <svg className="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                          <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M12 9v2m0 4h.01m-6.938 4h13.856c1.54 0 2.502-1.667 1.732-2.5L13.732 4.5c-.77-.833-2.694-.833-3.464 0L3.34 16.5c-.77.833.192 2.5 1.732 2.5z" />
+                        </svg>
+                        Danger Zone: Clear All Bookings
+                      </h4>
+                      <p className="text-sm text-red-700">
+                        Permanently delete ALL bookings including active ones. This cannot be undone.
+                      </p>
+                    </div>
+                    <button
+                      onClick={clearAllBookings}
+                      disabled={loading || bookings.length === 0}
+                      className="px-5 py-2.5 bg-red-600 text-white rounded-xl hover:bg-red-700 disabled:opacity-50 disabled:cursor-not-allowed font-semibold text-sm shrink-0"
+                    >
+                      {loading ? "Clearing..." : `Delete All ${bookings.length}`}
+                    </button>
+                  </div>
+                </div>
+              </div>
+            </div>
+
             {/* Archive & Download */}
-            <div className="card mb-6 border-l-4 border-blue-500">
-              <h3 className="text-lg font-bold text-gray-800 mb-4 flex items-center">
-                <span className="text-2xl mr-2">📦</span>
-                Archive & Download Bookings
-              </h3>
-              <p className="text-gray-600 mb-4">
-                Archive old bookings (older than 90 days) to save storage space.
-                Data is downloaded as JSON before deletion.
-              </p>
+            <div className="bg-white rounded-2xl shadow-soft p-6 mb-6 border border-gray-100">
+              <div className="flex items-center gap-3 mb-6">
+                <div className="p-3 bg-indigo-100 rounded-xl">
+                  <svg className="w-6 h-6 text-indigo-600" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                    <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M5 8h14M5 8a2 2 0 110-4h14a2 2 0 110 4M5 8v10a2 2 0 002 2h10a2 2 0 002-2V8m-9 4h4" />
+                  </svg>
+                </div>
+                <div>
+                  <h3 className="text-lg font-bold text-gray-800">Archive & Download</h3>
+                  <p className="text-sm text-gray-500">Archive bookings older than 90 days as JSON downloads</p>
+                </div>
+              </div>
 
               {archiveStats && (
-                <div className="bg-blue-50 border border-blue-200 rounded-lg p-4 mb-4">
-                  <div className="grid grid-cols-1 md:grid-cols-3 gap-4 mb-4">
-                    <div>
-                      <p className="text-sm text-gray-600">
-                        Archivable Bookings
-                      </p>
-                      <p className="text-2xl font-bold text-blue-600">
+                <div className="bg-indigo-50 border border-indigo-200 rounded-xl p-5 mb-4">
+                  <div className="grid grid-cols-1 sm:grid-cols-3 gap-4 mb-4">
+                    <div className="bg-white rounded-xl p-4 text-center">
+                      <p className="text-2xl font-black text-indigo-600">
                         {archiveStats.archivable}
                       </p>
-                      <p className="text-xs text-gray-500">
-                        Older than 90 days
+                      <p className="text-xs text-gray-500 mt-1 font-medium">
+                        Archivable (90+ days)
                       </p>
                     </div>
-                    <div>
-                      <p className="text-sm text-gray-600">Recent Completed</p>
-                      <p className="text-2xl font-bold text-green-600">
+                    <div className="bg-white rounded-xl p-4 text-center">
+                      <p className="text-2xl font-black text-emerald-600">
                         {archiveStats.recentCompleted}
                       </p>
-                      <p className="text-xs text-gray-500">Last 90 days</p>
+                      <p className="text-xs text-gray-500 mt-1 font-medium">
+                        Recent Completed
+                      </p>
                     </div>
-                    <div>
-                      <p className="text-sm text-gray-600">Active Bookings</p>
-                      <p className="text-2xl font-bold text-orange-600">
+                    <div className="bg-white rounded-xl p-4 text-center">
+                      <p className="text-2xl font-black text-amber-600">
                         {archiveStats.active}
                       </p>
-                      <p className="text-xs text-gray-500">Will be kept</p>
+                      <p className="text-xs text-gray-500 mt-1 font-medium">
+                        Active (will keep)
+                      </p>
                     </div>
                   </div>
 
                   {archiveStats.cutoffDate && (
                     <p className="text-sm text-gray-600 mb-4">
-                      <strong>Cutoff Date:</strong>{" "}
-                      {new Date(archiveStats.cutoffDate).toLocaleDateString()}
-                      <span className="text-gray-500">
-                        {" "}
-                        (bookings before this date will be archived)
-                      </span>
+                      Cutoff: <strong>{new Date(archiveStats.cutoffDate).toLocaleDateString("en-US", { month: "long", day: "numeric", year: "numeric" })}</strong>
+                      <span className="text-gray-500"> — bookings before this date will be archived</span>
                     </p>
                   )}
 
-                  <div className="flex gap-3">
+                  <div className="flex flex-wrap gap-3">
                     <button
                       onClick={previewArchive}
                       disabled={archiveLoading || archiveStats.archivable === 0}
-                      className="px-4 py-2 bg-blue-600 text-white rounded-lg hover:bg-blue-700 disabled:opacity-50 disabled:cursor-not-allowed transition-all font-semibold"
+                      className="px-5 py-2.5 bg-indigo-600 text-white rounded-xl hover:bg-indigo-700 disabled:opacity-50 disabled:cursor-not-allowed font-semibold text-sm"
                     >
-                      {archiveLoading ? "Loading..." : "Preview Archive"}
+                      {archiveLoading ? "Loading..." : "Preview"}
                     </button>
                     <button
                       onClick={executeArchive}
                       disabled={archiveLoading || archiveStats.archivable === 0}
-                      className="px-4 py-2 bg-green-600 text-white rounded-lg hover:bg-green-700 disabled:opacity-50 disabled:cursor-not-allowed transition-all font-semibold flex items-center gap-2"
+                      className="px-5 py-2.5 bg-emerald-600 text-white rounded-xl hover:bg-emerald-700 disabled:opacity-50 disabled:cursor-not-allowed font-semibold text-sm flex items-center gap-2"
                     >
-                      <span>📥</span>
+                      <svg className="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                        <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M4 16v1a3 3 0 003 3h10a3 3 0 003-3v-1m-4-4l-4 4m0 0l-4-4m4 4V4" />
+                      </svg>
                       {archiveLoading
                         ? "Archiving..."
-                        : `Download & Archive ${archiveStats.archivable} Bookings`}
+                        : `Download & Archive ${archiveStats.archivable}`}
                     </button>
                   </div>
                 </div>
               )}
 
               {!archiveStats && (
-                <div className="text-center py-4">
-                  <p className="text-gray-500">Loading archive statistics...</p>
+                <div className="text-center py-6">
+                  <div className="animate-pulse flex flex-col items-center">
+                    <div className="w-8 h-8 bg-gray-200 rounded-full mb-2"></div>
+                    <p className="text-gray-400 text-sm">Loading archive data...</p>
+                  </div>
                 </div>
               )}
 
-              <div className="mt-4 bg-gray-50 border border-gray-200 rounded-lg p-3">
-                <p className="text-sm text-gray-700">
-                  <strong>ℹ️ How it works:</strong> Archive downloads a JSON
-                  file containing all bookings older than 90 days (completed or
-                  cancelled), then safely deletes them from the database to free
-                  up space. Active bookings are never archived.
+              <div className="bg-gray-50 border border-gray-200 rounded-xl p-4">
+                <p className="text-sm text-gray-600 flex items-start gap-2">
+                  <svg className="w-4 h-4 text-gray-400 mt-0.5 shrink-0" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                    <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M13 16h-1v-4h-1m1-4h.01M21 12a9 9 0 11-18 0 9 9 0 0118 0z" />
+                  </svg>
+                  Archive downloads a JSON file of completed/cancelled bookings older than 90 days, then deletes them from the database. Active bookings are never archived.
                 </p>
               </div>
             </div>
 
             {/* PWA Status */}
-            <div className="card mb-6 bg-gradient-to-r from-purple-50 to-blue-50 border border-purple-200">
-              <h3 className="text-lg font-bold text-gray-800 mb-4 flex items-center">
-                <span className="text-2xl mr-2">📱</span>
-                Progressive Web App (PWA)
-              </h3>
-              <p className="text-gray-600 mb-2">
-                This application is PWA-enabled. You can install it on your
-                device for a better experience.
-              </p>
-              <p className="text-sm text-gray-500">
-                ✅ Offline support enabled
-                <br />
-                ✅ Push notifications available
-                <br />✅ Can be installed on mobile and desktop
-              </p>
+            <div className="bg-gradient-to-br from-violet-500 to-indigo-600 rounded-2xl p-6 mb-6 text-white shadow-lg">
+              <div className="flex items-center gap-3 mb-4">
+                <div className="p-3 bg-white/20 rounded-xl">
+                  <svg className="w-6 h-6" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                    <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M12 18h.01M8 21h8a2 2 0 002-2V5a2 2 0 00-2-2H8a2 2 0 00-2 2v14a2 2 0 002 2z" />
+                  </svg>
+                </div>
+                <h3 className="text-lg font-bold">Progressive Web App</h3>
+              </div>
+              <div className="grid grid-cols-1 sm:grid-cols-3 gap-3">
+                <div className="bg-white/10 rounded-xl p-3 text-center">
+                  <svg className="w-5 h-5 mx-auto mb-1 text-green-300" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                    <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M5 13l4 4L19 7" />
+                  </svg>
+                  <p className="text-sm font-medium text-white/90">Offline Support</p>
+                </div>
+                <div className="bg-white/10 rounded-xl p-3 text-center">
+                  <svg className="w-5 h-5 mx-auto mb-1 text-green-300" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                    <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M5 13l4 4L19 7" />
+                  </svg>
+                  <p className="text-sm font-medium text-white/90">Push Notifications</p>
+                </div>
+                <div className="bg-white/10 rounded-xl p-3 text-center">
+                  <svg className="w-5 h-5 mx-auto mb-1 text-green-300" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                    <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M5 13l4 4L19 7" />
+                  </svg>
+                  <p className="text-sm font-medium text-white/90">Installable</p>
+                </div>
+              </div>
             </div>
 
             {/* Archive Viewer */}
