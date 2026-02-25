@@ -560,6 +560,7 @@ const AdminDashboard = () => {
               >
                 Logout
               </button>
+            </div>
           </div>
         </div>
       </header>
