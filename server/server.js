@@ -85,6 +85,20 @@ const connectDB = async () => {
     });
     isConnected = db.connections[0].readyState === 1;
     console.log("✅ MongoDB Connected Successfully");
+
+    // Drop legacy unique index on email if it exists (migrated to phoneNumber)
+    try {
+      const userCollection = db.connection.collection("users");
+      const indexes = await userCollection.indexes();
+      const emailIndex = indexes.find(idx => idx.key && idx.key.email);
+      if (emailIndex) {
+        await userCollection.dropIndex(emailIndex.name);
+        console.log("✅ Dropped legacy email index");
+      }
+    } catch (indexErr) {
+      // Index may not exist, ignore
+    }
+
     startArchiveScheduler();
   } catch (err) {
     console.error("❌ MongoDB Connection Error:", err.message);

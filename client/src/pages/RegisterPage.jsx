@@ -7,13 +7,13 @@ const RegisterPage = () => {
   const [step, setStep] = useState(1); // 1: Choose role, 2: Fill details
   const [role, setRole] = useState("");
   const [formData, setFormData] = useState({
-    email: "",
     password: "",
     confirmPassword: "",
     // Common
     name: "",
-    // Customer fields
+    // Phone number (used as login identifier)
     phoneNumber: "",
+    // Customer fields
     city: "Kumasi",
     // Driver fields
     baseLocation: "",
@@ -21,7 +21,6 @@ const RegisterPage = () => {
     carNumber: "",
     licenseNumber: "",
     seats: "",
-    contactNumber: "",
   });
   const [loading, setLoading] = useState(false);
   const { register } = useAuth();
@@ -53,14 +52,13 @@ const RegisterPage = () => {
 
     try {
       const userData = {
-        email: formData.email,
+        phoneNumber: formData.phoneNumber,
         password: formData.password,
         role,
         name: formData.name,
       };
 
       if (role === "customer") {
-        userData.phoneNumber = formData.phoneNumber;
         userData.city = formData.city;
       } else if (role === "driver") {
         userData.baseLocation = formData.baseLocation;
@@ -68,7 +66,6 @@ const RegisterPage = () => {
         userData.carNumber = formData.carNumber;
         userData.licenseNumber = formData.licenseNumber;
         userData.seats = parseInt(formData.seats);
-        userData.contactNumber = formData.contactNumber;
       }
 
       const user = await register(userData);
@@ -342,28 +339,18 @@ const RegisterPage = () => {
               />
 
               <input
-                type="email"
-                name="email"
-                value={formData.email}
+                type="tel"
+                name="phoneNumber"
+                value={formData.phoneNumber}
                 onChange={handleChange}
                 className="w-full px-4 py-4 bg-gray-50 border-2 border-transparent rounded-xl focus:border-primary focus:bg-white transition-all text-base placeholder-gray-500 hover:bg-gray-100"
-                placeholder="Email"
+                placeholder="Phone number (used for login)"
                 required
               />
 
               {/* Customer Fields */}
               {role === "customer" && (
                 <>
-                  <input
-                    type="tel"
-                    name="phoneNumber"
-                    value={formData.phoneNumber}
-                    onChange={handleChange}
-                    className="w-full px-4 py-4 bg-gray-50 border-2 border-transparent rounded-xl focus:border-primary focus:bg-white transition-all text-base placeholder-gray-500 hover:bg-gray-100"
-                    placeholder="Phone number"
-                    required
-                  />
-
                   <input
                     type="text"
                     name="city"
@@ -379,16 +366,6 @@ const RegisterPage = () => {
               {/* Driver Fields */}
               {role === "driver" && (
                 <>
-                  <input
-                    type="tel"
-                    name="contactNumber"
-                    value={formData.contactNumber}
-                    onChange={handleChange}
-                    className="w-full px-4 py-4 bg-gray-50 border-2 border-transparent rounded-xl focus:border-primary focus:bg-white transition-all text-base placeholder-gray-500 hover:bg-gray-100"
-                    placeholder="Contact number"
-                    required
-                  />
-
                   <input
                     type="text"
                     name="baseLocation"

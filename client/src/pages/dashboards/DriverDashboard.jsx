@@ -178,10 +178,10 @@ const DriverDashboard = () => {
               </button>
               <div className="hidden sm:flex items-center gap-2 bg-gray-50 px-3 py-2 rounded-xl">
                 <div className="w-8 h-8 bg-gradient-to-br from-secondary to-secondary-light rounded-full flex items-center justify-center text-white text-xs font-bold">
-                  {(profile?.name || user?.email || "D").charAt(0).toUpperCase()}
+                  {(profile?.name || user?.phoneNumber || "D").charAt(0).toUpperCase()}
                 </div>
                 <span className="text-sm text-gray-700 font-medium">
-                  {profile?.name || user?.email}
+                  {profile?.name || user?.phoneNumber}
                 </span>
               </div>
               <button
@@ -670,9 +670,9 @@ const DriverDashboard = () => {
                       </p>
                     </div>
                     <div className="bg-gray-50 rounded-xl p-4">
-                      <p className="text-gray-500 text-xs font-medium mb-1">Email</p>
+                      <p className="text-gray-500 text-xs font-medium mb-1">Phone</p>
                       <p className="text-gray-800 font-semibold">
-                        {user?.email}
+                        {user?.phoneNumber}
                       </p>
                     </div>
                     <div className="bg-gray-50 rounded-xl p-4">

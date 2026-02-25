@@ -18,7 +18,7 @@ const customerSchema = new mongoose.Schema({
   },
   digitalAddress: {
     type: String,
-    required: true,
+    default: "N/A",
     trim: true,
   },
   city: {

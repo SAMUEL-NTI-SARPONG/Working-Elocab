@@ -56,10 +56,14 @@ export const AuthProvider = ({ children }) => {
     setLoading(false);
   }, []);
 
-  const login = async (email, password, isAdmin = false) => {
+  const login = async (identifier, password, isAdmin = false) => {
     try {
       const endpoint = isAdmin ? "/api/auth/admin/login" : "/api/auth/login";
-      const { data } = await axios.post(endpoint, { email, password });
+      // Admin uses email, regular users use phoneNumber
+      const payload = isAdmin 
+        ? { email: identifier, password } 
+        : { phoneNumber: identifier, password };
+      const { data } = await axios.post(endpoint, payload);
 
       setUser(data);
       localStorage.setItem("elocab_user", JSON.stringify(data));

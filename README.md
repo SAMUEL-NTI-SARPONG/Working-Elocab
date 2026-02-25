@@ -128,7 +128,7 @@ A modern, full-stack ride-sharing and car hiring platform built for Kumasi, Ghan
 
      # Admin credentials for first-time login
      ADMIN_EMAIL=admin@elocab.com
-     ADMIN_PASSWORD=Admin@2026
+     ADMIN_PASSWORD=change_this_password
      ```
 
 6. **Start the backend server:**

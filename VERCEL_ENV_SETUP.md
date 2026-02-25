@@ -18,10 +18,10 @@ Add these **6 variables** (check all 3 environments for each):
 
 ```
 MONGODB_URI
-mongodb+srv://elocab_user:samNsarp.211.mongodb@elocab1.4jhfbza.mongodb.net/elocab?retryWrites=true&w=majority&appName=elocab1
+<your MongoDB Atlas connection string>
 
 JWT_SECRET
-elocab_production_secret_2026_samuel_secure_key_xyz789
+<generate with: openssl rand -hex 32>
 
 NODE_ENV
 production
@@ -30,10 +30,10 @@ CLIENT_URL
 https://elocab.vercel.app
 
 ADMIN_EMAIL
-admin@elocab.com
+<your admin email>
 
 ADMIN_PASSWORD
-SecureAdmin@2026
+<your admin password>
 ```
 
 ---
@@ -97,8 +97,8 @@ After deployment completes (wait 3-5 minutes):
 
 2. **Test Admin Login**:
    - Go to https://elocab.vercel.app/admin/login
-   - Email: `admin@elocab.com`
-   - Password: `SecureAdmin@2026`
+   - Email: your admin email from env vars
+   - Password: your admin password from env vars
    - Should succeed now ✅
 
 ---

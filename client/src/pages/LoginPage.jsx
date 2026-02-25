@@ -5,7 +5,7 @@ import toast from "react-hot-toast";
 
 const LoginPage = () => {
   const [formData, setFormData] = useState({
-    email: "",
+    phoneNumber: "",
     password: "",
   });
   const [loading, setLoading] = useState(false);
@@ -21,7 +21,7 @@ const LoginPage = () => {
     setLoading(true);
 
     try {
-      const userData = await login(formData.email, formData.password);
+      const userData = await login(formData.phoneNumber, formData.password);
       toast.success("Login successful!");
 
       // Redirect based on role
@@ -136,7 +136,7 @@ const LoginPage = () => {
               style={{ animationDelay: "0.1s" }}
             >
               <label className="block text-sm font-semibold text-gray-700 mb-2">
-                Email address
+                Phone number
               </label>
               <div className="relative">
                 <div className="absolute inset-y-0 left-0 pl-4 flex items-center pointer-events-none">
@@ -150,17 +150,17 @@ const LoginPage = () => {
                       strokeLinecap="round"
                       strokeLinejoin="round"
                       strokeWidth={2}
-                      d="M16 12a4 4 0 10-8 0 4 4 0 008 0zm0 0v1.5a2.5 2.5 0 005 0V12a9 9 0 10-9 9m4.5-1.206a8.959 8.959 0 01-4.5 1.207"
+                      d="M3 5a2 2 0 012-2h3.28a1 1 0 01.948.684l1.498 4.493a1 1 0 01-.502 1.21l-2.257 1.13a11.042 11.042 0 005.516 5.516l1.13-2.257a1 1 0 011.21-.502l4.493 1.498a1 1 0 01.684.949V19a2 2 0 01-2 2h-1C9.716 21 3 14.284 3 6V5z"
                     />
                   </svg>
                 </div>
                 <input
-                  type="email"
-                  name="email"
-                  value={formData.email}
+                  type="tel"
+                  name="phoneNumber"
+                  value={formData.phoneNumber}
                   onChange={handleChange}
                   className="w-full pl-12 pr-4 py-4 bg-gray-50 border-2 border-gray-200 rounded-xl focus:border-primary focus:bg-white focus:ring-4 focus:ring-primary/10 transition-all text-base text-gray-900 placeholder-gray-400 hover:border-gray-300"
-                  placeholder="your.email@example.com"
+                  placeholder="0XX XXX XXXX"
                   required
                 />
               </div>

@@ -9,7 +9,7 @@ const bcrypt = require("bcryptjs");
 exports.getAllDrivers = async (req, res) => {
   try {
     const drivers = await Driver.find()
-      .populate("userId", "email createdAt")
+      .populate("userId", "phoneNumber createdAt")
       .sort({ createdAt: -1 });
     res.json(drivers);
   } catch (error) {
@@ -23,7 +23,7 @@ exports.getAllDrivers = async (req, res) => {
 exports.getAllCustomers = async (req, res) => {
   try {
     const customers = await Customer.find()
-      .populate("userId", "email createdAt")
+      .populate("userId", "phoneNumber createdAt")
       .sort({ createdAt: -1 });
     res.json(customers);
   } catch (error) {
@@ -287,15 +287,15 @@ exports.clearAllBookings = async (req, res) => {
 // Create new customer
 exports.createCustomer = async (req, res) => {
   try {
-    const { email, password, name, phoneNumber, city, digitalAddress } =
+    const { phoneNumber, password, name, city, digitalAddress } =
       req.body;
 
     // Check if user already exists
-    const existingUser = await User.findOne({ email });
+    const existingUser = await User.findOne({ phoneNumber });
     if (existingUser) {
       return res
         .status(400)
-        .json({ message: "User already exists with this email" });
+        .json({ message: "An account already exists with this phone number" });
     }
 
     // Hash password
@@ -303,7 +303,7 @@ exports.createCustomer = async (req, res) => {
 
     // Create user account
     const user = await User.create({
-      email,
+      phoneNumber,
       password: hashedPassword,
       role: "customer",
     });
@@ -313,13 +313,13 @@ exports.createCustomer = async (req, res) => {
       userId: user._id,
       name,
       phoneNumber,
-      city,
-      digitalAddress,
+      city: city || "Kumasi",
+      digitalAddress: digitalAddress || "N/A",
     });
 
     const populatedCustomer = await Customer.findById(customer._id).populate(
       "userId",
-      "email createdAt",
+      "phoneNumber createdAt",
     );
 
     res.status(201).json({
@@ -337,7 +337,7 @@ exports.createCustomer = async (req, res) => {
 exports.createDriver = async (req, res) => {
   try {
     const {
-      email,
+      phoneNumber,
       password,
       name,
       baseLocation,
@@ -349,11 +349,11 @@ exports.createDriver = async (req, res) => {
     } = req.body;
 
     // Check if user already exists
-    const existingUser = await User.findOne({ email });
+    const existingUser = await User.findOne({ phoneNumber });
     if (existingUser) {
       return res
         .status(400)
-        .json({ message: "User already exists with this email" });
+        .json({ message: "An account already exists with this phone number" });
     }
 
     // Hash password
@@ -361,7 +361,7 @@ exports.createDriver = async (req, res) => {
 
     // Create user account
     const user = await User.create({
-      email,
+      phoneNumber,
       password: hashedPassword,
       role: "driver",
     });
@@ -375,13 +375,13 @@ exports.createDriver = async (req, res) => {
       carNumber,
       licenseNumber,
       seats: seats || 4,
-      contactNumber,
+      contactNumber: contactNumber || phoneNumber,
       isAvailable: true,
     });
 
     const populatedDriver = await Driver.findById(driver._id).populate(
       "userId",
-      "email createdAt",
+      "phoneNumber createdAt",
     );
 
     res.status(201).json({

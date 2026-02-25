@@ -14,8 +14,8 @@
 Use these credentials to login as admin:
 
 ```
-Email: admin@elocab.com
-Password: SecureAdmin@2026
+Email: <your ADMIN_EMAIL from .env>
+Password: <your ADMIN_PASSWORD from .env>
 ```
 
 **Steps:**

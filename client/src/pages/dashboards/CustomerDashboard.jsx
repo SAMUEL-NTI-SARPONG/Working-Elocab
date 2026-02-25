@@ -136,10 +136,10 @@ const CustomerDashboard = () => {
             <div className="flex items-center gap-3">
               <div className="hidden sm:flex items-center gap-2 bg-gray-50 px-3 py-2 rounded-xl">
                 <div className="w-8 h-8 bg-gradient-to-br from-primary to-primary-light rounded-full flex items-center justify-center text-white text-xs font-bold">
-                  {(profile?.name || user?.email || "U").charAt(0).toUpperCase()}
+                  {(profile?.name || user?.phoneNumber || "U").charAt(0).toUpperCase()}
                 </div>
                 <span className="text-sm text-gray-700 font-medium">
-                  {profile?.name || user?.email}
+                  {profile?.name || user?.phoneNumber}
                 </span>
               </div>
               <button
@@ -553,29 +553,15 @@ const CustomerDashboard = () => {
 
                 <div>
                   <label className="block text-gray-700 font-semibold mb-2">
-                    Email
-                  </label>
-                  <input
-                    type="email"
-                    value={user?.email || ""}
-                    className="input-field bg-gray-100"
-                    disabled
-                  />
-                </div>
-
-                <div>
-                  <label className="block text-gray-700 font-semibold mb-2">
-                    Phone
+                    Phone Number
                   </label>
                   <input
                     type="tel"
-                    value={profile?.phone || ""}
-                    onChange={(e) =>
-                      setProfile({ ...profile, phone: e.target.value })
-                    }
-                    className="input-field"
-                    placeholder="Your phone number"
+                    value={user?.phoneNumber || profile?.phoneNumber || ""}
+                    className="input-field bg-gray-100"
+                    disabled
                   />
+                  <p className="text-xs text-gray-400 mt-1">Phone number is used for login and cannot be changed here</p>
                 </div>
 
                 <button

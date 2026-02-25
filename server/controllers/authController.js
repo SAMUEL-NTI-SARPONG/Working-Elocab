@@ -7,56 +7,65 @@ const generateToken = require("../utils/generateToken");
 // Register new user (Driver or Customer)
 exports.register = async (req, res) => {
   try {
-    const { email, password, role, ...otherData } = req.body;
+    const { phoneNumber, password, role, ...otherData } = req.body;
 
     // Validate required fields
-    if (!email || !password || !role) {
+    if (!phoneNumber || !password || !role) {
       return res
         .status(400)
-        .json({ message: "Please provide email, password, and role" });
+        .json({ message: "Please provide phone number, password, and role" });
     }
 
     // Check if user exists
-    const userExists = await User.findOne({ email });
+    const userExists = await User.findOne({ phoneNumber });
     if (userExists) {
       return res
         .status(400)
-        .json({ message: "User already exists with this email" });
+        .json({ message: "An account already exists with this phone number" });
     }
 
     // Create user (password will be hashed by User model pre-save hook)
     const user = await User.create({
-      email,
+      phoneNumber,
       password,
       role,
     });
 
-    // Create role-specific profile
-    if (role === "driver") {
-      await Driver.create({
-        userId: user._id,
-        name: otherData.name,
-        baseLocation: otherData.baseLocation,
-        carType: otherData.carType,
-        carNumber: otherData.carNumber,
-        licenseNumber: otherData.licenseNumber,
-        numberOfSeats: otherData.seats || otherData.numberOfSeats,
-        contactNumber: otherData.contactNumber,
-        isAvailable: false,
-      });
-    } else if (role === "customer") {
-      await Customer.create({
-        userId: user._id,
-        name: otherData.name,
-        phoneNumber: otherData.phoneNumber,
-        digitalAddress: otherData.digitalAddress,
-        city: otherData.city,
+    // Create role-specific profile — if this fails, clean up the User
+    try {
+      if (role === "driver") {
+        await Driver.create({
+          userId: user._id,
+          name: otherData.name,
+          baseLocation: otherData.baseLocation,
+          carType: otherData.carType,
+          carNumber: otherData.carNumber,
+          licenseNumber: otherData.licenseNumber,
+          numberOfSeats: otherData.seats || otherData.numberOfSeats,
+          contactNumber: phoneNumber,
+          isAvailable: false,
+        });
+      } else if (role === "customer") {
+        await Customer.create({
+          userId: user._id,
+          name: otherData.name,
+          phoneNumber: phoneNumber,
+          digitalAddress: otherData.digitalAddress || "N/A",
+          city: otherData.city || "Kumasi",
+        });
+      }
+    } catch (profileError) {
+      // Profile creation failed — remove the orphaned User so they can retry
+      await User.findByIdAndDelete(user._id);
+      console.error("Profile creation error:", profileError);
+      return res.status(400).json({
+        message: profileError.message || "Error creating profile. Please check your details and try again.",
       });
     }
 
     res.status(201).json({
       _id: user._id,
-      email: user.email,
+      phoneNumber: user.phoneNumber,
       role: user.role,
       token: generateToken(user._id),
     });
@@ -71,25 +80,25 @@ exports.register = async (req, res) => {
 // Login user
 exports.login = async (req, res) => {
   try {
-    const { email, password } = req.body;
+    const { phoneNumber, password } = req.body;
 
     // Validate required fields
-    if (!email || !password) {
+    if (!phoneNumber || !password) {
       return res
         .status(400)
-        .json({ message: "Please provide email and password" });
+        .json({ message: "Please provide phone number and password" });
     }
 
     // Check for user
-    const user = await User.findOne({ email });
+    const user = await User.findOne({ phoneNumber });
     if (!user) {
-      return res.status(401).json({ message: "Invalid credentials" });
+      return res.status(401).json({ message: "Invalid phone number or password" });
     }
 
     // Check password using model method
     const isMatch = await user.comparePassword(password);
     if (!isMatch) {
-      return res.status(401).json({ message: "Invalid credentials" });
+      return res.status(401).json({ message: "Invalid phone number or password" });
     }
 
     // Get role-specific profile
@@ -102,7 +111,7 @@ exports.login = async (req, res) => {
 
     res.json({
       _id: user._id,
-      email: user.email,
+      phoneNumber: user.phoneNumber,
       role: user.role,
       profile,
       token: generateToken(user._id),
@@ -113,17 +122,18 @@ exports.login = async (req, res) => {
   }
 };
 
-// Admin login (special credentials)
+// Admin login (uses email — special credentials)
 exports.adminLogin = async (req, res) => {
   try {
     const { email, password } = req.body;
 
-    // Check if admin user exists
+    // Check if admin user exists by email
     let adminUser = await User.findOne({ email, role: "admin" });
 
     // If no admin exists and trying to login with default credentials, create admin
     if (!adminUser && email === process.env.ADMIN_EMAIL) {
       adminUser = await User.create({
+        phoneNumber: "admin",
         email: process.env.ADMIN_EMAIL,
         password: process.env.ADMIN_PASSWORD,
         role: "admin",
@@ -169,7 +179,7 @@ exports.getMe = async (req, res) => {
 
     res.json({
       _id: user._id,
-      email: user.email,
+      phoneNumber: user.phoneNumber,
       role: user.role,
       profile,
     });

@@ -22,15 +22,14 @@ const AdminDashboard = () => {
   const [showCreateCustomer, setShowCreateCustomer] = useState(false);
   const [showCreateDriver, setShowCreateDriver] = useState(false);
   const [newCustomer, setNewCustomer] = useState({
-    email: "",
+    phoneNumber: "",
     password: "",
     name: "",
-    phoneNumber: "",
     city: "",
     digitalAddress: "",
   });
   const [newDriver, setNewDriver] = useState({
-    email: "",
+    phoneNumber: "",
     password: "",
     name: "",
     contactNumber: "",
@@ -429,10 +428,9 @@ const AdminDashboard = () => {
       toast.success("Customer created successfully!");
       setShowCreateCustomer(false);
       setNewCustomer({
-        email: "",
+        phoneNumber: "",
         password: "",
         name: "",
-        phoneNumber: "",
         city: "",
         digitalAddress: "",
       });
@@ -453,7 +451,7 @@ const AdminDashboard = () => {
       toast.success("Driver created successfully!");
       setShowCreateDriver(false);
       setNewDriver({
-        email: "",
+        phoneNumber: "",
         password: "",
         name: "",
         contactNumber: "",
@@ -1212,14 +1210,14 @@ const AdminDashboard = () => {
                   <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
                     <div>
                       <label className="block text-sm font-medium text-gray-700 mb-1">
-                        Email *
+                        Phone Number *
                       </label>
                       <input
-                        type="email"
+                        type="tel"
                         required
-                        value={newDriver.email}
+                        value={newDriver.phoneNumber}
                         onChange={(e) =>
-                          setNewDriver({ ...newDriver, email: e.target.value })
+                          setNewDriver({ ...newDriver, phoneNumber: e.target.value })
                         }
                         className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-primary focus:border-transparent"
                       />
@@ -1389,7 +1387,7 @@ const AdminDashboard = () => {
                           Status
                         </th>
                         <th className="px-6 py-4 text-left text-sm font-semibold">
-                          Email
+                          Phone
                         </th>
                         <th className="px-6 py-4 text-left text-sm font-semibold">
                           Vehicle
@@ -1426,7 +1424,7 @@ const AdminDashboard = () => {
                             </span>
                           </td>
                           <td className="px-6 py-4 text-gray-600 text-sm">
-                            {driver.userId?.email || "Not set"}
+                            {driver.userId?.phoneNumber || driver.contactNumber || "Not set"}
                           </td>
                           <td className="px-6 py-4">
                             <div className="text-sm">
@@ -1475,7 +1473,7 @@ const AdminDashboard = () => {
                             <h3 className="font-bold text-gray-800">
                               {driver.name}
                             </h3>
-                            <p className="text-xs text-gray-500">{driver.userId?.email || "No email"}</p>
+                            <p className="text-xs text-gray-500">{driver.userId?.phoneNumber || driver.contactNumber || ""}</p>
                           </div>
                         </div>
                         <span
@@ -1548,16 +1546,16 @@ const AdminDashboard = () => {
                   <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
                     <div>
                       <label className="block text-sm font-medium text-gray-700 mb-1">
-                        Email *
+                        Phone Number *
                       </label>
                       <input
-                        type="email"
+                        type="tel"
                         required
-                        value={newCustomer.email}
+                        value={newCustomer.phoneNumber}
                         onChange={(e) =>
                           setNewCustomer({
                             ...newCustomer,
-                            email: e.target.value,
+                            phoneNumber: e.target.value,
                           })
                         }
                         className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-green-500 focus:border-transparent"
@@ -1674,9 +1672,6 @@ const AdminDashboard = () => {
                           Name
                         </th>
                         <th className="px-6 py-4 text-left text-sm font-semibold">
-                          Email
-                        </th>
-                        <th className="px-6 py-4 text-left text-sm font-semibold">
                           Phone
                         </th>
                         <th className="px-6 py-4 text-left text-sm font-semibold">
@@ -1697,10 +1692,7 @@ const AdminDashboard = () => {
                             {customer.name || "No Name"}
                           </td>
                           <td className="px-6 py-4 text-gray-600 text-sm">
-                            {customer.userId?.email || "Not set"}
-                          </td>
-                          <td className="px-6 py-4 text-gray-600 text-sm">
-                            {customer.phoneNumber || "Not set"}
+                            {customer.phoneNumber || customer.userId?.phoneNumber || "Not set"}
                           </td>
                           <td className="px-6 py-4 text-gray-600 text-sm">
                             {customer.city || "Not set"}
@@ -1734,7 +1726,7 @@ const AdminDashboard = () => {
                           <h3 className="font-bold text-gray-800">
                             {customer.name || "No Name"}
                           </h3>
-                          <p className="text-xs text-gray-500">{customer.userId?.email || "No email"}</p>
+                          <p className="text-xs text-gray-500">{customer.phoneNumber || customer.userId?.phoneNumber || ""}</p>
                         </div>
                       </div>
                       <div className="grid grid-cols-2 gap-3 text-sm mb-4">

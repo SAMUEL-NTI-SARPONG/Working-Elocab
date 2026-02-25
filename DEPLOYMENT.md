@@ -40,12 +40,12 @@ This guide will help you deploy your ELOCAB application to production.
 
    | Key              | Value                                                                                                                           |
    | ---------------- | ------------------------------------------------------------------------------------------------------------------------------- |
-   | `MONGODB_URI`    | `mongodb+srv://elocab_user:samNsarp.211.mongodb@elocab1.4jhfbza.mongodb.net/elocab?retryWrites=true&w=majority&appName=elocab1` |
-   | `JWT_SECRET`     | `elocab_production_secret_2026_samuel_secure_key_xyz789`                                                                        |
+   | `MONGODB_URI`    | Your MongoDB Atlas connection string                                                                                            |
+   | `JWT_SECRET`     | A strong random secret (generate one with `openssl rand -hex 32`)                                                               |
    | `NODE_ENV`       | `production`                                                                                                                    |
-   | `CLIENT_URL`     | `http://localhost:5173` (temporary - will update later)                                                                         |
-   | `ADMIN_EMAIL`    | `admin@elocab.com`                                                                                                              |
-   | `ADMIN_PASSWORD` | `SecureAdmin@2026`                                                                                                              |
+   | `CLIENT_URL`     | `https://elocab.vercel.app`                                                                                                     |
+   | `ADMIN_EMAIL`    | Your admin email                                                                                                                |
+   | `ADMIN_PASSWORD` | Your admin password                                                                                                             |
 
    ⚠️ **IMPORTANT**: Check all 3 environments (Production, Preview, Development) for each variable!
 
