@@ -5,6 +5,8 @@ import axios from "axios";
 import toast from "react-hot-toast";
 import ArchiveViewer from "../../components/ArchiveViewer";
 import InstallPrompt from "../../components/InstallPrompt";
+import ConfirmModal from "../../components/ConfirmModal";
+import NotificationBell from "../../components/NotificationBell";
 
 const AdminDashboard = () => {
   const { user, logout } = useAuth();
@@ -43,6 +45,15 @@ const AdminDashboard = () => {
     typeof Notification !== "undefined" ? Notification.permission : "default"
   );
   const [showInstallPrompt, setShowInstallPrompt] = useState(false);
+  const [confirmModal, setConfirmModal] = useState({
+    isOpen: false,
+    title: "",
+    message: "",
+    variant: "danger",
+    confirmText: "Confirm",
+    requireType: null,
+    onConfirm: () => {},
+  });
 
   useEffect(() => {
     // Only show install prompt once per session
@@ -174,29 +185,47 @@ const AdminDashboard = () => {
   };
 
   const deleteDriver = async (driverId) => {
-    if (!confirm("Are you sure you want to delete this driver?")) return;
-
-    try {
-      await axios.delete(`/api/admin/drivers/${driverId}`);
-      toast.success("Driver deleted successfully");
-      fetchDrivers();
-      fetchStats();
-    } catch (error) {
-      toast.error(error.response?.data?.message || "Failed to delete driver");
-    }
+    setConfirmModal({
+      isOpen: true,
+      title: "Delete Driver",
+      message: "Are you sure you want to delete this driver? Their account and all associated data will be permanently removed.",
+      variant: "danger",
+      confirmText: "Delete Driver",
+      requireType: null,
+      onConfirm: async () => {
+        setConfirmModal(prev => ({ ...prev, isOpen: false }));
+        try {
+          await axios.delete(`/api/admin/drivers/${driverId}`);
+          toast.success("Driver deleted successfully");
+          fetchDrivers();
+          fetchStats();
+        } catch (error) {
+          toast.error(error.response?.data?.message || "Failed to delete driver");
+        }
+      },
+    });
   };
 
   const deleteCustomer = async (customerId) => {
-    if (!confirm("Are you sure you want to delete this customer?")) return;
-
-    try {
-      await axios.delete(`/api/admin/customers/${customerId}`);
-      toast.success("Customer deleted successfully");
-      fetchCustomers();
-      fetchStats();
-    } catch (error) {
-      toast.error(error.response?.data?.message || "Failed to delete customer");
-    }
+    setConfirmModal({
+      isOpen: true,
+      title: "Delete Customer",
+      message: "Are you sure you want to delete this customer? Their account and booking history will be permanently removed.",
+      variant: "danger",
+      confirmText: "Delete Customer",
+      requireType: null,
+      onConfirm: async () => {
+        setConfirmModal(prev => ({ ...prev, isOpen: false }));
+        try {
+          await axios.delete(`/api/admin/customers/${customerId}`);
+          toast.success("Customer deleted successfully");
+          fetchCustomers();
+          fetchStats();
+        } catch (error) {
+          toast.error(error.response?.data?.message || "Failed to delete customer");
+        }
+      },
+    });
   };
 
   const toggleDriverStatus = async (driverId) => {
@@ -210,53 +239,53 @@ const AdminDashboard = () => {
   };
 
   const clearCompletedBookings = async () => {
-    if (
-      !confirm(
-        "Are you sure you want to delete all completed and cancelled bookings? This cannot be undone!",
-      )
-    )
-      return;
-
-    setLoading(true);
-    try {
-      const { data } = await axios.delete(
-        "/api/admin/bookings/clear-completed",
-      );
-      toast.success(data.message);
-      fetchBookings();
-      fetchStats();
-    } catch (error) {
-      toast.error(error.response?.data?.message || "Failed to clear completed bookings");
-    } finally {
-      setLoading(false);
-    }
+    setConfirmModal({
+      isOpen: true,
+      title: "Clear Completed Bookings",
+      message: "This will permanently delete all completed and cancelled bookings. This action cannot be undone.",
+      variant: "warning",
+      confirmText: "Clear Bookings",
+      requireType: null,
+      onConfirm: async () => {
+        setConfirmModal(prev => ({ ...prev, isOpen: false }));
+        setLoading(true);
+        try {
+          const { data } = await axios.delete("/api/admin/bookings/clear-completed");
+          toast.success(data.message);
+          fetchBookings();
+          fetchStats();
+        } catch (error) {
+          toast.error(error.response?.data?.message || "Failed to clear completed bookings");
+        } finally {
+          setLoading(false);
+        }
+      },
+    });
   };
 
   const clearAllBookings = async () => {
-    if (
-      !confirm(
-        "⚠️ WARNING: This will delete ALL bookings including active ones! Are you absolutely sure?",
-      )
-    )
-      return;
-    if (
-      !confirm(
-        "This is your final warning. All booking data will be permanently deleted. Continue?",
-      )
-    )
-      return;
-
-    setLoading(true);
-    try {
-      const { data } = await axios.delete("/api/admin/bookings/clear-all");
-      toast.success(data.message);
-      fetchBookings();
-      fetchStats();
-    } catch (error) {
-      toast.error(error.response?.data?.message || "Failed to clear all bookings");
-    } finally {
-      setLoading(false);
-    }
+    setConfirmModal({
+      isOpen: true,
+      title: "Delete ALL Bookings",
+      message: "This will permanently delete ALL bookings including active ones. This is irreversible and cannot be undone.",
+      variant: "danger",
+      confirmText: "Delete Everything",
+      requireType: "DELETE ALL",
+      onConfirm: async () => {
+        setConfirmModal(prev => ({ ...prev, isOpen: false }));
+        setLoading(true);
+        try {
+          const { data } = await axios.delete("/api/admin/bookings/clear-all");
+          toast.success(data.message);
+          fetchBookings();
+          fetchStats();
+        } catch (error) {
+          toast.error(error.response?.data?.message || "Failed to clear all bookings");
+        } finally {
+          setLoading(false);
+        }
+      },
+    });
   };
 
   const requestNotificationPermission = async () => {
@@ -328,29 +357,27 @@ const AdminDashboard = () => {
   };
 
   const resetStatistics = async () => {
-    if (
-      !confirm(
-        "⚠️ WARNING: This will reset ALL lifetime statistics to zero! Are you absolutely sure?",
-      )
-    )
-      return;
-    if (
-      !confirm(
-        "This is your final warning. All statistics data will be permanently reset. Continue?",
-      )
-    )
-      return;
-
-    setLoading(true);
-    try {
-      const { data } = await axios.post("/api/admin/stats/reset");
-      toast.success(data.message);
-      fetchStats();
-    } catch (error) {
-      toast.error(error.response?.data?.message || "Failed to reset statistics");
-    } finally {
-      setLoading(false);
-    }
+    setConfirmModal({
+      isOpen: true,
+      title: "Reset All Statistics",
+      message: "This will reset ALL lifetime statistics to zero. This is irreversible and cannot be undone.",
+      variant: "danger",
+      confirmText: "Reset Statistics",
+      requireType: "RESET",
+      onConfirm: async () => {
+        setConfirmModal(prev => ({ ...prev, isOpen: false }));
+        setLoading(true);
+        try {
+          const { data } = await axios.post("/api/admin/stats/reset");
+          toast.success(data.message);
+          fetchStats();
+        } catch (error) {
+          toast.error(error.response?.data?.message || "Failed to reset statistics");
+        } finally {
+          setLoading(false);
+        }
+      },
+    });
   };
 
   const previewArchive = async () => {
@@ -362,18 +389,11 @@ const AdminDashboard = () => {
         return;
       }
 
-      const message = `Found ${data.count} booking(s) older than 90 days that will be archived.\n\nCutoff date: ${new Date(data.cutoffDate).toLocaleDateString()}`;
-      if (
-        confirm(
-          message +
-            "\n\nClick OK to preview the bookings or Cancel to go back.",
-        )
-      ) {
-        console.log("Archivable bookings:", data.bookings);
-        toast.success(
-          `${data.count} bookings ready for archiving. Check console for details.`,
-        );
-      }
+      toast.success(
+        `Found ${data.count} booking(s) older than 90 days ready for archiving. Cutoff: ${new Date(data.cutoffDate).toLocaleDateString()}`,
+        { duration: 5000 }
+      );
+      console.log("Archivable bookings:", data.bookings);
     } catch (error) {
       toast.error(error.response?.data?.message || "Failed to preview archive");
     } finally {
@@ -387,37 +407,45 @@ const AdminDashboard = () => {
       return;
     }
 
-    const message = `This will archive and delete ${archiveStats.archivable} booking(s) older than 90 days.\n\nThe data will be downloaded as a JSON file before deletion.\n\nContinue?`;
-    if (!confirm(message)) return;
+    setConfirmModal({
+      isOpen: true,
+      title: "Archive & Download",
+      message: `This will archive and delete ${archiveStats.archivable} booking(s) older than 90 days. The data will be downloaded as a JSON file before deletion.`,
+      variant: "warning",
+      confirmText: "Archive & Download",
+      requireType: null,
+      onConfirm: async () => {
+        setConfirmModal(prev => ({ ...prev, isOpen: false }));
+        setArchiveLoading(true);
+        try {
+          const { data } = await axios.post("/api/admin/archive/execute");
 
-    setArchiveLoading(true);
-    try {
-      const { data } = await axios.post("/api/admin/archive/execute");
+          // Create and download JSON file
+          const blob = new Blob([JSON.stringify(data.data, null, 2)], {
+            type: "application/json",
+          });
+          const url = URL.createObjectURL(blob);
+          const link = document.createElement("a");
+          link.href = url;
+          link.download = data.filename;
+          document.body.appendChild(link);
+          link.click();
+          document.body.removeChild(link);
+          URL.revokeObjectURL(url);
 
-      // Create and download JSON file
-      const blob = new Blob([JSON.stringify(data.data, null, 2)], {
-        type: "application/json",
-      });
-      const url = URL.createObjectURL(blob);
-      const link = document.createElement("a");
-      link.href = url;
-      link.download = data.filename;
-      document.body.appendChild(link);
-      link.click();
-      document.body.removeChild(link);
-      URL.revokeObjectURL(url);
+          toast.success(data.message);
 
-      toast.success(data.message);
-
-      // Refresh data
-      fetchBookings();
-      fetchStats();
-      fetchArchiveStats();
-    } catch (error) {
-      toast.error(error.response?.data?.message || "Failed to execute archive");
-    } finally {
-      setArchiveLoading(false);
-    }
+          // Refresh data
+          fetchBookings();
+          fetchStats();
+          fetchArchiveStats();
+        } catch (error) {
+          toast.error(error.response?.data?.message || "Failed to execute archive");
+        } finally {
+          setArchiveLoading(false);
+        }
+      },
+    });
   };
 
   const createCustomer = async (e) => {
@@ -524,12 +552,14 @@ const AdminDashboard = () => {
                 <p className="text-xs text-gray-300">Admin Control Panel</p>
               </div>
             </div>
-            <button
-              onClick={handleLogout}
-              className="px-4 py-2 bg-white/15 text-white rounded-xl hover:bg-white/25 font-semibold text-sm border border-white/20"
-            >
-              Logout
-            </button>
+            <div className="flex items-center gap-2 sm:gap-3">
+              <NotificationBell />
+              <button
+                onClick={handleLogout}
+                className="px-4 py-2 bg-white/15 text-white rounded-xl hover:bg-white/25 font-semibold text-sm border border-white/20"
+              >
+                Logout
+              </button>
           </div>
         </div>
       </header>
@@ -1542,8 +1572,27 @@ const AdminDashboard = () => {
                 <h3 className="font-bold text-gray-800 mb-4">
                   Create New Customer
                 </h3>
+                <p className="text-sm text-gray-500 mb-4">Fields marked with * are required during customer signup</p>
                 <form onSubmit={createCustomer} className="space-y-4">
                   <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+                    <div>
+                      <label className="block text-sm font-medium text-gray-700 mb-1">
+                        Full Name *
+                      </label>
+                      <input
+                        type="text"
+                        required
+                        value={newCustomer.name}
+                        onChange={(e) =>
+                          setNewCustomer({
+                            ...newCustomer,
+                            name: e.target.value,
+                          })
+                        }
+                        placeholder="e.g., John Mensah"
+                        className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-green-500 focus:border-transparent"
+                      />
+                    </div>
                     <div>
                       <label className="block text-sm font-medium text-gray-700 mb-1">
                         Phone Number *
@@ -1558,6 +1607,7 @@ const AdminDashboard = () => {
                             phoneNumber: e.target.value,
                           })
                         }
+                        placeholder="e.g., 0241234567"
                         className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-green-500 focus:border-transparent"
                       />
                     </div>
@@ -1568,6 +1618,7 @@ const AdminDashboard = () => {
                       <input
                         type="password"
                         required
+                        minLength={6}
                         value={newCustomer.password}
                         onChange={(e) =>
                           setNewCustomer({
@@ -1575,40 +1626,7 @@ const AdminDashboard = () => {
                             password: e.target.value,
                           })
                         }
-                        className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-green-500 focus:border-transparent"
-                      />
-                    </div>
-                    <div>
-                      <label className="block text-sm font-medium text-gray-700 mb-1">
-                        Name *
-                      </label>
-                      <input
-                        type="text"
-                        required
-                        value={newCustomer.name}
-                        onChange={(e) =>
-                          setNewCustomer({
-                            ...newCustomer,
-                            name: e.target.value,
-                          })
-                        }
-                        className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-green-500 focus:border-transparent"
-                      />
-                    </div>
-                    <div>
-                      <label className="block text-sm font-medium text-gray-700 mb-1">
-                        Phone Number *
-                      </label>
-                      <input
-                        type="text"
-                        required
-                        value={newCustomer.phoneNumber}
-                        onChange={(e) =>
-                          setNewCustomer({
-                            ...newCustomer,
-                            phoneNumber: e.target.value,
-                          })
-                        }
+                        placeholder="Minimum 6 characters"
                         className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-green-500 focus:border-transparent"
                       />
                     </div>
@@ -1626,12 +1644,13 @@ const AdminDashboard = () => {
                             city: e.target.value,
                           })
                         }
+                        placeholder="e.g., Kumasi"
                         className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-green-500 focus:border-transparent"
                       />
                     </div>
-                    <div>
+                    <div className="md:col-span-2">
                       <label className="block text-sm font-medium text-gray-700 mb-1">
-                        Digital Address
+                        Digital Address <span className="text-gray-400">(optional)</span>
                       </label>
                       <input
                         type="text"
@@ -1642,6 +1661,7 @@ const AdminDashboard = () => {
                             digitalAddress: e.target.value,
                           })
                         }
+                        placeholder="e.g., AK-039-5028"
                         className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-green-500 focus:border-transparent"
                       />
                     </div>
@@ -1989,6 +2009,19 @@ const AdminDashboard = () => {
       <InstallPrompt
         show={showInstallPrompt}
         onClose={() => setShowInstallPrompt(false)}
+      />
+
+      {/* Confirm Modal */}
+      <ConfirmModal
+        isOpen={confirmModal.isOpen}
+        onClose={() => setConfirmModal(prev => ({ ...prev, isOpen: false }))}
+        onConfirm={confirmModal.onConfirm}
+        title={confirmModal.title}
+        message={confirmModal.message}
+        variant={confirmModal.variant}
+        confirmText={confirmModal.confirmText}
+        requireType={confirmModal.requireType}
+        loading={loading}
       />
     </div>
   );

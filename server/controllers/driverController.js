@@ -1,6 +1,9 @@
 const Driver = require("../models/Driver");
 const Booking = require("../models/Booking");
 const Statistics = require("../models/Statistics");
+const Customer = require("../models/Customer");
+const User = require("../models/User");
+const { createNotification } = require("./notificationController");
 
 // Get driver profile
 exports.getProfile = async (req, res) => {
@@ -183,6 +186,37 @@ exports.updateBookingStatus = async (req, res) => {
     // Notify customer and admin via Socket.io
     const io = req.app.get("io");
     io.emit("bookingUpdated", booking);
+
+    // Create notification for customer about status change
+    const customer = await Customer.findById(booking.customerId);
+    if (customer) {
+      const statusMessages = {
+        "on-the-way": `Your driver ${driver.name} is on the way to pick you up!`,
+        "picked-up": `You've been picked up by ${driver.name}. Enjoy your ride!`,
+        "completed": `Your ride with ${driver.name} is complete. Thank you for riding with ELOCAB!`,
+        "cancelled": `Your ride has been cancelled by the driver.`,
+      };
+      const msg = statusMessages[status] || `Your booking status has been updated to: ${status}`;
+      await createNotification(
+        customer.userId,
+        status === "completed" ? "booking_completed" : "booking_status",
+        status === "completed" ? "Ride Completed" : "Ride Status Update",
+        msg,
+        { bookingId: booking._id, status }
+      );
+    }
+
+    // Notify admins about status change
+    const admins = await User.find({ role: "admin" });
+    for (const admin of admins) {
+      await createNotification(
+        admin._id,
+        "booking_status",
+        "Booking Status Updated",
+        `${driver.name} updated booking to: ${status.replace("-", " ")}`,
+        { bookingId: booking._id, status }
+      );
+    }
 
     res.json(booking);
   } catch (error) {

@@ -4,6 +4,7 @@ import { useAuth } from "../../context/AuthContext";
 import axios from "axios";
 import toast from "react-hot-toast";
 import InstallPrompt from "../../components/InstallPrompt";
+import NotificationBell from "../../components/NotificationBell";
 
 const DriverDashboard = () => {
   const { user, logout } = useAuth();
@@ -176,6 +177,7 @@ const DriverDashboard = () => {
                 <span className={`w-2 h-2 rounded-full ${profile?.isAvailable ? "bg-green-500 animate-pulse" : "bg-gray-400"}`}></span>
                 <span className="hidden sm:inline">{profile?.isAvailable ? "Online" : "Offline"}</span>
               </button>
+              <NotificationBell />
               <div className="hidden sm:flex items-center gap-2 bg-gray-50 px-3 py-2 rounded-xl">
                 <div className="w-8 h-8 bg-gradient-to-br from-secondary to-secondary-light rounded-full flex items-center justify-center text-white text-xs font-bold">
                   {(profile?.name || user?.phoneNumber || "D").charAt(0).toUpperCase()}

@@ -17,6 +17,8 @@ const customerRoutes = require("./routes/customerRoutes");
 const bookingRoutes = require("./routes/bookingRoutes");
 const adminRoutes = require("./routes/adminRoutes");
 const archiveRoutes = require("./routes/archiveRoutes");
+const notificationRoutes = require("./routes/notificationRoutes");
+const { apiLimiter, authLimiter, sanitizeInput } = require("./middleware/security");
 
 const app = express();
 const server = http.createServer(app);
@@ -58,53 +60,86 @@ app.use(helmet({
   contentSecurityPolicy: false,
 }));
 app.use(cors(corsOptions));
-app.use(express.json());
+app.use(express.json({ limit: "10mb" }));
 app.use(express.urlencoded({ extended: true }));
+
+// Security middleware
+app.use(sanitizeInput);
+app.use("/api", apiLimiter);
+app.use("/api/auth", authLimiter);
 
 // Make io accessible to routes
 app.set("io", io);
 
 // ===== MongoDB Connection (cached for Vercel serverless) =====
 let isConnected = false;
+let connectionPromise = null;
 
-// Disable buffering so operations fail fast if DB isn't connected
-mongoose.set("bufferCommands", false);
+// Enable buffering with timeout so queries queue while connecting instead of failing immediately
+mongoose.set("bufferCommands", true);
+mongoose.set("bufferTimeoutMS", 20000);
 
 const connectDB = async () => {
-  if (isConnected) return;
-
+  // Already connected
   if (mongoose.connection.readyState === 1) {
     isConnected = true;
     return;
   }
 
-  try {
-    const db = await mongoose.connect(process.env.MONGODB_URI, {
-      serverSelectionTimeoutMS: 5000,
-      socketTimeoutMS: 45000,
-    });
-    isConnected = db.connections[0].readyState === 1;
-    console.log("✅ MongoDB Connected Successfully");
-
-    // Drop legacy unique index on email if it exists (migrated to phoneNumber)
-    try {
-      const userCollection = db.connection.collection("users");
-      const indexes = await userCollection.indexes();
-      const emailIndex = indexes.find(idx => idx.key && idx.key.email);
-      if (emailIndex) {
-        await userCollection.dropIndex(emailIndex.name);
-        console.log("✅ Dropped legacy email index");
-      }
-    } catch (indexErr) {
-      // Index may not exist, ignore
-    }
-
-    startArchiveScheduler();
-  } catch (err) {
-    console.error("❌ MongoDB Connection Error:", err.message);
-    isConnected = false;
+  // If disconnecting, wait a moment
+  if (mongoose.connection.readyState === 3) {
+    await new Promise(resolve => setTimeout(resolve, 500));
   }
+
+  // If a connection attempt is already in progress, wait for it
+  if (connectionPromise) {
+    await connectionPromise;
+    return;
+  }
+
+  connectionPromise = (async () => {
+    try {
+      const db = await mongoose.connect(process.env.MONGODB_URI, {
+        serverSelectionTimeoutMS: 15000,
+        socketTimeoutMS: 45000,
+        maxPoolSize: 10,
+        minPoolSize: 1,
+        maxIdleTimeMS: 30000,
+        connectTimeoutMS: 15000,
+        heartbeatFrequencyMS: 10000,
+      });
+      isConnected = db.connections[0].readyState === 1;
+      console.log("✅ MongoDB Connected Successfully");
+
+      // Drop legacy unique index on email if it exists (migrated to phoneNumber)
+      try {
+        const userCollection = db.connection.collection("users");
+        const indexes = await userCollection.indexes();
+        const emailIndex = indexes.find(idx => idx.key && idx.key.email);
+        if (emailIndex) {
+          await userCollection.dropIndex(emailIndex.name);
+          console.log("✅ Dropped legacy email index");
+        }
+      } catch (indexErr) {
+        // Index may not exist, ignore
+      }
+
+      startArchiveScheduler();
+    } catch (err) {
+      console.error("❌ MongoDB Connection Error:", err.message);
+      isConnected = false;
+    } finally {
+      connectionPromise = null;
+    }
+  })();
+
+  await connectionPromise;
 };
+
+// Handle connection state changes
+mongoose.connection.on("connected", () => { isConnected = true; });
+mongoose.connection.on("disconnected", () => { isConnected = false; });
+mongoose.connection.on("error", () => { isConnected = false; });
 
 // Connect on startup (non-blocking for serverless)
 connectDB();
@@ -144,17 +179,48 @@ app.get("/api/health", (req, res) => {
 
 // ===== Middleware to ensure DB connection before API routes =====
 app.use("/api", async (req, res, next) => {
+  // Skip DB check for health endpoint
+  if (req.path === "/health") return next();
+
   try {
-    await connectDB();
-    if (!isConnected && mongoose.connection.readyState !== 1) {
-      return res.status(503).json({ 
-        success: false,
-        message: "Database is temporarily unavailable. Please try again in a moment." 
-      });
+    // If already connected, proceed immediately
+    if (mongoose.connection.readyState === 1) {
+      isConnected = true;
+      return next();
     }
-    next();
+
+    // Attempt connection (will reuse cached promise if in progress)
+    await connectDB();
+    
+    if (mongoose.connection.readyState === 1) {
+      isConnected = true;
+      return next();
+    }
+
+    // Retry with increasing delays (up to 3 attempts)
+    for (let attempt = 1; attempt <= 2; attempt++) {
+      console.log(`⏳ DB retry attempt ${attempt}...`);
+      await new Promise(resolve => setTimeout(resolve, attempt * 1500));
+      await connectDB();
+      
+      if (mongoose.connection.readyState === 1) {
+        isConnected = true;
+        return next();
+      }
+    }
+
+    return res.status(503).json({ 
+      success: false,
+      message: "Database is temporarily unavailable. Please try again in a moment." 
+    });
   } catch (err) {
     console.error("DB connection middleware error:", err.message);
+    
+    // Even on error, if bufferCommands is enabled and connection is in progress, let it through
+    if (mongoose.connection.readyState === 2) {
+      return next();
+    }
+    
     res.status(503).json({ 
       success: false,
       message: "Database connection error. Please try again." 
@@ -196,6 +262,7 @@ app.use("/api/customers", customerRoutes);
 app.use("/api/bookings", bookingRoutes);
 app.use("/api/admin", adminRoutes);
 app.use("/api/admin/archive", archiveRoutes);
+app.use("/api/notifications", notificationRoutes);
 
 // Error handling middleware
 app.use((err, req, res, next) => {

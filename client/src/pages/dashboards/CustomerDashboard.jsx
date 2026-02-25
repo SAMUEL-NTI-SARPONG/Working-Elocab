@@ -4,6 +4,8 @@ import { useAuth } from "../../context/AuthContext";
 import axios from "axios";
 import toast from "react-hot-toast";
 import InstallPrompt from "../../components/InstallPrompt";
+import NotificationBell from "../../components/NotificationBell";
+import ConfirmModal from "../../components/ConfirmModal";
 
 const CustomerDashboard = () => {
   const { user, logout } = useAuth();
@@ -22,6 +24,12 @@ const CustomerDashboard = () => {
     notes: "",
   });
   const [showInstallPrompt, setShowInstallPrompt] = useState(false);
+  const [confirmModal, setConfirmModal] = useState({
+    isOpen: false,
+    title: "",
+    message: "",
+    onConfirm: () => {},
+  });
 
   useEffect(() => {
     // Only show install prompt once per session
@@ -109,6 +117,36 @@ const CustomerDashboard = () => {
     toast.success("Logged out successfully");
   };
 
+  const cancelBooking = (bookingId) => {
+    setConfirmModal({
+      isOpen: true,
+      title: "Cancel Booking",
+      message: "Are you sure you want to cancel this booking? This action cannot be undone.",
+      onConfirm: async () => {
+        setConfirmModal(prev => ({ ...prev, isOpen: false }));
+        try {
+          await axios.put(`/api/customers/bookings/${bookingId}/cancel`);
+          toast.success("Booking cancelled successfully");
+          fetchBookings();
+        } catch (error) {
+          toast.error(error.response?.data?.message || "Failed to cancel booking");
+        }
+      },
+    });
+  };
+
+  const getStatusColor = (status) => {
+    const colors = {
+      pending: "bg-yellow-100 text-yellow-800",
+      accepted: "bg-blue-100 text-blue-800",
+      "on-the-way": "bg-purple-100 text-purple-800",
+      "picked-up": "bg-indigo-100 text-indigo-800",
+      completed: "bg-green-100 text-green-800",
+      cancelled: "bg-red-100 text-red-800",
+    };
+    return colors[status] || "bg-gray-100 text-gray-800";
+  };
+
   return (
     <div className="min-h-screen bg-gray-50">
       {/* Header */}
@@ -134,6 +172,7 @@ const CustomerDashboard = () => {
               </div>
             </div>
             <div className="flex items-center gap-3">
+              <NotificationBell />
               <div className="hidden sm:flex items-center gap-2 bg-gray-50 px-3 py-2 rounded-xl">
                 <div className="w-8 h-8 bg-gradient-to-br from-primary to-primary-light rounded-full flex items-center justify-center text-white text-xs font-bold">
                   {(profile?.name || user?.phoneNumber || "U").charAt(0).toUpperCase()}
@@ -390,6 +429,9 @@ const CustomerDashboard = () => {
                         <th className="px-6 py-4 text-left text-sm font-semibold">
                           Driver
                         </th>
+                        <th className="px-6 py-4 text-left text-sm font-semibold">
+                          Actions
+                        </th>
                       </tr>
                     </thead>
                     <tbody className="divide-y divide-gray-100">
@@ -401,15 +443,7 @@ const CustomerDashboard = () => {
                         >
                           <td className="px-6 py-4">
                             <span
-                              className={`inline-block px-3 py-1 rounded-full text-xs font-semibold ${
-                                booking.status === "pending"
-                                  ? "bg-yellow-100 text-yellow-800"
-                                  : booking.status === "accepted"
-                                    ? "bg-blue-100 text-blue-800"
-                                    : booking.status === "completed"
-                                      ? "bg-green-100 text-green-800"
-                                      : "bg-red-100 text-red-800"
-                              }`}
+                              className={`inline-block px-3 py-1 rounded-full text-xs font-semibold ${getStatusColor(booking.status)}`}
                             >
                               {booking.status.charAt(0).toUpperCase() +
                                 booking.status.slice(1)}
@@ -448,6 +482,16 @@ const CustomerDashboard = () => {
                               <span className="text-gray-400 text-xs">Awaiting assignment</span>
                             )}
                           </td>
+                          <td className="px-6 py-4">
+                            {(booking.status === "pending" || booking.status === "accepted") && (
+                              <button
+                                onClick={() => cancelBooking(booking._id)}
+                                className="px-3 py-1.5 bg-red-50 text-red-600 rounded-lg text-xs font-semibold hover:bg-red-100 transition-colors"
+                              >
+                                Cancel
+                              </button>
+                            )}
+                          </td>
                         </tr>
                       ))}
                     </tbody>
@@ -463,15 +507,7 @@ const CustomerDashboard = () => {
                     >
                       <div className="flex justify-between items-start mb-3">
                         <span
-                          className={`inline-block px-3 py-1 rounded-full text-xs font-semibold ${
-                            booking.status === "pending"
-                              ? "bg-yellow-100 text-yellow-800"
-                              : booking.status === "accepted"
-                                ? "bg-blue-100 text-blue-800"
-                                : booking.status === "completed"
-                                  ? "bg-green-100 text-green-800"
-                                  : "bg-red-100 text-red-800"
-                          }`}
+                          className={`inline-block px-3 py-1 rounded-full text-xs font-semibold ${getStatusColor(booking.status)}`}
                         >
                           {booking.status.charAt(0).toUpperCase() +
                             booking.status.slice(1)}
@@ -511,6 +547,14 @@ const CustomerDashboard = () => {
                           <span className="text-gray-400">•</span>
                           <span className="text-gray-500">{booking.driverId.contactNumber}</span>
                         </div>
+                      )}
+                      {(booking.status === "pending" || booking.status === "accepted") && (
+                        <button
+                          onClick={() => cancelBooking(booking._id)}
+                          className="mt-3 w-full py-2 bg-red-50 text-red-600 rounded-xl text-sm font-semibold hover:bg-red-100 transition-colors"
+                        >
+                          Cancel Booking
+                        </button>
                       )}
                     </div>
                   ))}
@@ -581,6 +625,17 @@ const CustomerDashboard = () => {
       <InstallPrompt
         show={showInstallPrompt}
         onClose={() => setShowInstallPrompt(false)}
+      />
+
+      {/* Confirm Modal */}
+      <ConfirmModal
+        isOpen={confirmModal.isOpen}
+        title={confirmModal.title}
+        message={confirmModal.message}
+        variant={confirmModal.variant}
+        confirmText={confirmModal.confirmText}
+        onConfirm={confirmModal.onConfirm}
+        onCancel={() => setConfirmModal((prev) => ({ ...prev, isOpen: false }))}
       />
     </div>
   );

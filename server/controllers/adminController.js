@@ -4,6 +4,7 @@ const Customer = require("../models/Customer");
 const Booking = require("../models/Booking");
 const Statistics = require("../models/Statistics");
 const bcrypt = require("bcryptjs");
+const { createNotification } = require("./notificationController");
 
 // Get all drivers
 exports.getAllDrivers = async (req, res) => {
@@ -113,6 +114,29 @@ exports.assignDriver = async (req, res) => {
         driver.userId.toString(),
       );
       io.to(driverSocketId).emit("newAssignment", populatedBooking);
+    }
+
+    // Create notification for driver
+    await createNotification(
+      driver.userId,
+      "driver_assigned",
+      "New Ride Assignment",
+      `You have been assigned a ride: ${booking.pickupPoint || "Pickup"} → ${booking.destination || "Destination"}`,
+      { bookingId: booking._id }
+    );
+
+    // Create notification for customer
+    if (populatedBooking.customerId) {
+      const customer = await Customer.findById(booking.customerId);
+      if (customer) {
+        await createNotification(
+          customer.userId,
+          "booking_assigned",
+          "Driver Assigned",
+          `${driver.name} has been assigned to your ride. Vehicle: ${driver.carType} (${driver.carNumber})`,
+          { bookingId: booking._id, driverName: driver.name }
+        );
+      }
     }
 
     res.json(populatedBooking);

@@ -1,6 +1,8 @@
 const Customer = require("../models/Customer");
 const Booking = require("../models/Booking");
 const Statistics = require("../models/Statistics");
+const User = require("../models/User");
+const { createNotification } = require("./notificationController");
 
 // Get customer profile
 exports.getProfile = async (req, res) => {
@@ -91,6 +93,27 @@ exports.createBooking = async (req, res) => {
     const io = req.app.get("io");
     io.emit("newBooking", populatedBooking);
 
+    // Create notification for customer
+    await createNotification(
+      req.user._id,
+      "booking_created",
+      "Booking Confirmed",
+      `Your ${serviceType} ride from ${pickupPoint} to ${destination} has been submitted. We'll assign a driver soon.`,
+      { bookingId: booking._id }
+    );
+
+    // Create notification for all admins
+    const admins = await User.find({ role: "admin" });
+    for (const admin of admins) {
+      await createNotification(
+        admin._id,
+        "booking_created",
+        "New Booking Received",
+        `${customer.name} booked a ${serviceType} ride: ${pickupPoint} → ${destination}`,
+        { bookingId: booking._id }
+      );
+    }
+
     res.status(201).json(populatedBooking);
   } catch (error) {
     res
@@ -176,6 +199,18 @@ exports.cancelBooking = async (req, res) => {
     // Notify admin and driver via Socket.io
     const io = req.app.get("io");
     io.emit("bookingCancelled", booking);
+
+    // Create notification for admins
+    const admins = await User.find({ role: "admin" });
+    for (const admin of admins) {
+      await createNotification(
+        admin._id,
+        "booking_cancelled",
+        "Booking Cancelled",
+        `${customer.name} cancelled their booking: ${booking.pickupPoint} → ${booking.destination}`,
+        { bookingId: booking._id }
+      );
+    }
 
     res.json(booking);
   } catch (error) {
