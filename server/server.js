@@ -34,12 +34,12 @@ const getAllowedOrigins = () => {
 const corsOptions = {
   origin: function (origin, callback) {
     const allowed = getAllowedOrigins();
-    // Allow requests with no origin (mobile apps, curl, etc.)
+    // Allow requests with no origin (mobile apps, curl, Vercel proxy, etc.)
     if (!origin || allowed.length === 0 || allowed.includes(origin)) {
       callback(null, true);
     } else {
-      console.log(`CORS blocked origin: ${origin}. Allowed: ${allowed.join(", ")}`);
-      callback(null, true); // Allow all in case of misconfiguration — remove in strict mode
+      // In production, allow all origins to prevent misconfiguration blocks
+      callback(null, true);
     }
   },
   credentials: true,
@@ -64,15 +64,89 @@ app.use(express.urlencoded({ extended: true }));
 // Make io accessible to routes
 app.set("io", io);
 
-// Database connection
-mongoose
-  .connect(process.env.MONGODB_URI)
-  .then(() => {
+// ===== MongoDB Connection (cached for Vercel serverless) =====
+let isConnected = false;
+
+// Disable buffering so operations fail fast if DB isn't connected
+mongoose.set("bufferCommands", false);
+
+const connectDB = async () => {
+  if (isConnected) return;
+
+  if (mongoose.connection.readyState === 1) {
+    isConnected = true;
+    return;
+  }
+
+  try {
+    const db = await mongoose.connect(process.env.MONGODB_URI, {
+      serverSelectionTimeoutMS: 5000,
+      socketTimeoutMS: 45000,
+    });
+    isConnected = db.connections[0].readyState === 1;
     console.log("✅ MongoDB Connected Successfully");
-    // Start automatic archive scheduler after DB connection
     startArchiveScheduler();
-  })
-  .catch((err) => console.error("❌ MongoDB Connection Error:", err));
+  } catch (err) {
+    console.error("❌ MongoDB Connection Error:", err.message);
+    isConnected = false;
+  }
+};
+
+// Connect on startup (non-blocking for serverless)
+connectDB();
+
+// ===== Routes that do NOT need database =====
+
+// Root route - API homepage
+app.get("/", (req, res) => {
+  res.json({
+    success: true,
+    message: "🚗 ELOCAB API Server",
+    version: "1.0.0",
+    status: "running",
+    environment: process.env.NODE_ENV || "development",
+    endpoints: {
+      auth: "/api/auth",
+      customers: "/api/customers",
+      drivers: "/api/drivers",
+      bookings: "/api/bookings",
+      admin: "/api/admin",
+      health: "/api/health",
+    },
+    documentation: "Visit https://github.com/SAMUEL-NTI-SARPONG/Working-Elocab",
+    timestamp: new Date().toISOString(),
+  });
+});
+
+// Health check route (no DB needed)
+app.get("/api/health", (req, res) => {
+  res.json({
+    status: "ok",
+    message: "ELOCAB API is running",
+    dbConnected: isConnected,
+    timestamp: new Date().toISOString(),
+  });
+});
+
+// ===== Middleware to ensure DB connection before API routes =====
+app.use("/api", async (req, res, next) => {
+  try {
+    await connectDB();
+    if (!isConnected && mongoose.connection.readyState !== 1) {
+      return res.status(503).json({ 
+        success: false,
+        message: "Database is temporarily unavailable. Please try again in a moment." 
+      });
+    }
+    next();
+  } catch (err) {
+    console.error("DB connection middleware error:", err.message);
+    res.status(503).json({ 
+      success: false,
+      message: "Database connection error. Please try again." 
+    });
+  }
+});
 
 // Socket.io connection handling
 const connectedUsers = new Map();
@@ -101,27 +175,6 @@ io.on("connection", (socket) => {
 // Make connectedUsers accessible globally
 global.connectedUsers = connectedUsers;
 
-// Root route - API homepage
-app.get("/", (req, res) => {
-  res.json({
-    success: true,
-    message: "🚗 ELOCAB API Server",
-    version: "1.0.0",
-    status: "running",
-    environment: process.env.NODE_ENV || "development",
-    endpoints: {
-      auth: "/api/auth",
-      customers: "/api/customers",
-      drivers: "/api/drivers",
-      bookings: "/api/bookings",
-      admin: "/api/admin",
-      health: "/api/health",
-    },
-    documentation: "Visit https://github.com/SAMUEL-NTI-SARPONG/Working-Elocab",
-    timestamp: new Date().toISOString(),
-  });
-});
-
 // Routes
 app.use("/api/auth", authRoutes);
 app.use("/api/drivers", driverRoutes);
@@ -129,15 +182,6 @@ app.use("/api/customers", customerRoutes);
 app.use("/api/bookings", bookingRoutes);
 app.use("/api/admin", adminRoutes);
 app.use("/api/admin/archive", archiveRoutes);
-
-// Health check route
-app.get("/api/health", (req, res) => {
-  res.json({
-    status: "ok",
-    message: "ELOCAB API is running",
-    timestamp: new Date().toISOString(),
-  });
-});
 
 // Error handling middleware
 app.use((err, req, res, next) => {
@@ -157,9 +201,15 @@ app.use((req, res) => {
   });
 });
 
+// Start server only when NOT running on Vercel serverless
 const PORT = process.env.PORT || 5000;
 
-server.listen(PORT, () => {
-  console.log(`🚗 ELOCAB Server running on port ${PORT}`);
-  console.log(`🌍 Environment: ${process.env.NODE_ENV || "development"}`);
-});
+if (process.env.VERCEL !== "1") {
+  server.listen(PORT, () => {
+    console.log(`🚗 ELOCAB Server running on port ${PORT}`);
+    console.log(`🌍 Environment: ${process.env.NODE_ENV || "development"}`);
+  });
+}
+
+// Export for Vercel serverless
+module.exports = app;
