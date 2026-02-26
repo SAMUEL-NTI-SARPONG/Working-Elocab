@@ -30,9 +30,13 @@ const DriverDashboard = () => {
 
   useEffect(() => {
     // Only show install prompt once per session
-    const hasSeenThisSession = sessionStorage.getItem("elocab_install_shown_this_session");
-    const hasDismissedForever = localStorage.getItem("elocab_install_prompt_seen");
-    
+    const hasSeenThisSession = sessionStorage.getItem(
+      "elocab_install_shown_this_session",
+    );
+    const hasDismissedForever = localStorage.getItem(
+      "elocab_install_prompt_seen",
+    );
+
     if (!hasSeenThisSession && !hasDismissedForever) {
       const timer = setTimeout(() => {
         setShowInstallPrompt(true);
@@ -73,7 +77,9 @@ const DriverDashboard = () => {
       setBookings(data);
     } catch (error) {
       if (error.response?.status !== 401) {
-        toast.error(error.response?.data?.message || "Failed to fetch bookings");
+        toast.error(
+          error.response?.data?.message || "Failed to fetch bookings",
+        );
       }
     }
   };
@@ -84,7 +90,9 @@ const DriverDashboard = () => {
       toast.success(data.message);
       fetchProfile();
     } catch (error) {
-      toast.error(error.response?.data?.message || "Failed to toggle availability");
+      toast.error(
+        error.response?.data?.message || "Failed to toggle availability",
+      );
     }
   };
 
@@ -153,7 +161,7 @@ const DriverDashboard = () => {
                 src="/images/logo.png"
                 alt="ELOCAB"
                 className="h-10 w-auto"
-                onError={(e) => (e.target.style.display = 'none')}
+                onError={(e) => (e.target.style.display = "none")}
               />
               <div>
                 <h1 className="text-lg font-bold text-gray-900">ELOCAB</h1>
@@ -165,19 +173,27 @@ const DriverDashboard = () => {
                 onClick={toggleAvailability}
                 className={`flex items-center gap-2 px-4 py-2 rounded-lg font-medium text-sm transition-colors ${
                   profile?.isAvailable
-                    ? 'bg-green-50 text-green-700 border border-green-200 hover:bg-green-100'
-                    : 'bg-gray-100 text-gray-600 border border-gray-200 hover:bg-gray-200'
+                    ? "bg-green-50 text-green-700 border border-green-200 hover:bg-green-100"
+                    : "bg-gray-100 text-gray-600 border border-gray-200 hover:bg-gray-200"
                 }`}
               >
-                <span className={`w-2 h-2 rounded-full ${
-                  profile?.isAvailable ? 'bg-green-500 animate-pulse' : 'bg-gray-400'
-                }`} />
-                <span className="hidden sm:inline">{profile?.isAvailable ? 'Online' : 'Offline'}</span>
+                <span
+                  className={`w-2 h-2 rounded-full ${
+                    profile?.isAvailable
+                      ? "bg-green-500 animate-pulse"
+                      : "bg-gray-400"
+                  }`}
+                />
+                <span className="hidden sm:inline">
+                  {profile?.isAvailable ? "Online" : "Offline"}
+                </span>
               </button>
               <NotificationBell />
               <div className="hidden sm:flex items-center gap-2 px-3 py-2 bg-gray-50 rounded-lg border border-gray-100">
                 <div className="w-8 h-8 bg-gray-900 rounded-lg flex items-center justify-center text-white text-xs font-semibold">
-                  {(profile?.name || user?.phoneNumber || 'D').charAt(0).toUpperCase()}
+                  {(profile?.name || user?.phoneNumber || "D")
+                    .charAt(0)
+                    .toUpperCase()}
                 </div>
                 <span className="text-sm text-gray-700 font-medium">
                   {profile?.name || user?.phoneNumber}
@@ -199,29 +215,71 @@ const DriverDashboard = () => {
         <div className="container mx-auto px-4 sm:px-6">
           <div className="flex gap-1 py-2">
             {[
-              { key: "bookings", label: "My Rides", icon: (
-                <svg className="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                  <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M13 10V3L4 14h7v7l9-11h-7z" />
-                </svg>
-              )},
-              { key: "history", label: "History", icon: (
-                <svg className="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                  <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M12 8v4l3 3m6-3a9 9 0 11-18 0 9 9 0 0118 0z" />
-                </svg>
-              )},
-              { key: "profile", label: "Profile", icon: (
-                <svg className="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                  <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M16 7a4 4 0 11-8 0 4 4 0 018 0zM12 14a7 7 0 00-7 7h14a7 7 0 00-7-7z" />
-                </svg>
-              )},
+              {
+                key: "bookings",
+                label: "My Rides",
+                icon: (
+                  <svg
+                    className="w-4 h-4"
+                    fill="none"
+                    stroke="currentColor"
+                    viewBox="0 0 24 24"
+                  >
+                    <path
+                      strokeLinecap="round"
+                      strokeLinejoin="round"
+                      strokeWidth={2}
+                      d="M13 10V3L4 14h7v7l9-11h-7z"
+                    />
+                  </svg>
+                ),
+              },
+              {
+                key: "history",
+                label: "History",
+                icon: (
+                  <svg
+                    className="w-4 h-4"
+                    fill="none"
+                    stroke="currentColor"
+                    viewBox="0 0 24 24"
+                  >
+                    <path
+                      strokeLinecap="round"
+                      strokeLinejoin="round"
+                      strokeWidth={2}
+                      d="M12 8v4l3 3m6-3a9 9 0 11-18 0 9 9 0 0118 0z"
+                    />
+                  </svg>
+                ),
+              },
+              {
+                key: "profile",
+                label: "Profile",
+                icon: (
+                  <svg
+                    className="w-4 h-4"
+                    fill="none"
+                    stroke="currentColor"
+                    viewBox="0 0 24 24"
+                  >
+                    <path
+                      strokeLinecap="round"
+                      strokeLinejoin="round"
+                      strokeWidth={2}
+                      d="M16 7a4 4 0 11-8 0 4 4 0 018 0zM12 14a7 7 0 00-7 7h14a7 7 0 00-7-7z"
+                    />
+                  </svg>
+                ),
+              },
             ].map((tab) => (
               <button
                 key={tab.key}
                 onClick={() => setActiveTab(tab.key)}
                 className={`flex items-center gap-2 py-2.5 px-4 rounded-xl font-semibold text-sm transition-all duration-200 ${
                   activeTab === tab.key
-                    ? 'bg-gray-900 text-white'
-                    : 'text-gray-500 hover:text-gray-700 hover:bg-gray-50'
+                    ? "bg-gray-900 text-white"
+                    : "text-gray-500 hover:text-gray-700 hover:bg-gray-50"
                 }`}
               >
                 {tab.icon}
@@ -239,26 +297,63 @@ const DriverDashboard = () => {
           <div className="max-w-4xl mx-auto animate-fade-in">
             <div className="flex items-center gap-3 mb-6">
               <div className="p-3 bg-secondary/10 rounded-xl">
-                <svg className="w-5 h-5 text-secondary" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                  <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M13 10V3L4 14h7v7l9-11h-7z" />
+                <svg
+                  className="w-5 h-5 text-secondary"
+                  fill="none"
+                  stroke="currentColor"
+                  viewBox="0 0 24 24"
+                >
+                  <path
+                    strokeLinecap="round"
+                    strokeLinejoin="round"
+                    strokeWidth={2}
+                    d="M13 10V3L4 14h7v7l9-11h-7z"
+                  />
                 </svg>
               </div>
               <div>
-                <h2 className="text-xl font-bold text-gray-800">Assigned Rides</h2>
-                <p className="text-sm text-gray-500">{activeBookings.length} active ride{activeBookings.length !== 1 ? "s" : ""}</p>
+                <h2 className="text-xl font-bold text-gray-800">
+                  Assigned Rides
+                </h2>
+                <p className="text-sm text-gray-500">
+                  {activeBookings.length} active ride
+                  {activeBookings.length !== 1 ? "s" : ""}
+                </p>
               </div>
             </div>
 
             {activeBookings.length === 0 ? (
               <div className="bg-white rounded-2xl shadow-soft text-center py-16 border border-gray-100">
-                <div className={`p-4 rounded-full w-16 h-16 mx-auto mb-4 flex items-center justify-center ${profile?.isAvailable ? "bg-green-100" : "bg-gray-100"}`}>
+                <div
+                  className={`p-4 rounded-full w-16 h-16 mx-auto mb-4 flex items-center justify-center ${profile?.isAvailable ? "bg-green-100" : "bg-gray-100"}`}
+                >
                   {profile?.isAvailable ? (
-                    <svg className="w-8 h-8 text-green-500" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                      <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M5 13l4 4L19 7" />
+                    <svg
+                      className="w-8 h-8 text-green-500"
+                      fill="none"
+                      stroke="currentColor"
+                      viewBox="0 0 24 24"
+                    >
+                      <path
+                        strokeLinecap="round"
+                        strokeLinejoin="round"
+                        strokeWidth={2}
+                        d="M5 13l4 4L19 7"
+                      />
                     </svg>
                   ) : (
-                    <svg className="w-8 h-8 text-gray-400" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                      <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M18.364 5.636a9 9 0 010 12.728m0 0l-2.829-2.829m2.829 2.829L21 21M15.536 8.464a5 5 0 010 7.072m0 0l-2.829-2.829m-4.243 2.829a4.978 4.978 0 01-1.414-2.83m-1.414 5.658a9 9 0 01-2.167-9.238m7.824 2.167a1 1 0 111.414 1.414m-1.414-1.414L3 3" />
+                    <svg
+                      className="w-8 h-8 text-gray-400"
+                      fill="none"
+                      stroke="currentColor"
+                      viewBox="0 0 24 24"
+                    >
+                      <path
+                        strokeLinecap="round"
+                        strokeLinejoin="round"
+                        strokeWidth={2}
+                        d="M18.364 5.636a9 9 0 010 12.728m0 0l-2.829-2.829m2.829 2.829L21 21M15.536 8.464a5 5 0 010 7.072m0 0l-2.829-2.829m-4.243 2.829a4.978 4.978 0 01-1.414-2.83m-1.414 5.658a9 9 0 01-2.167-9.238m7.824 2.167a1 1 0 111.414 1.414m-1.414-1.414L3 3"
+                      />
                     </svg>
                   )}
                 </div>
@@ -410,10 +505,7 @@ const DriverDashboard = () => {
                 {/* Mobile Cards */}
                 <div className="md:hidden divide-y divide-gray-100">
                   {activeBookings.map((booking) => (
-                    <div
-                      key={booking._id}
-                      className="p-4"
-                    >
+                    <div key={booking._id} className="p-4">
                       <div className="flex justify-between items-start mb-3">
                         <div>
                           <div className="font-bold text-gray-800">
@@ -434,29 +526,54 @@ const DriverDashboard = () => {
 
                       <div className="grid grid-cols-1 gap-3 mb-3">
                         <div className="bg-gray-50 rounded-xl p-3">
-                          <div className="text-xs text-gray-500 font-medium mb-1">Route</div>
+                          <div className="text-xs text-gray-500 font-medium mb-1">
+                            Route
+                          </div>
                           <div className="flex items-center gap-2 text-sm">
-                            <span className="font-semibold text-gray-800">{booking.pickupPoint}</span>
-                            <svg className="w-4 h-4 text-gray-400 shrink-0" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                              <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M14 5l7 7m0 0l-7 7m7-7H3" />
+                            <span className="font-semibold text-gray-800">
+                              {booking.pickupPoint}
+                            </span>
+                            <svg
+                              className="w-4 h-4 text-gray-400 shrink-0"
+                              fill="none"
+                              stroke="currentColor"
+                              viewBox="0 0 24 24"
+                            >
+                              <path
+                                strokeLinecap="round"
+                                strokeLinejoin="round"
+                                strokeWidth={2}
+                                d="M14 5l7 7m0 0l-7 7m7-7H3"
+                              />
                             </svg>
-                            <span className="font-semibold text-gray-800">{booking.destination}</span>
+                            <span className="font-semibold text-gray-800">
+                              {booking.destination}
+                            </span>
                           </div>
                         </div>
 
                         {booking.customerId && (
                           <div className="bg-gray-50 rounded-xl p-3">
-                            <div className="text-xs text-gray-500 font-medium mb-1">Customer</div>
+                            <div className="text-xs text-gray-500 font-medium mb-1">
+                              Customer
+                            </div>
                             <div className="flex items-center gap-2">
                               <div className="w-7 h-7 bg-primary rounded-full flex items-center justify-center text-white text-xs font-bold">
                                 {(booking.customerId.name || "C").charAt(0)}
                               </div>
                               <div>
-                                <div className="font-bold text-gray-800 text-sm">{booking.customerId.name}</div>
-                                <div className="text-secondary font-semibold text-xs">{booking.customerId.phoneNumber}</div>
+                                <div className="font-bold text-gray-800 text-sm">
+                                  {booking.customerId.name}
+                                </div>
+                                <div className="text-secondary font-semibold text-xs">
+                                  {booking.customerId.phoneNumber}
+                                </div>
                               </div>
                               <span className="ml-auto text-xs text-gray-500 bg-white px-2 py-0.5 rounded-md">
-                                {booking.numberOfPeople} {booking.numberOfPeople > 1 ? "people" : "person"}
+                                {booking.numberOfPeople}{" "}
+                                {booking.numberOfPeople > 1
+                                  ? "people"
+                                  : "person"}
                               </span>
                             </div>
                           </div>
@@ -464,15 +581,21 @@ const DriverDashboard = () => {
 
                         {booking.notes && (
                           <div className="bg-amber-50 border border-amber-200 p-3 rounded-xl">
-                            <div className="text-xs font-semibold text-amber-700 mb-0.5">Note</div>
-                            <div className="text-sm text-gray-700">{booking.notes}</div>
+                            <div className="text-xs font-semibold text-amber-700 mb-0.5">
+                              Note
+                            </div>
+                            <div className="text-sm text-gray-700">
+                              {booking.notes}
+                            </div>
                           </div>
                         )}
                       </div>
 
                       {booking.status === "accepted" && (
                         <button
-                          onClick={() => updateBookingStatus(booking._id, "on-the-way")}
+                          onClick={() =>
+                            updateBookingStatus(booking._id, "on-the-way")
+                          }
                           className="w-full px-4 py-2.5 bg-blue-600 text-white rounded-xl hover:bg-blue-700 font-semibold text-sm"
                         >
                           On The Way
@@ -480,7 +603,9 @@ const DriverDashboard = () => {
                       )}
                       {booking.status === "on-the-way" && (
                         <button
-                          onClick={() => updateBookingStatus(booking._id, "picked-up")}
+                          onClick={() =>
+                            updateBookingStatus(booking._id, "picked-up")
+                          }
                           className="w-full px-4 py-2.5 bg-purple-600 text-white rounded-xl hover:bg-purple-700 font-semibold text-sm"
                         >
                           Picked Up
@@ -488,7 +613,9 @@ const DriverDashboard = () => {
                       )}
                       {booking.status === "picked-up" && (
                         <button
-                          onClick={() => updateBookingStatus(booking._id, "completed")}
+                          onClick={() =>
+                            updateBookingStatus(booking._id, "completed")
+                          }
                           className="w-full px-4 py-2.5 bg-green-600 text-white rounded-xl hover:bg-green-700 font-semibold text-sm"
                         >
                           Complete Ride
@@ -507,25 +634,54 @@ const DriverDashboard = () => {
           <div className="max-w-4xl mx-auto animate-fade-in">
             <div className="flex items-center gap-3 mb-6">
               <div className="p-3 bg-secondary/10 rounded-xl">
-                <svg className="w-5 h-5 text-secondary" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                  <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M12 8v4l3 3m6-3a9 9 0 11-18 0 9 9 0 0118 0z" />
+                <svg
+                  className="w-5 h-5 text-secondary"
+                  fill="none"
+                  stroke="currentColor"
+                  viewBox="0 0 24 24"
+                >
+                  <path
+                    strokeLinecap="round"
+                    strokeLinejoin="round"
+                    strokeWidth={2}
+                    d="M12 8v4l3 3m6-3a9 9 0 11-18 0 9 9 0 0118 0z"
+                  />
                 </svg>
               </div>
               <div>
-                <h2 className="text-xl font-bold text-gray-800">Ride History</h2>
-                <p className="text-sm text-gray-500">{completedBookings.length} completed ride{completedBookings.length !== 1 ? "s" : ""}</p>
+                <h2 className="text-xl font-bold text-gray-800">
+                  Ride History
+                </h2>
+                <p className="text-sm text-gray-500">
+                  {completedBookings.length} completed ride
+                  {completedBookings.length !== 1 ? "s" : ""}
+                </p>
               </div>
             </div>
 
             {completedBookings.length === 0 ? (
               <div className="bg-white rounded-2xl shadow-soft text-center py-16 border border-gray-100">
                 <div className="p-4 bg-gray-100 rounded-full w-16 h-16 mx-auto mb-4 flex items-center justify-center">
-                  <svg className="w-8 h-8 text-gray-400" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                    <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M12 8v4l3 3m6-3a9 9 0 11-18 0 9 9 0 0118 0z" />
+                  <svg
+                    className="w-8 h-8 text-gray-400"
+                    fill="none"
+                    stroke="currentColor"
+                    viewBox="0 0 24 24"
+                  >
+                    <path
+                      strokeLinecap="round"
+                      strokeLinejoin="round"
+                      strokeWidth={2}
+                      d="M12 8v4l3 3m6-3a9 9 0 11-18 0 9 9 0 0118 0z"
+                    />
                   </svg>
                 </div>
-                <p className="text-gray-500 font-medium">No completed rides yet</p>
-                <p className="text-gray-400 text-sm mt-1">Your ride history will appear here</p>
+                <p className="text-gray-500 font-medium">
+                  No completed rides yet
+                </p>
+                <p className="text-gray-400 text-sm mt-1">
+                  Your ride history will appear here
+                </p>
               </div>
             ) : (
               <div className="bg-white rounded-2xl shadow-soft overflow-hidden border border-gray-100">
@@ -596,10 +752,7 @@ const DriverDashboard = () => {
                 {/* Mobile Cards */}
                 <div className="md:hidden divide-y divide-gray-100">
                   {completedBookings.map((booking) => (
-                    <div
-                      key={booking._id}
-                      className="p-4"
-                    >
+                    <div key={booking._id} className="p-4">
                       <div className="flex justify-between items-start mb-3">
                         <span
                           className={`px-3 py-1 rounded-full text-xs font-semibold ${
@@ -616,22 +769,46 @@ const DriverDashboard = () => {
                       </div>
                       <div className="grid grid-cols-2 gap-3 text-sm">
                         <div className="bg-gray-50 rounded-xl p-3">
-                          <span className="text-gray-500 text-xs block">Service</span>
-                          <span className="font-semibold text-gray-800">{booking.serviceType}</span>
+                          <span className="text-gray-500 text-xs block">
+                            Service
+                          </span>
+                          <span className="font-semibold text-gray-800">
+                            {booking.serviceType}
+                          </span>
                         </div>
                         <div className="bg-gray-50 rounded-xl p-3">
-                          <span className="text-gray-500 text-xs block">Passengers</span>
-                          <span className="font-semibold text-gray-800">{booking.numberOfPeople}</span>
+                          <span className="text-gray-500 text-xs block">
+                            Passengers
+                          </span>
+                          <span className="font-semibold text-gray-800">
+                            {booking.numberOfPeople}
+                          </span>
                         </div>
                       </div>
                       <div className="mt-3 bg-gray-50 rounded-xl p-3">
-                        <span className="text-gray-500 text-xs block mb-1">Route</span>
+                        <span className="text-gray-500 text-xs block mb-1">
+                          Route
+                        </span>
                         <div className="flex items-center gap-2 text-sm">
-                          <span className="font-medium text-gray-800">{booking.pickupPoint}</span>
-                          <svg className="w-4 h-4 text-gray-400" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                            <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M14 5l7 7m0 0l-7 7m7-7H3" />
+                          <span className="font-medium text-gray-800">
+                            {booking.pickupPoint}
+                          </span>
+                          <svg
+                            className="w-4 h-4 text-gray-400"
+                            fill="none"
+                            stroke="currentColor"
+                            viewBox="0 0 24 24"
+                          >
+                            <path
+                              strokeLinecap="round"
+                              strokeLinejoin="round"
+                              strokeWidth={2}
+                              d="M14 5l7 7m0 0l-7 7m7-7H3"
+                            />
                           </svg>
-                          <span className="font-medium text-gray-800">{booking.destination}</span>
+                          <span className="font-medium text-gray-800">
+                            {booking.destination}
+                          </span>
                         </div>
                       </div>
                     </div>
@@ -648,13 +825,27 @@ const DriverDashboard = () => {
             <div className="bg-white rounded-2xl shadow-soft p-6 sm:p-8 border border-gray-100">
               <div className="flex items-center gap-3 mb-6">
                 <div className="p-3 bg-secondary/10 rounded-xl">
-                  <svg className="w-6 h-6 text-secondary" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                    <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M16 7a4 4 0 11-8 0 4 4 0 018 0zM12 14a7 7 0 00-7 7h14a7 7 0 00-7-7z" />
+                  <svg
+                    className="w-6 h-6 text-secondary"
+                    fill="none"
+                    stroke="currentColor"
+                    viewBox="0 0 24 24"
+                  >
+                    <path
+                      strokeLinecap="round"
+                      strokeLinejoin="round"
+                      strokeWidth={2}
+                      d="M16 7a4 4 0 11-8 0 4 4 0 018 0zM12 14a7 7 0 00-7 7h14a7 7 0 00-7-7z"
+                    />
                   </svg>
                 </div>
                 <div>
-                  <h2 className="text-xl font-bold text-gray-800">Driver Profile</h2>
-                  <p className="text-sm text-gray-500">Manage your profile and vehicle info</p>
+                  <h2 className="text-xl font-bold text-gray-800">
+                    Driver Profile
+                  </h2>
+                  <p className="text-sm text-gray-500">
+                    Manage your profile and vehicle info
+                  </p>
                 </div>
               </div>
 
@@ -662,49 +853,65 @@ const DriverDashboard = () => {
                 <div>
                   <div className="grid grid-cols-1 sm:grid-cols-2 gap-4 mb-6">
                     <div className="bg-gray-50 rounded-xl p-4">
-                      <p className="text-gray-500 text-xs font-medium mb-1">Name</p>
+                      <p className="text-gray-500 text-xs font-medium mb-1">
+                        Name
+                      </p>
                       <p className="text-gray-800 font-semibold">
                         {profile?.name || "Not set"}
                       </p>
                     </div>
                     <div className="bg-gray-50 rounded-xl p-4">
-                      <p className="text-gray-500 text-xs font-medium mb-1">Phone</p>
+                      <p className="text-gray-500 text-xs font-medium mb-1">
+                        Phone
+                      </p>
                       <p className="text-gray-800 font-semibold">
                         {user?.phoneNumber}
                       </p>
                     </div>
                     <div className="bg-gray-50 rounded-xl p-4">
-                      <p className="text-gray-500 text-xs font-medium mb-1">Base Location</p>
+                      <p className="text-gray-500 text-xs font-medium mb-1">
+                        Base Location
+                      </p>
                       <p className="text-gray-800 font-semibold">
                         {profile?.baseLocation || "Not set"}
                       </p>
                     </div>
                     <div className="bg-gray-50 rounded-xl p-4">
-                      <p className="text-gray-500 text-xs font-medium mb-1">Car Type</p>
+                      <p className="text-gray-500 text-xs font-medium mb-1">
+                        Car Type
+                      </p>
                       <p className="text-gray-800 font-semibold">
                         {profile?.carType || "Not set"}
                       </p>
                     </div>
                     <div className="bg-gray-50 rounded-xl p-4">
-                      <p className="text-gray-500 text-xs font-medium mb-1">Car Number</p>
+                      <p className="text-gray-500 text-xs font-medium mb-1">
+                        Car Number
+                      </p>
                       <p className="text-gray-800 font-semibold">
                         {profile?.carNumber || "Not set"}
                       </p>
                     </div>
                     <div className="bg-gray-50 rounded-xl p-4">
-                      <p className="text-gray-500 text-xs font-medium mb-1">License Number</p>
+                      <p className="text-gray-500 text-xs font-medium mb-1">
+                        License Number
+                      </p>
                       <p className="text-gray-800 font-semibold">
                         {profile?.licenseNumber || "Not set"}
                       </p>
                     </div>
                     <div className="bg-gray-50 rounded-xl p-4">
-                      <p className="text-gray-500 text-xs font-medium mb-1">Seats</p>
+                      <p className="text-gray-500 text-xs font-medium mb-1">
+                        Seats
+                      </p>
                       <p className="text-gray-800 font-semibold">
                         {profile?.numberOfSeats || "Not set"}
                       </p>
                     </div>
                     <div className="bg-gray-50 rounded-xl p-4">
-                      <p className="text-gray-500 text-xs font-medium mb-1">Contact Number</p>
+                      <p className="text-gray-500 text-xs font-medium mb-1">
+                        Contact Number
+                      </p>
                       <p className="text-gray-800 font-semibold">
                         {profile?.contactNumber || "Not set"}
                       </p>
@@ -880,23 +1087,46 @@ const DriverDashboard = () => {
                   <button
                     onClick={async () => {
                       const accepted = await promptInstall();
-                      if (accepted) toast.success("App installed successfully! 🎉");
+                      if (accepted)
+                        toast.success("App installed successfully! 🎉");
                     }}
                     className="w-full flex items-center justify-center gap-3 px-6 py-3 bg-gradient-to-r from-amber-500 to-amber-600 text-white rounded-xl hover:from-amber-600 hover:to-amber-700 transition-all font-semibold shadow-lg"
                   >
-                    <svg className="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                      <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M4 16v1a3 3 0 003 3h10a3 3 0 003-3v-1m-4-4l-4 4m0 0l-4-4m4 4V4" />
+                    <svg
+                      className="w-5 h-5"
+                      fill="none"
+                      stroke="currentColor"
+                      viewBox="0 0 24 24"
+                    >
+                      <path
+                        strokeLinecap="round"
+                        strokeLinejoin="round"
+                        strokeWidth={2}
+                        d="M4 16v1a3 3 0 003 3h10a3 3 0 003-3v-1m-4-4l-4 4m0 0l-4-4m4 4V4"
+                      />
                     </svg>
                     Install ELOCAB App
                   </button>
-                  <p className="text-xs text-gray-400 text-center mt-2">Add to home screen for quick access</p>
+                  <p className="text-xs text-gray-400 text-center mt-2">
+                    Add to home screen for quick access
+                  </p>
                 </div>
               )}
               {isInstalled && (
                 <div className="mt-6 pt-6 border-t border-gray-100">
                   <div className="flex items-center gap-2 text-green-600 justify-center">
-                    <svg className="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                      <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M5 13l4 4L19 7" />
+                    <svg
+                      className="w-5 h-5"
+                      fill="none"
+                      stroke="currentColor"
+                      viewBox="0 0 24 24"
+                    >
+                      <path
+                        strokeLinecap="round"
+                        strokeLinejoin="round"
+                        strokeWidth={2}
+                        d="M5 13l4 4L19 7"
+                      />
                     </svg>
                     <span className="text-sm font-medium">App installed</span>
                   </div>

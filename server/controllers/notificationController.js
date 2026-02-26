@@ -55,7 +55,7 @@ exports.markAsRead = async (req, res) => {
     const notification = await Notification.findOneAndUpdate(
       { _id: req.params.id, userId: req.user._id },
       { read: true, readAt: new Date() },
-      { new: true }
+      { new: true },
     );
 
     if (!notification) {
@@ -76,7 +76,7 @@ exports.markAllAsRead = async (req, res) => {
   try {
     await Notification.updateMany(
       { userId: req.user._id, read: false },
-      { read: true, readAt: new Date() }
+      { read: true, readAt: new Date() },
     );
 
     res.json({ message: "All notifications marked as read" });
@@ -123,7 +123,13 @@ exports.clearAll = async (req, res) => {
 };
 
 // ===== Helper: Create notification (used by other controllers) =====
-exports.createNotification = async (userId, type, title, message, data = {}) => {
+exports.createNotification = async (
+  userId,
+  type,
+  title,
+  message,
+  data = {},
+) => {
   try {
     const notification = await Notification.create({
       userId,

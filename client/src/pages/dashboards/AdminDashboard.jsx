@@ -44,7 +44,7 @@ const AdminDashboard = () => {
     seats: 4,
   });
   const [notificationPermission, setNotificationPermission] = useState(
-    typeof Notification !== "undefined" ? Notification.permission : "default"
+    typeof Notification !== "undefined" ? Notification.permission : "default",
   );
   const [showInstallPrompt, setShowInstallPrompt] = useState(false);
   const [confirmModal, setConfirmModal] = useState({
@@ -59,9 +59,13 @@ const AdminDashboard = () => {
 
   useEffect(() => {
     // Only show install prompt once per session
-    const hasSeenThisSession = sessionStorage.getItem("elocab_install_shown_this_session");
-    const hasDismissedForever = localStorage.getItem("elocab_install_prompt_seen");
-    
+    const hasSeenThisSession = sessionStorage.getItem(
+      "elocab_install_shown_this_session",
+    );
+    const hasDismissedForever = localStorage.getItem(
+      "elocab_install_prompt_seen",
+    );
+
     if (!hasSeenThisSession && !hasDismissedForever) {
       const timer = setTimeout(() => {
         setShowInstallPrompt(true);
@@ -92,7 +96,11 @@ const AdminDashboard = () => {
   useEffect(() => {
     const checkForNewBookings = () => {
       // This will trigger when bookings change
-      if (bookings.length > 0 && "Notification" in window && Notification.permission === "granted") {
+      if (
+        bookings.length > 0 &&
+        "Notification" in window &&
+        Notification.permission === "granted"
+      ) {
         const pendingCount = bookings.filter(
           (b) => b.status === "pending",
         ).length;
@@ -124,7 +132,9 @@ const AdminDashboard = () => {
       setStats(data);
     } catch (error) {
       if (error.response?.status !== 401) {
-        toast.error(error.response?.data?.message || "Failed to fetch statistics");
+        toast.error(
+          error.response?.data?.message || "Failed to fetch statistics",
+        );
       }
     }
   };
@@ -146,7 +156,9 @@ const AdminDashboard = () => {
       setCustomers(data);
     } catch (error) {
       if (error.response?.status !== 401) {
-        toast.error(error.response?.data?.message || "Failed to fetch customers");
+        toast.error(
+          error.response?.data?.message || "Failed to fetch customers",
+        );
       }
     }
   };
@@ -157,7 +169,9 @@ const AdminDashboard = () => {
       setBookings(data);
     } catch (error) {
       if (error.response?.status !== 401) {
-        toast.error(error.response?.data?.message || "Failed to fetch bookings");
+        toast.error(
+          error.response?.data?.message || "Failed to fetch bookings",
+        );
       }
     }
   };
@@ -190,19 +204,22 @@ const AdminDashboard = () => {
     setConfirmModal({
       isOpen: true,
       title: "Delete Driver",
-      message: "Are you sure you want to delete this driver? Their account and all associated data will be permanently removed.",
+      message:
+        "Are you sure you want to delete this driver? Their account and all associated data will be permanently removed.",
       variant: "danger",
       confirmText: "Delete Driver",
       requireType: null,
       onConfirm: async () => {
-        setConfirmModal(prev => ({ ...prev, isOpen: false }));
+        setConfirmModal((prev) => ({ ...prev, isOpen: false }));
         try {
           await axios.delete(`/api/admin/drivers/${driverId}`);
           toast.success("Driver deleted successfully");
           fetchDrivers();
           fetchStats();
         } catch (error) {
-          toast.error(error.response?.data?.message || "Failed to delete driver");
+          toast.error(
+            error.response?.data?.message || "Failed to delete driver",
+          );
         }
       },
     });
@@ -212,19 +229,22 @@ const AdminDashboard = () => {
     setConfirmModal({
       isOpen: true,
       title: "Delete Customer",
-      message: "Are you sure you want to delete this customer? Their account and booking history will be permanently removed.",
+      message:
+        "Are you sure you want to delete this customer? Their account and booking history will be permanently removed.",
       variant: "danger",
       confirmText: "Delete Customer",
       requireType: null,
       onConfirm: async () => {
-        setConfirmModal(prev => ({ ...prev, isOpen: false }));
+        setConfirmModal((prev) => ({ ...prev, isOpen: false }));
         try {
           await axios.delete(`/api/admin/customers/${customerId}`);
           toast.success("Customer deleted successfully");
           fetchCustomers();
           fetchStats();
         } catch (error) {
-          toast.error(error.response?.data?.message || "Failed to delete customer");
+          toast.error(
+            error.response?.data?.message || "Failed to delete customer",
+          );
         }
       },
     });
@@ -236,7 +256,9 @@ const AdminDashboard = () => {
       toast.success("Driver status updated");
       fetchDrivers();
     } catch (error) {
-      toast.error(error.response?.data?.message || "Failed to update driver status");
+      toast.error(
+        error.response?.data?.message || "Failed to update driver status",
+      );
     }
   };
 
@@ -244,20 +266,26 @@ const AdminDashboard = () => {
     setConfirmModal({
       isOpen: true,
       title: "Clear Completed Bookings",
-      message: "This will permanently delete all completed and cancelled bookings. This action cannot be undone.",
+      message:
+        "This will permanently delete all completed and cancelled bookings. This action cannot be undone.",
       variant: "warning",
       confirmText: "Clear Bookings",
       requireType: null,
       onConfirm: async () => {
-        setConfirmModal(prev => ({ ...prev, isOpen: false }));
+        setConfirmModal((prev) => ({ ...prev, isOpen: false }));
         setLoading(true);
         try {
-          const { data } = await axios.delete("/api/admin/bookings/clear-completed");
+          const { data } = await axios.delete(
+            "/api/admin/bookings/clear-completed",
+          );
           toast.success(data.message);
           fetchBookings();
           fetchStats();
         } catch (error) {
-          toast.error(error.response?.data?.message || "Failed to clear completed bookings");
+          toast.error(
+            error.response?.data?.message ||
+              "Failed to clear completed bookings",
+          );
         } finally {
           setLoading(false);
         }
@@ -269,12 +297,13 @@ const AdminDashboard = () => {
     setConfirmModal({
       isOpen: true,
       title: "Delete ALL Bookings",
-      message: "This will permanently delete ALL bookings including active ones. This is irreversible and cannot be undone.",
+      message:
+        "This will permanently delete ALL bookings including active ones. This is irreversible and cannot be undone.",
       variant: "danger",
       confirmText: "Delete Everything",
       requireType: "DELETE ALL",
       onConfirm: async () => {
-        setConfirmModal(prev => ({ ...prev, isOpen: false }));
+        setConfirmModal((prev) => ({ ...prev, isOpen: false }));
         setLoading(true);
         try {
           const { data } = await axios.delete("/api/admin/bookings/clear-all");
@@ -282,7 +311,9 @@ const AdminDashboard = () => {
           fetchBookings();
           fetchStats();
         } catch (error) {
-          toast.error(error.response?.data?.message || "Failed to clear all bookings");
+          toast.error(
+            error.response?.data?.message || "Failed to clear all bookings",
+          );
         } finally {
           setLoading(false);
         }
@@ -314,7 +345,7 @@ const AdminDashboard = () => {
     if (Notification.permission === "denied") {
       toast.error(
         "Notifications are blocked. Please enable them in your browser settings (click the lock icon in the address bar).",
-        { duration: 6000 }
+        { duration: 6000 },
       );
       return;
     }
@@ -322,7 +353,7 @@ const AdminDashboard = () => {
     try {
       const permission = await Notification.requestPermission();
       setNotificationPermission(permission);
-      
+
       if (permission === "granted") {
         toast.success("Notifications enabled successfully!");
         try {
@@ -336,7 +367,7 @@ const AdminDashboard = () => {
       } else if (permission === "denied") {
         toast.error(
           "Notifications were denied. You can enable them later in browser settings.",
-          { duration: 5000 }
+          { duration: 5000 },
         );
       } else {
         toast.error("Notification permission was dismissed. Try again.");
@@ -353,7 +384,9 @@ const AdminDashboard = () => {
       setArchiveStats(data);
     } catch (error) {
       if (error.response?.status !== 401) {
-        toast.error(error.response?.data?.message || "Failed to fetch archive statistics");
+        toast.error(
+          error.response?.data?.message || "Failed to fetch archive statistics",
+        );
       }
     }
   };
@@ -362,19 +395,22 @@ const AdminDashboard = () => {
     setConfirmModal({
       isOpen: true,
       title: "Reset All Statistics",
-      message: "This will reset ALL lifetime statistics to zero. This is irreversible and cannot be undone.",
+      message:
+        "This will reset ALL lifetime statistics to zero. This is irreversible and cannot be undone.",
       variant: "danger",
       confirmText: "Reset Statistics",
       requireType: "RESET",
       onConfirm: async () => {
-        setConfirmModal(prev => ({ ...prev, isOpen: false }));
+        setConfirmModal((prev) => ({ ...prev, isOpen: false }));
         setLoading(true);
         try {
           const { data } = await axios.post("/api/admin/stats/reset");
           toast.success(data.message);
           fetchStats();
         } catch (error) {
-          toast.error(error.response?.data?.message || "Failed to reset statistics");
+          toast.error(
+            error.response?.data?.message || "Failed to reset statistics",
+          );
         } finally {
           setLoading(false);
         }
@@ -393,7 +429,7 @@ const AdminDashboard = () => {
 
       toast.success(
         `Found ${data.count} booking(s) older than 90 days ready for archiving. Cutoff: ${new Date(data.cutoffDate).toLocaleDateString()}`,
-        { duration: 5000 }
+        { duration: 5000 },
       );
       console.log("Archivable bookings:", data.bookings);
     } catch (error) {
@@ -417,7 +453,7 @@ const AdminDashboard = () => {
       confirmText: "Archive & Download",
       requireType: null,
       onConfirm: async () => {
-        setConfirmModal(prev => ({ ...prev, isOpen: false }));
+        setConfirmModal((prev) => ({ ...prev, isOpen: false }));
         setArchiveLoading(true);
         try {
           const { data } = await axios.post("/api/admin/archive/execute");
@@ -442,7 +478,9 @@ const AdminDashboard = () => {
           fetchStats();
           fetchArchiveStats();
         } catch (error) {
-          toast.error(error.response?.data?.message || "Failed to execute archive");
+          toast.error(
+            error.response?.data?.message || "Failed to execute archive",
+          );
         } finally {
           setArchiveLoading(false);
         }
@@ -541,7 +579,7 @@ const AdminDashboard = () => {
                 src="/images/logo.png"
                 alt="ELOCAB"
                 className="h-10 w-auto"
-                onError={(e) => (e.target.style.display = 'none')}
+                onError={(e) => (e.target.style.display = "none")}
               />
               <div>
                 <h1 className="text-lg font-bold text-gray-900">ELOCAB</h1>
@@ -572,29 +610,115 @@ const AdminDashboard = () => {
         <div className="container mx-auto px-4 sm:px-6">
           <div className="flex gap-1 overflow-x-auto py-2 -mb-px scrollbar-hide">
             {[
-              { key: 'dashboard', label: 'Dashboard', icon: (
-                <svg className="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M4 6a2 2 0 012-2h2a2 2 0 012 2v2a2 2 0 01-2 2H6a2 2 0 01-2-2V6zM14 6a2 2 0 012-2h2a2 2 0 012 2v2a2 2 0 01-2 2h-2a2 2 0 01-2-2V6zM4 16a2 2 0 012-2h2a2 2 0 012 2v2a2 2 0 01-2 2H6a2 2 0 01-2-2v-2zM14 16a2 2 0 012-2h2a2 2 0 012 2v2a2 2 0 01-2 2h-2a2 2 0 01-2-2v-2z" /></svg>
-              )},
-              { key: 'bookings', label: 'Bookings', icon: (
-                <svg className="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M9 5H7a2 2 0 00-2 2v12a2 2 0 002 2h10a2 2 0 002-2V7a2 2 0 00-2-2h-2M9 5a2 2 0 002 2h2a2 2 0 002-2M9 5a2 2 0 012-2h2a2 2 0 012 2" /></svg>
-              )},
-              { key: 'drivers', label: 'Drivers', icon: (
-                <svg className="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M8 7h12m0 0l-4-4m4 4l-4 4m0 6H4m0 0l4 4m-4-4l4-4" /></svg>
-              )},
-              { key: 'customers', label: 'Customers', icon: (
-                <svg className="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M12 4.354a4 4 0 110 5.292M15 21H3v-1a6 6 0 0112 0v1zm0 0h6v-1a6 6 0 00-9-5.197" /></svg>
-              )},
-              { key: 'settings', label: 'Settings', icon: (
-                <svg className="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M10.325 4.317c.426-1.756 2.924-1.756 3.35 0a1.724 1.724 0 002.573 1.066c1.543-.94 3.31.826 2.37 2.37a1.724 1.724 0 001.066 2.573c1.756.426 1.756 2.924 0 3.35a1.724 1.724 0 00-1.066 2.573c.94 1.543-.826 3.31-2.37 2.37a1.724 1.724 0 00-2.573 1.066c-.426 1.756-2.924 1.756-3.35 0a1.724 1.724 0 00-2.573-1.066c-1.543.94-3.31-.826-2.37-2.37a1.724 1.724 0 00-1.066-2.573c-1.756-.426-1.756-2.924 0-3.35a1.724 1.724 0 001.066-2.573c-.94-1.543.826-3.31 2.37-2.37.996.608 2.296.07 2.572-1.065z" /><path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M15 12a3 3 0 11-6 0 3 3 0 016 0z" /></svg>
-              )},
+              {
+                key: "dashboard",
+                label: "Dashboard",
+                icon: (
+                  <svg
+                    className="w-4 h-4"
+                    fill="none"
+                    stroke="currentColor"
+                    viewBox="0 0 24 24"
+                  >
+                    <path
+                      strokeLinecap="round"
+                      strokeLinejoin="round"
+                      strokeWidth={2}
+                      d="M4 6a2 2 0 012-2h2a2 2 0 012 2v2a2 2 0 01-2 2H6a2 2 0 01-2-2V6zM14 6a2 2 0 012-2h2a2 2 0 012 2v2a2 2 0 01-2 2h-2a2 2 0 01-2-2V6zM4 16a2 2 0 012-2h2a2 2 0 012 2v2a2 2 0 01-2 2H6a2 2 0 01-2-2v-2zM14 16a2 2 0 012-2h2a2 2 0 012 2v2a2 2 0 01-2 2h-2a2 2 0 01-2-2v-2z"
+                    />
+                  </svg>
+                ),
+              },
+              {
+                key: "bookings",
+                label: "Bookings",
+                icon: (
+                  <svg
+                    className="w-4 h-4"
+                    fill="none"
+                    stroke="currentColor"
+                    viewBox="0 0 24 24"
+                  >
+                    <path
+                      strokeLinecap="round"
+                      strokeLinejoin="round"
+                      strokeWidth={2}
+                      d="M9 5H7a2 2 0 00-2 2v12a2 2 0 002 2h10a2 2 0 002-2V7a2 2 0 00-2-2h-2M9 5a2 2 0 002 2h2a2 2 0 002-2M9 5a2 2 0 012-2h2a2 2 0 012 2"
+                    />
+                  </svg>
+                ),
+              },
+              {
+                key: "drivers",
+                label: "Drivers",
+                icon: (
+                  <svg
+                    className="w-4 h-4"
+                    fill="none"
+                    stroke="currentColor"
+                    viewBox="0 0 24 24"
+                  >
+                    <path
+                      strokeLinecap="round"
+                      strokeLinejoin="round"
+                      strokeWidth={2}
+                      d="M8 7h12m0 0l-4-4m4 4l-4 4m0 6H4m0 0l4 4m-4-4l4-4"
+                    />
+                  </svg>
+                ),
+              },
+              {
+                key: "customers",
+                label: "Customers",
+                icon: (
+                  <svg
+                    className="w-4 h-4"
+                    fill="none"
+                    stroke="currentColor"
+                    viewBox="0 0 24 24"
+                  >
+                    <path
+                      strokeLinecap="round"
+                      strokeLinejoin="round"
+                      strokeWidth={2}
+                      d="M12 4.354a4 4 0 110 5.292M15 21H3v-1a6 6 0 0112 0v1zm0 0h6v-1a6 6 0 00-9-5.197"
+                    />
+                  </svg>
+                ),
+              },
+              {
+                key: "settings",
+                label: "Settings",
+                icon: (
+                  <svg
+                    className="w-4 h-4"
+                    fill="none"
+                    stroke="currentColor"
+                    viewBox="0 0 24 24"
+                  >
+                    <path
+                      strokeLinecap="round"
+                      strokeLinejoin="round"
+                      strokeWidth={2}
+                      d="M10.325 4.317c.426-1.756 2.924-1.756 3.35 0a1.724 1.724 0 002.573 1.066c1.543-.94 3.31.826 2.37 2.37a1.724 1.724 0 001.066 2.573c1.756.426 1.756 2.924 0 3.35a1.724 1.724 0 00-1.066 2.573c.94 1.543-.826 3.31-2.37 2.37a1.724 1.724 0 00-2.573 1.066c-.426 1.756-2.924 1.756-3.35 0a1.724 1.724 0 00-2.573-1.066c-1.543.94-3.31-.826-2.37-2.37a1.724 1.724 0 00-1.066-2.573c-1.756-.426-1.756-2.924 0-3.35a1.724 1.724 0 001.066-2.573c-.94-1.543.826-3.31 2.37-2.37.996.608 2.296.07 2.572-1.065z"
+                    />
+                    <path
+                      strokeLinecap="round"
+                      strokeLinejoin="round"
+                      strokeWidth={2}
+                      d="M15 12a3 3 0 11-6 0 3 3 0 016 0z"
+                    />
+                  </svg>
+                ),
+              },
             ].map((tab) => (
               <button
                 key={tab.key}
                 onClick={() => setActiveTab(tab.key)}
                 className={`flex items-center gap-2 py-2.5 px-4 rounded-xl font-semibold text-sm whitespace-nowrap transition-all duration-200 ${
                   activeTab === tab.key
-                    ? 'bg-gray-900 text-white'
-                    : 'text-gray-500 hover:text-gray-700 hover:bg-gray-50'
+                    ? "bg-gray-900 text-white"
+                    : "text-gray-500 hover:text-gray-700 hover:bg-gray-50"
                 }`}
               >
                 {tab.icon}
@@ -615,7 +739,9 @@ const AdminDashboard = () => {
                 <h2 className="text-2xl font-black text-gray-900 tracking-tight">
                   Dashboard Overview
                 </h2>
-                <p className="text-gray-500 text-sm mt-1">Real-time overview of your fleet operations</p>
+                <p className="text-gray-500 text-sm mt-1">
+                  Real-time overview of your fleet operations
+                </p>
               </div>
               <div className="text-xs text-gray-400 font-medium bg-white px-3 py-1.5 rounded-lg border border-gray-100 shadow-sm">
                 Last updated: {new Date().toLocaleTimeString()}
@@ -624,11 +750,24 @@ const AdminDashboard = () => {
 
             {/* Stats Grid */}
             <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-6 mb-8">
-              <div className="stat-card border-blue-500 animate-fade-in-up" style={{ animationDelay: "0s" }}>
+              <div
+                className="stat-card border-blue-500 animate-fade-in-up"
+                style={{ animationDelay: "0s" }}
+              >
                 <div className="flex items-center justify-between mb-4">
                   <div className="p-3 bg-blue-100 rounded-xl">
-                    <svg className="w-6 h-6 text-blue-600" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                      <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M17 20h5v-2a3 3 0 00-5.356-1.857M17 20H7m10 0v-2c0-.656-.126-1.283-.356-1.857M7 20H2v-2a3 3 0 015.356-1.857M7 20v-2c0-.656.126-1.283.356-1.857m0 0a5.002 5.002 0 019.288 0M15 7a3 3 0 11-6 0 3 3 0 016 0z" />
+                    <svg
+                      className="w-6 h-6 text-blue-600"
+                      fill="none"
+                      stroke="currentColor"
+                      viewBox="0 0 24 24"
+                    >
+                      <path
+                        strokeLinecap="round"
+                        strokeLinejoin="round"
+                        strokeWidth={2}
+                        d="M17 20h5v-2a3 3 0 00-5.356-1.857M17 20H7m10 0v-2c0-.656-.126-1.283-.356-1.857M7 20H2v-2a3 3 0 015.356-1.857M7 20v-2c0-.656.126-1.283.356-1.857m0 0a5.002 5.002 0 019.288 0M15 7a3 3 0 11-6 0 3 3 0 016 0z"
+                      />
                     </svg>
                   </div>
                   <span className="text-xs font-semibold text-green-600 bg-green-50 px-2.5 py-1 rounded-full">
@@ -638,28 +777,58 @@ const AdminDashboard = () => {
                 <p className="text-3xl font-black text-gray-800 stat-number">
                   {stats.drivers.total}
                 </p>
-                <p className="text-sm text-gray-500 mt-1 font-medium">Total Drivers</p>
+                <p className="text-sm text-gray-500 mt-1 font-medium">
+                  Total Drivers
+                </p>
               </div>
 
-              <div className="stat-card border-emerald-500 animate-fade-in-up" style={{ animationDelay: "0.1s" }}>
+              <div
+                className="stat-card border-emerald-500 animate-fade-in-up"
+                style={{ animationDelay: "0.1s" }}
+              >
                 <div className="flex items-center justify-between mb-4">
                   <div className="p-3 bg-emerald-100 rounded-xl">
-                    <svg className="w-6 h-6 text-emerald-600" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                      <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M12 4.354a4 4 0 110 5.292M15 21H3v-1a6 6 0 0112 0v1zm0 0h6v-1a6 6 0 00-9-5.197m13.5-9a2.5 2.5 0 11-5 0 2.5 2.5 0 015 0z" />
+                    <svg
+                      className="w-6 h-6 text-emerald-600"
+                      fill="none"
+                      stroke="currentColor"
+                      viewBox="0 0 24 24"
+                    >
+                      <path
+                        strokeLinecap="round"
+                        strokeLinejoin="round"
+                        strokeWidth={2}
+                        d="M12 4.354a4 4 0 110 5.292M15 21H3v-1a6 6 0 0112 0v1zm0 0h6v-1a6 6 0 00-9-5.197m13.5-9a2.5 2.5 0 11-5 0 2.5 2.5 0 015 0z"
+                      />
                     </svg>
                   </div>
                 </div>
                 <p className="text-3xl font-black text-gray-800 stat-number">
                   {stats.customers.total}
                 </p>
-                <p className="text-sm text-gray-500 mt-1 font-medium">Total Customers</p>
+                <p className="text-sm text-gray-500 mt-1 font-medium">
+                  Total Customers
+                </p>
               </div>
 
-              <div className="stat-card border-amber-500 animate-fade-in-up" style={{ animationDelay: "0.2s" }}>
+              <div
+                className="stat-card border-amber-500 animate-fade-in-up"
+                style={{ animationDelay: "0.2s" }}
+              >
                 <div className="flex items-center justify-between mb-4">
                   <div className="p-3 bg-amber-100 rounded-xl">
-                    <svg className="w-6 h-6 text-amber-600" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                      <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M12 8v4l3 3m6-3a9 9 0 11-18 0 9 9 0 0118 0z" />
+                    <svg
+                      className="w-6 h-6 text-amber-600"
+                      fill="none"
+                      stroke="currentColor"
+                      viewBox="0 0 24 24"
+                    >
+                      <path
+                        strokeLinecap="round"
+                        strokeLinejoin="round"
+                        strokeWidth={2}
+                        d="M12 8v4l3 3m6-3a9 9 0 11-18 0 9 9 0 0118 0z"
+                      />
                     </svg>
                   </div>
                   {stats.bookings.pending > 0 && (
@@ -671,21 +840,38 @@ const AdminDashboard = () => {
                 <p className="text-3xl font-black text-gray-800 stat-number">
                   {stats.bookings.pending}
                 </p>
-                <p className="text-sm text-gray-500 mt-1 font-medium">Pending Bookings</p>
+                <p className="text-sm text-gray-500 mt-1 font-medium">
+                  Pending Bookings
+                </p>
               </div>
 
-              <div className="stat-card border-violet-500 animate-fade-in-up" style={{ animationDelay: "0.3s" }}>
+              <div
+                className="stat-card border-violet-500 animate-fade-in-up"
+                style={{ animationDelay: "0.3s" }}
+              >
                 <div className="flex items-center justify-between mb-4">
                   <div className="p-3 bg-violet-100 rounded-xl">
-                    <svg className="w-6 h-6 text-violet-600" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                      <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M9 12l2 2 4-4m6 2a9 9 0 11-18 0 9 9 0 0118 0z" />
+                    <svg
+                      className="w-6 h-6 text-violet-600"
+                      fill="none"
+                      stroke="currentColor"
+                      viewBox="0 0 24 24"
+                    >
+                      <path
+                        strokeLinecap="round"
+                        strokeLinejoin="round"
+                        strokeWidth={2}
+                        d="M9 12l2 2 4-4m6 2a9 9 0 11-18 0 9 9 0 0118 0z"
+                      />
                     </svg>
                   </div>
                 </div>
                 <p className="text-3xl font-black text-gray-800 stat-number">
                   {stats.bookings.completed}
                 </p>
-                <p className="text-sm text-gray-500 mt-1 font-medium">Completed Bookings</p>
+                <p className="text-sm text-gray-500 mt-1 font-medium">
+                  Completed Bookings
+                </p>
               </div>
             </div>
 
@@ -697,7 +883,9 @@ const AdminDashboard = () => {
                     <h3 className="text-lg font-bold text-gray-800">
                       Lifetime Statistics
                     </h3>
-                    <p className="text-sm text-gray-500">Persists after data cleanup</p>
+                    <p className="text-sm text-gray-500">
+                      Persists after data cleanup
+                    </p>
                   </div>
                   <button
                     onClick={resetStatistics}
@@ -711,11 +899,23 @@ const AdminDashboard = () => {
                   <div className="bg-gradient-to-br from-blue-500 to-blue-600 rounded-2xl p-6 text-white shadow-lg">
                     <div className="flex items-center justify-between mb-3">
                       <div className="p-2 bg-white/20 rounded-lg">
-                        <svg className="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                          <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M9 5H7a2 2 0 00-2 2v12a2 2 0 002 2h10a2 2 0 002-2V7a2 2 0 00-2-2h-2M9 5a2 2 0 002 2h2a2 2 0 002-2M9 5a2 2 0 012-2h2a2 2 0 012 2" />
+                        <svg
+                          className="w-5 h-5"
+                          fill="none"
+                          stroke="currentColor"
+                          viewBox="0 0 24 24"
+                        >
+                          <path
+                            strokeLinecap="round"
+                            strokeLinejoin="round"
+                            strokeWidth={2}
+                            d="M9 5H7a2 2 0 00-2 2v12a2 2 0 002 2h10a2 2 0 002-2V7a2 2 0 00-2-2h-2M9 5a2 2 0 002 2h2a2 2 0 002-2M9 5a2 2 0 012-2h2a2 2 0 012 2"
+                          />
                         </svg>
                       </div>
-                      <span className="text-xs font-medium text-blue-200">All time</span>
+                      <span className="text-xs font-medium text-blue-200">
+                        All time
+                      </span>
                     </div>
                     <p className="text-3xl font-black">
                       {stats.lifetime.totalBookings}
@@ -725,11 +925,23 @@ const AdminDashboard = () => {
                   <div className="bg-gradient-to-br from-emerald-500 to-emerald-600 rounded-2xl p-6 text-white shadow-lg">
                     <div className="flex items-center justify-between mb-3">
                       <div className="p-2 bg-white/20 rounded-lg">
-                        <svg className="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                          <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M5 13l4 4L19 7" />
+                        <svg
+                          className="w-5 h-5"
+                          fill="none"
+                          stroke="currentColor"
+                          viewBox="0 0 24 24"
+                        >
+                          <path
+                            strokeLinecap="round"
+                            strokeLinejoin="round"
+                            strokeWidth={2}
+                            d="M5 13l4 4L19 7"
+                          />
                         </svg>
                       </div>
-                      <span className="text-xs font-medium text-emerald-200">All time</span>
+                      <span className="text-xs font-medium text-emerald-200">
+                        All time
+                      </span>
                     </div>
                     <p className="text-3xl font-black">
                       {stats.lifetime.totalCompleted}
@@ -739,11 +951,23 @@ const AdminDashboard = () => {
                   <div className="bg-gradient-to-br from-rose-500 to-rose-600 rounded-2xl p-6 text-white shadow-lg">
                     <div className="flex items-center justify-between mb-3">
                       <div className="p-2 bg-white/20 rounded-lg">
-                        <svg className="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                          <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M6 18L18 6M6 6l12 12" />
+                        <svg
+                          className="w-5 h-5"
+                          fill="none"
+                          stroke="currentColor"
+                          viewBox="0 0 24 24"
+                        >
+                          <path
+                            strokeLinecap="round"
+                            strokeLinejoin="round"
+                            strokeWidth={2}
+                            d="M6 18L18 6M6 6l12 12"
+                          />
                         </svg>
                       </div>
-                      <span className="text-xs font-medium text-rose-200">All time</span>
+                      <span className="text-xs font-medium text-rose-200">
+                        All time
+                      </span>
                     </div>
                     <p className="text-3xl font-black">
                       {stats.lifetime.totalCancelled}
@@ -755,8 +979,18 @@ const AdminDashboard = () => {
                   stats.lifetime.last7Days.length > 0 && (
                     <div className="mt-4 bg-white rounded-2xl shadow-soft p-6">
                       <h4 className="text-sm font-bold text-gray-700 mb-4 flex items-center gap-2">
-                        <svg className="w-4 h-4 text-primary" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                          <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M8 7V3m8 4V3m-9 8h10M5 21h14a2 2 0 002-2V7a2 2 0 00-2-2H5a2 2 0 00-2 2v12a2 2 0 002 2z" />
+                        <svg
+                          className="w-4 h-4 text-primary"
+                          fill="none"
+                          stroke="currentColor"
+                          viewBox="0 0 24 24"
+                        >
+                          <path
+                            strokeLinecap="round"
+                            strokeLinejoin="round"
+                            strokeWidth={2}
+                            d="M8 7V3m8 4V3m-9 8h10M5 21h14a2 2 0 002-2V7a2 2 0 00-2-2H5a2 2 0 00-2 2v12a2 2 0 002 2z"
+                          />
                         </svg>
                         Last 7 Days Activity
                       </h4>
@@ -767,7 +1001,11 @@ const AdminDashboard = () => {
                             className="flex justify-between items-center text-sm py-2 px-3 rounded-lg hover:bg-gray-50"
                           >
                             <span className="text-gray-600 font-medium">
-                              {new Date(day.date).toLocaleDateString("en-US", { weekday: "short", month: "short", day: "numeric" })}
+                              {new Date(day.date).toLocaleDateString("en-US", {
+                                weekday: "short",
+                                month: "short",
+                                day: "numeric",
+                              })}
                             </span>
                             <div className="flex gap-4">
                               <span className="text-blue-600 font-semibold bg-blue-50 px-2 py-0.5 rounded-md text-xs">
@@ -788,16 +1026,28 @@ const AdminDashboard = () => {
             {pendingBookings.length > 0 && (
               <div className="bg-amber-50 border border-amber-200 rounded-2xl p-6 flex flex-col sm:flex-row items-start sm:items-center gap-4">
                 <div className="p-3 bg-amber-100 rounded-xl shrink-0">
-                  <svg className="w-6 h-6 text-amber-600" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                    <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M12 9v2m0 4h.01m-6.938 4h13.856c1.54 0 2.502-1.667 1.732-2.5L13.732 4.5c-.77-.833-2.694-.833-3.464 0L3.34 16.5c-.77.833.192 2.5 1.732 2.5z" />
+                  <svg
+                    className="w-6 h-6 text-amber-600"
+                    fill="none"
+                    stroke="currentColor"
+                    viewBox="0 0 24 24"
+                  >
+                    <path
+                      strokeLinecap="round"
+                      strokeLinejoin="round"
+                      strokeWidth={2}
+                      d="M12 9v2m0 4h.01m-6.938 4h13.856c1.54 0 2.502-1.667 1.732-2.5L13.732 4.5c-.77-.833-2.694-.833-3.464 0L3.34 16.5c-.77.833.192 2.5 1.732 2.5z"
+                    />
                   </svg>
                 </div>
                 <div className="flex-1">
                   <h3 className="font-bold text-amber-800 text-lg">
-                    {pendingBookings.length} Pending Booking{pendingBookings.length > 1 ? "s" : ""} Require Action
+                    {pendingBookings.length} Pending Booking
+                    {pendingBookings.length > 1 ? "s" : ""} Require Action
                   </h3>
                   <p className="text-amber-700 text-sm mt-1">
-                    Assign drivers to these bookings to keep your service running smoothly.
+                    Assign drivers to these bookings to keep your service
+                    running smoothly.
                   </p>
                 </div>
                 <button
@@ -1198,22 +1448,57 @@ const AdminDashboard = () => {
             {completedBookings.length > 0 && (
               <div>
                 <h3 className="text-xl font-bold text-gray-700 mb-4 flex items-center gap-2">
-                  <svg className="w-5 h-5 text-green-500" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                    <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M9 12l2 2 4-4m6 2a9 9 0 11-18 0 9 9 0 0118 0z" />
+                  <svg
+                    className="w-5 h-5 text-green-500"
+                    fill="none"
+                    stroke="currentColor"
+                    viewBox="0 0 24 24"
+                  >
+                    <path
+                      strokeLinecap="round"
+                      strokeLinejoin="round"
+                      strokeWidth={2}
+                      d="M9 12l2 2 4-4m6 2a9 9 0 11-18 0 9 9 0 0118 0z"
+                    />
                   </svg>
                   Completed Rides ({completedBookings.length})
                 </h3>
                 <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
                   {completedBookings.slice(0, 10).map((booking) => (
-                    <div key={booking._id} className="bg-white rounded-2xl shadow-soft p-5 flex items-center gap-4 border border-gray-100">
-                      <div className={`p-2.5 rounded-xl shrink-0 ${booking.status === "completed" ? "bg-green-100" : "bg-red-100"}`}>
+                    <div
+                      key={booking._id}
+                      className="bg-white rounded-2xl shadow-soft p-5 flex items-center gap-4 border border-gray-100"
+                    >
+                      <div
+                        className={`p-2.5 rounded-xl shrink-0 ${booking.status === "completed" ? "bg-green-100" : "bg-red-100"}`}
+                      >
                         {booking.status === "completed" ? (
-                          <svg className="w-5 h-5 text-green-600" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                            <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M5 13l4 4L19 7" />
+                          <svg
+                            className="w-5 h-5 text-green-600"
+                            fill="none"
+                            stroke="currentColor"
+                            viewBox="0 0 24 24"
+                          >
+                            <path
+                              strokeLinecap="round"
+                              strokeLinejoin="round"
+                              strokeWidth={2}
+                              d="M5 13l4 4L19 7"
+                            />
                           </svg>
                         ) : (
-                          <svg className="w-5 h-5 text-red-600" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                            <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M6 18L18 6M6 6l12 12" />
+                          <svg
+                            className="w-5 h-5 text-red-600"
+                            fill="none"
+                            stroke="currentColor"
+                            viewBox="0 0 24 24"
+                          >
+                            <path
+                              strokeLinecap="round"
+                              strokeLinejoin="round"
+                              strokeWidth={2}
+                              d="M6 18L18 6M6 6l12 12"
+                            />
                           </svg>
                         )}
                       </div>
@@ -1222,7 +1507,10 @@ const AdminDashboard = () => {
                           {booking.pickupPoint} → {booking.destination}
                         </h4>
                         <p className="text-xs text-gray-500 mt-0.5">
-                          {new Date(booking.dateTime).toLocaleDateString("en-US", { month: "short", day: "numeric", year: "numeric" })}
+                          {new Date(booking.dateTime).toLocaleDateString(
+                            "en-US",
+                            { month: "short", day: "numeric", year: "numeric" },
+                          )}
                         </p>
                       </div>
                       <span
@@ -1248,20 +1536,53 @@ const AdminDashboard = () => {
                 <h2 className="text-2xl font-black text-gray-900 tracking-tight">
                   Driver Management
                 </h2>
-                <p className="text-sm text-gray-500 mt-1">{drivers.length} driver{drivers.length !== 1 ? 's' : ''} registered</p>
+                <p className="text-sm text-gray-500 mt-1">
+                  {drivers.length} driver{drivers.length !== 1 ? "s" : ""}{" "}
+                  registered
+                </p>
               </div>
               <button
                 onClick={() => setShowCreateDriver(!showCreateDriver)}
                 className={`px-5 py-2.5 rounded-xl font-semibold text-sm transition-all duration-200 flex items-center gap-2 ${
                   showCreateDriver
-                    ? 'bg-gray-100 text-gray-600 hover:bg-gray-200'
-                    : 'bg-primary text-white hover:bg-primary-light shadow-md hover:shadow-lg'
+                    ? "bg-gray-100 text-gray-600 hover:bg-gray-200"
+                    : "bg-primary text-white hover:bg-primary-light shadow-md hover:shadow-lg"
                 }`}
               >
                 {showCreateDriver ? (
-                  <><svg className="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M6 18L18 6M6 6l12 12" /></svg> Cancel</>
+                  <>
+                    <svg
+                      className="w-4 h-4"
+                      fill="none"
+                      stroke="currentColor"
+                      viewBox="0 0 24 24"
+                    >
+                      <path
+                        strokeLinecap="round"
+                        strokeLinejoin="round"
+                        strokeWidth={2}
+                        d="M6 18L18 6M6 6l12 12"
+                      />
+                    </svg>{" "}
+                    Cancel
+                  </>
                 ) : (
-                  <><svg className="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M12 4v16m8-8H4" /></svg> Add Driver</>
+                  <>
+                    <svg
+                      className="w-4 h-4"
+                      fill="none"
+                      stroke="currentColor"
+                      viewBox="0 0 24 24"
+                    >
+                      <path
+                        strokeLinecap="round"
+                        strokeLinejoin="round"
+                        strokeWidth={2}
+                        d="M12 4v16m8-8H4"
+                      />
+                    </svg>{" "}
+                    Add Driver
+                  </>
                 )}
               </button>
             </div>
@@ -1271,10 +1592,24 @@ const AdminDashboard = () => {
               <div className="bg-white rounded-2xl shadow-soft mb-6 border border-gray-100 overflow-hidden animate-slide-up">
                 <div className="bg-gradient-to-r from-primary/5 to-accent/5 px-6 py-4 border-b border-gray-100">
                   <h3 className="font-bold text-gray-800 flex items-center gap-2">
-                    <svg className="w-5 h-5 text-primary" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M18 9v3m0 0v3m0-3h3m-3 0h-3m-2-5a4 4 0 11-8 0 4 4 0 018 0zM3 20a6 6 0 0112 0v1H3v-1z" /></svg>
+                    <svg
+                      className="w-5 h-5 text-primary"
+                      fill="none"
+                      stroke="currentColor"
+                      viewBox="0 0 24 24"
+                    >
+                      <path
+                        strokeLinecap="round"
+                        strokeLinejoin="round"
+                        strokeWidth={2}
+                        d="M18 9v3m0 0v3m0-3h3m-3 0h-3m-2-5a4 4 0 11-8 0 4 4 0 018 0zM3 20a6 6 0 0112 0v1H3v-1z"
+                      />
+                    </svg>
                     Register New Driver
                   </h3>
-                  <p className="text-sm text-gray-500 mt-1">Fields match the driver registration form</p>
+                  <p className="text-sm text-gray-500 mt-1">
+                    Fields match the driver registration form
+                  </p>
                 </div>
                 <form onSubmit={createDriver} className="p-6 space-y-4">
                   <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
@@ -1287,7 +1622,10 @@ const AdminDashboard = () => {
                         required
                         value={newDriver.phoneNumber}
                         onChange={(e) =>
-                          setNewDriver({ ...newDriver, phoneNumber: e.target.value })
+                          setNewDriver({
+                            ...newDriver,
+                            phoneNumber: e.target.value,
+                          })
                         }
                         className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-primary focus:border-transparent"
                       />
@@ -1325,7 +1663,8 @@ const AdminDashboard = () => {
                     </div>
                     <div>
                       <label className="block text-sm font-medium text-gray-700 mb-1">
-                        Contact Number <span className="text-gray-400">(optional)</span>
+                        Contact Number{" "}
+                        <span className="text-gray-400">(optional)</span>
                       </label>
                       <input
                         type="text"
@@ -1499,7 +1838,9 @@ const AdminDashboard = () => {
                             </span>
                           </td>
                           <td className="px-6 py-4 text-gray-600 text-sm">
-                            {driver.userId?.phoneNumber || driver.contactNumber || "Not set"}
+                            {driver.userId?.phoneNumber ||
+                              driver.contactNumber ||
+                              "Not set"}
                           </td>
                           <td className="px-6 py-4">
                             <div className="text-sm">
@@ -1548,7 +1889,11 @@ const AdminDashboard = () => {
                             <h3 className="font-bold text-gray-800">
                               {driver.name}
                             </h3>
-                            <p className="text-xs text-gray-500">{driver.userId?.phoneNumber || driver.contactNumber || ""}</p>
+                            <p className="text-xs text-gray-500">
+                              {driver.userId?.phoneNumber ||
+                                driver.contactNumber ||
+                                ""}
+                            </p>
                           </div>
                         </div>
                         <span
@@ -1563,24 +1908,42 @@ const AdminDashboard = () => {
                       </div>
                       <div className="grid grid-cols-2 gap-3 text-sm mb-4">
                         <div className="bg-gray-50 rounded-xl p-3">
-                          <span className="text-gray-500 text-xs block">Vehicle</span>
-                          <span className="font-semibold text-gray-800">{driver.carType}</span>
+                          <span className="text-gray-500 text-xs block">
+                            Vehicle
+                          </span>
+                          <span className="font-semibold text-gray-800">
+                            {driver.carType}
+                          </span>
                         </div>
                         <div className="bg-gray-50 rounded-xl p-3">
-                          <span className="text-gray-500 text-xs block">Plate</span>
-                          <span className="font-semibold text-gray-800">{driver.carNumber}</span>
+                          <span className="text-gray-500 text-xs block">
+                            Plate
+                          </span>
+                          <span className="font-semibold text-gray-800">
+                            {driver.carNumber}
+                          </span>
                         </div>
                         <div className="bg-gray-50 rounded-xl p-3">
-                          <span className="text-gray-500 text-xs block">Seats</span>
-                          <span className="font-semibold text-gray-800">{driver.numberOfSeats}</span>
+                          <span className="text-gray-500 text-xs block">
+                            Seats
+                          </span>
+                          <span className="font-semibold text-gray-800">
+                            {driver.numberOfSeats}
+                          </span>
                         </div>
                         <div className="bg-gray-50 rounded-xl p-3">
-                          <span className="text-gray-500 text-xs block">Location</span>
-                          <span className="font-semibold text-gray-800">{driver.baseLocation}</span>
+                          <span className="text-gray-500 text-xs block">
+                            Location
+                          </span>
+                          <span className="font-semibold text-gray-800">
+                            {driver.baseLocation}
+                          </span>
                         </div>
                       </div>
                       <div className="flex items-center justify-between pt-3 border-t border-gray-100">
-                        <span className="text-sm text-gray-600 font-medium">{driver.contactNumber}</span>
+                        <span className="text-sm text-gray-600 font-medium">
+                          {driver.contactNumber}
+                        </span>
                         <button
                           onClick={() => deleteDriver(driver._id)}
                           className="px-4 py-2 bg-red-50 text-red-600 rounded-xl hover:bg-red-100 text-sm font-semibold border border-red-200"
@@ -1604,20 +1967,53 @@ const AdminDashboard = () => {
                 <h2 className="text-2xl font-black text-gray-900 tracking-tight">
                   Customer Management
                 </h2>
-                <p className="text-sm text-gray-500 mt-1">{customers.length} customer{customers.length !== 1 ? 's' : ''} registered</p>
+                <p className="text-sm text-gray-500 mt-1">
+                  {customers.length} customer{customers.length !== 1 ? "s" : ""}{" "}
+                  registered
+                </p>
               </div>
               <button
                 onClick={() => setShowCreateCustomer(!showCreateCustomer)}
                 className={`px-5 py-2.5 rounded-xl font-semibold text-sm transition-all duration-200 flex items-center gap-2 ${
                   showCreateCustomer
-                    ? 'bg-gray-100 text-gray-600 hover:bg-gray-200'
-                    : 'bg-emerald-600 text-white hover:bg-emerald-700 shadow-md hover:shadow-lg'
+                    ? "bg-gray-100 text-gray-600 hover:bg-gray-200"
+                    : "bg-emerald-600 text-white hover:bg-emerald-700 shadow-md hover:shadow-lg"
                 }`}
               >
                 {showCreateCustomer ? (
-                  <><svg className="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M6 18L18 6M6 6l12 12" /></svg> Cancel</>
+                  <>
+                    <svg
+                      className="w-4 h-4"
+                      fill="none"
+                      stroke="currentColor"
+                      viewBox="0 0 24 24"
+                    >
+                      <path
+                        strokeLinecap="round"
+                        strokeLinejoin="round"
+                        strokeWidth={2}
+                        d="M6 18L18 6M6 6l12 12"
+                      />
+                    </svg>{" "}
+                    Cancel
+                  </>
                 ) : (
-                  <><svg className="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M12 4v16m8-8H4" /></svg> Add Customer</>
+                  <>
+                    <svg
+                      className="w-4 h-4"
+                      fill="none"
+                      stroke="currentColor"
+                      viewBox="0 0 24 24"
+                    >
+                      <path
+                        strokeLinecap="round"
+                        strokeLinejoin="round"
+                        strokeWidth={2}
+                        d="M12 4v16m8-8H4"
+                      />
+                    </svg>{" "}
+                    Add Customer
+                  </>
                 )}
               </button>
             </div>
@@ -1627,10 +2023,24 @@ const AdminDashboard = () => {
               <div className="bg-white rounded-2xl shadow-soft mb-6 border border-gray-100 overflow-hidden animate-slide-up">
                 <div className="bg-gradient-to-r from-emerald-50 to-green-50 px-6 py-4 border-b border-gray-100">
                   <h3 className="font-bold text-gray-800 flex items-center gap-2">
-                    <svg className="w-5 h-5 text-emerald-600" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M18 9v3m0 0v3m0-3h3m-3 0h-3m-2-5a4 4 0 11-8 0 4 4 0 018 0zM3 20a6 6 0 0112 0v1H3v-1z" /></svg>
+                    <svg
+                      className="w-5 h-5 text-emerald-600"
+                      fill="none"
+                      stroke="currentColor"
+                      viewBox="0 0 24 24"
+                    >
+                      <path
+                        strokeLinecap="round"
+                        strokeLinejoin="round"
+                        strokeWidth={2}
+                        d="M18 9v3m0 0v3m0-3h3m-3 0h-3m-2-5a4 4 0 11-8 0 4 4 0 018 0zM3 20a6 6 0 0112 0v1H3v-1z"
+                      />
+                    </svg>
                     Register New Customer
                   </h3>
-                  <p className="text-sm text-gray-500 mt-1">Fields match the customer signup form</p>
+                  <p className="text-sm text-gray-500 mt-1">
+                    Fields match the customer signup form
+                  </p>
                 </div>
                 <form onSubmit={createCustomer} className="p-6 space-y-4">
                   <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
@@ -1709,7 +2119,8 @@ const AdminDashboard = () => {
                     </div>
                     <div className="md:col-span-2">
                       <label className="block text-sm font-medium text-gray-700 mb-1">
-                        Digital Address <span className="text-gray-400">(optional)</span>
+                        Digital Address{" "}
+                        <span className="text-gray-400">(optional)</span>
                       </label>
                       <input
                         type="text"
@@ -1771,7 +2182,9 @@ const AdminDashboard = () => {
                             {customer.name || "No Name"}
                           </td>
                           <td className="px-6 py-4 text-gray-600 text-sm">
-                            {customer.phoneNumber || customer.userId?.phoneNumber || "Not set"}
+                            {customer.phoneNumber ||
+                              customer.userId?.phoneNumber ||
+                              "Not set"}
                           </td>
                           <td className="px-6 py-4 text-gray-600 text-sm">
                             {customer.city || "Not set"}
@@ -1805,17 +2218,29 @@ const AdminDashboard = () => {
                           <h3 className="font-bold text-gray-800">
                             {customer.name || "No Name"}
                           </h3>
-                          <p className="text-xs text-gray-500">{customer.phoneNumber || customer.userId?.phoneNumber || ""}</p>
+                          <p className="text-xs text-gray-500">
+                            {customer.phoneNumber ||
+                              customer.userId?.phoneNumber ||
+                              ""}
+                          </p>
                         </div>
                       </div>
                       <div className="grid grid-cols-2 gap-3 text-sm mb-4">
                         <div className="bg-gray-50 rounded-xl p-3">
-                          <span className="text-gray-500 text-xs block">Phone</span>
-                          <span className="font-semibold text-gray-800">{customer.phoneNumber || "Not set"}</span>
+                          <span className="text-gray-500 text-xs block">
+                            Phone
+                          </span>
+                          <span className="font-semibold text-gray-800">
+                            {customer.phoneNumber || "Not set"}
+                          </span>
                         </div>
                         <div className="bg-gray-50 rounded-xl p-3">
-                          <span className="text-gray-500 text-xs block">City</span>
-                          <span className="font-semibold text-gray-800">{customer.city || "Not set"}</span>
+                          <span className="text-gray-500 text-xs block">
+                            City
+                          </span>
+                          <span className="font-semibold text-gray-800">
+                            {customer.city || "Not set"}
+                          </span>
                         </div>
                       </div>
                       <button
@@ -1838,14 +2263,26 @@ const AdminDashboard = () => {
             <h2 className="text-2xl font-black text-gray-900 tracking-tight mb-2">
               System Settings
             </h2>
-            <p className="text-gray-500 mb-8">Manage notifications, data, and application settings</p>
+            <p className="text-gray-500 mb-8">
+              Manage notifications, data, and application settings
+            </p>
 
             {/* Notification Settings */}
             <div className="bg-white rounded-2xl shadow-soft p-6 mb-6 border border-gray-100">
               <div className="flex items-start gap-4">
                 <div className="p-3 bg-blue-100 rounded-xl shrink-0">
-                  <svg className="w-6 h-6 text-blue-600" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                    <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M15 17h5l-1.405-1.405A2.032 2.032 0 0118 14.158V11a6.002 6.002 0 00-4-5.659V5a2 2 0 10-4 0v.341C7.67 6.165 6 8.388 6 11v3.159c0 .538-.214 1.055-.595 1.436L4 17h5m6 0v1a3 3 0 11-6 0v-1m6 0H9" />
+                  <svg
+                    className="w-6 h-6 text-blue-600"
+                    fill="none"
+                    stroke="currentColor"
+                    viewBox="0 0 24 24"
+                  >
+                    <path
+                      strokeLinecap="round"
+                      strokeLinejoin="round"
+                      strokeWidth={2}
+                      d="M15 17h5l-1.405-1.405A2.032 2.032 0 0118 14.158V11a6.002 6.002 0 00-4-5.659V5a2 2 0 10-4 0v.341C7.67 6.165 6 8.388 6 11v3.159c0 .538-.214 1.055-.595 1.436L4 17h5m6 0v1a3 3 0 11-6 0v-1m6 0H9"
+                    />
                   </svg>
                 </div>
                 <div className="flex-1">
@@ -1853,7 +2290,8 @@ const AdminDashboard = () => {
                     Push Notifications
                   </h3>
                   <p className="text-gray-500 text-sm mt-1 mb-4">
-                    Get real-time alerts when new bookings are created so you can respond quickly.
+                    Get real-time alerts when new bookings are created so you
+                    can respond quickly.
                   </p>
                   <button
                     onClick={requestNotificationPermission}
@@ -1875,13 +2313,27 @@ const AdminDashboard = () => {
             <div className="bg-white rounded-2xl shadow-soft p-6 mb-6 border border-gray-100">
               <div className="flex items-center gap-3 mb-6">
                 <div className="p-3 bg-amber-100 rounded-xl">
-                  <svg className="w-6 h-6 text-amber-600" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                    <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M4 7v10c0 2.21 3.582 4 8 4s8-1.79 8-4V7M4 7c0 2.21 3.582 4 8 4s8-1.79 8-4M4 7c0-2.21 3.582-4 8-4s8 1.79 8 4m0 5c0 2.21-3.582 4-8 4s-8-1.79-8-4" />
+                  <svg
+                    className="w-6 h-6 text-amber-600"
+                    fill="none"
+                    stroke="currentColor"
+                    viewBox="0 0 24 24"
+                  >
+                    <path
+                      strokeLinecap="round"
+                      strokeLinejoin="round"
+                      strokeWidth={2}
+                      d="M4 7v10c0 2.21 3.582 4 8 4s8-1.79 8-4V7M4 7c0 2.21 3.582 4 8 4s8-1.79 8-4M4 7c0-2.21 3.582-4 8-4s8 1.79 8 4m0 5c0 2.21-3.582 4-8 4s-8-1.79-8-4"
+                    />
                   </svg>
                 </div>
                 <div>
-                  <h3 className="text-lg font-bold text-gray-800">Data Management</h3>
-                  <p className="text-sm text-gray-500">Clean up booking data to maintain performance</p>
+                  <h3 className="text-lg font-bold text-gray-800">
+                    Data Management
+                  </h3>
+                  <p className="text-sm text-gray-500">
+                    Clean up booking data to maintain performance
+                  </p>
                 </div>
               </div>
 
@@ -1894,7 +2346,8 @@ const AdminDashboard = () => {
                         Clear Completed Bookings
                       </h4>
                       <p className="text-sm text-gray-600">
-                        Remove <strong>{completedBookings.length}</strong> completed/cancelled bookings to reduce database size.
+                        Remove <strong>{completedBookings.length}</strong>{" "}
+                        completed/cancelled bookings to reduce database size.
                       </p>
                     </div>
                     <button
@@ -1902,7 +2355,9 @@ const AdminDashboard = () => {
                       disabled={loading || completedBookings.length === 0}
                       className="px-5 py-2.5 bg-amber-600 text-white rounded-xl hover:bg-amber-700 disabled:opacity-50 disabled:cursor-not-allowed font-semibold text-sm shrink-0"
                     >
-                      {loading ? "Clearing..." : `Clear ${completedBookings.length}`}
+                      {loading
+                        ? "Clearing..."
+                        : `Clear ${completedBookings.length}`}
                     </button>
                   </div>
                 </div>
@@ -1912,13 +2367,24 @@ const AdminDashboard = () => {
                   <div className="flex flex-col sm:flex-row items-start sm:items-center justify-between gap-4">
                     <div>
                       <h4 className="font-bold text-red-800 mb-1 flex items-center gap-2">
-                        <svg className="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                          <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M12 9v2m0 4h.01m-6.938 4h13.856c1.54 0 2.502-1.667 1.732-2.5L13.732 4.5c-.77-.833-2.694-.833-3.464 0L3.34 16.5c-.77.833.192 2.5 1.732 2.5z" />
+                        <svg
+                          className="w-4 h-4"
+                          fill="none"
+                          stroke="currentColor"
+                          viewBox="0 0 24 24"
+                        >
+                          <path
+                            strokeLinecap="round"
+                            strokeLinejoin="round"
+                            strokeWidth={2}
+                            d="M12 9v2m0 4h.01m-6.938 4h13.856c1.54 0 2.502-1.667 1.732-2.5L13.732 4.5c-.77-.833-2.694-.833-3.464 0L3.34 16.5c-.77.833.192 2.5 1.732 2.5z"
+                          />
                         </svg>
                         Danger Zone: Clear All Bookings
                       </h4>
                       <p className="text-sm text-red-700">
-                        Permanently delete ALL bookings including active ones. This cannot be undone.
+                        Permanently delete ALL bookings including active ones.
+                        This cannot be undone.
                       </p>
                     </div>
                     <button
@@ -1926,7 +2392,9 @@ const AdminDashboard = () => {
                       disabled={loading || bookings.length === 0}
                       className="px-5 py-2.5 bg-red-600 text-white rounded-xl hover:bg-red-700 disabled:opacity-50 disabled:cursor-not-allowed font-semibold text-sm shrink-0"
                     >
-                      {loading ? "Clearing..." : `Delete All ${bookings.length}`}
+                      {loading
+                        ? "Clearing..."
+                        : `Delete All ${bookings.length}`}
                     </button>
                   </div>
                 </div>
@@ -1937,13 +2405,27 @@ const AdminDashboard = () => {
             <div className="bg-white rounded-2xl shadow-soft p-6 mb-6 border border-gray-100">
               <div className="flex items-center gap-3 mb-6">
                 <div className="p-3 bg-indigo-100 rounded-xl">
-                  <svg className="w-6 h-6 text-indigo-600" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                    <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M5 8h14M5 8a2 2 0 110-4h14a2 2 0 110 4M5 8v10a2 2 0 002 2h10a2 2 0 002-2V8m-9 4h4" />
+                  <svg
+                    className="w-6 h-6 text-indigo-600"
+                    fill="none"
+                    stroke="currentColor"
+                    viewBox="0 0 24 24"
+                  >
+                    <path
+                      strokeLinecap="round"
+                      strokeLinejoin="round"
+                      strokeWidth={2}
+                      d="M5 8h14M5 8a2 2 0 110-4h14a2 2 0 110 4M5 8v10a2 2 0 002 2h10a2 2 0 002-2V8m-9 4h4"
+                    />
                   </svg>
                 </div>
                 <div>
-                  <h3 className="text-lg font-bold text-gray-800">Archive & Download</h3>
-                  <p className="text-sm text-gray-500">Archive bookings older than 90 days as JSON downloads</p>
+                  <h3 className="text-lg font-bold text-gray-800">
+                    Archive & Download
+                  </h3>
+                  <p className="text-sm text-gray-500">
+                    Archive bookings older than 90 days as JSON downloads
+                  </p>
                 </div>
               </div>
 
@@ -1978,8 +2460,17 @@ const AdminDashboard = () => {
 
                   {archiveStats.cutoffDate && (
                     <p className="text-sm text-gray-600 mb-4">
-                      Cutoff: <strong>{new Date(archiveStats.cutoffDate).toLocaleDateString("en-US", { month: "long", day: "numeric", year: "numeric" })}</strong>
-                      <span className="text-gray-500"> — bookings before this date will be archived</span>
+                      Cutoff:{" "}
+                      <strong>
+                        {new Date(archiveStats.cutoffDate).toLocaleDateString(
+                          "en-US",
+                          { month: "long", day: "numeric", year: "numeric" },
+                        )}
+                      </strong>
+                      <span className="text-gray-500">
+                        {" "}
+                        — bookings before this date will be archived
+                      </span>
                     </p>
                   )}
 
@@ -1996,8 +2487,18 @@ const AdminDashboard = () => {
                       disabled={archiveLoading || archiveStats.archivable === 0}
                       className="px-5 py-2.5 bg-emerald-600 text-white rounded-xl hover:bg-emerald-700 disabled:opacity-50 disabled:cursor-not-allowed font-semibold text-sm flex items-center gap-2"
                     >
-                      <svg className="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                        <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M4 16v1a3 3 0 003 3h10a3 3 0 003-3v-1m-4-4l-4 4m0 0l-4-4m4 4V4" />
+                      <svg
+                        className="w-4 h-4"
+                        fill="none"
+                        stroke="currentColor"
+                        viewBox="0 0 24 24"
+                      >
+                        <path
+                          strokeLinecap="round"
+                          strokeLinejoin="round"
+                          strokeWidth={2}
+                          d="M4 16v1a3 3 0 003 3h10a3 3 0 003-3v-1m-4-4l-4 4m0 0l-4-4m4 4V4"
+                        />
                       </svg>
                       {archiveLoading
                         ? "Archiving..."
@@ -2011,17 +2512,31 @@ const AdminDashboard = () => {
                 <div className="text-center py-6">
                   <div className="animate-pulse flex flex-col items-center">
                     <div className="w-8 h-8 bg-gray-200 rounded-full mb-2"></div>
-                    <p className="text-gray-400 text-sm">Loading archive data...</p>
+                    <p className="text-gray-400 text-sm">
+                      Loading archive data...
+                    </p>
                   </div>
                 </div>
               )}
 
               <div className="bg-gray-50 border border-gray-200 rounded-xl p-4">
                 <p className="text-sm text-gray-600 flex items-start gap-2">
-                  <svg className="w-4 h-4 text-gray-400 mt-0.5 shrink-0" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                    <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M13 16h-1v-4h-1m1-4h.01M21 12a9 9 0 11-18 0 9 9 0 0118 0z" />
+                  <svg
+                    className="w-4 h-4 text-gray-400 mt-0.5 shrink-0"
+                    fill="none"
+                    stroke="currentColor"
+                    viewBox="0 0 24 24"
+                  >
+                    <path
+                      strokeLinecap="round"
+                      strokeLinejoin="round"
+                      strokeWidth={2}
+                      d="M13 16h-1v-4h-1m1-4h.01M21 12a9 9 0 11-18 0 9 9 0 0118 0z"
+                    />
                   </svg>
-                  Archive downloads a JSON file of completed/cancelled bookings older than 90 days, then deletes them from the database. Active bookings are never archived.
+                  Archive downloads a JSON file of completed/cancelled bookings
+                  older than 90 days, then deletes them from the database.
+                  Active bookings are never archived.
                 </p>
               </div>
             </div>
@@ -2030,30 +2545,76 @@ const AdminDashboard = () => {
             <div className="bg-gradient-to-br from-violet-500 to-indigo-600 rounded-2xl p-6 mb-6 text-white shadow-lg">
               <div className="flex items-center gap-3 mb-4">
                 <div className="p-3 bg-white/20 rounded-xl">
-                  <svg className="w-6 h-6" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                    <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M12 18h.01M8 21h8a2 2 0 002-2V5a2 2 0 00-2-2H8a2 2 0 00-2 2v14a2 2 0 002 2z" />
+                  <svg
+                    className="w-6 h-6"
+                    fill="none"
+                    stroke="currentColor"
+                    viewBox="0 0 24 24"
+                  >
+                    <path
+                      strokeLinecap="round"
+                      strokeLinejoin="round"
+                      strokeWidth={2}
+                      d="M12 18h.01M8 21h8a2 2 0 002-2V5a2 2 0 00-2-2H8a2 2 0 00-2 2v14a2 2 0 002 2z"
+                    />
                   </svg>
                 </div>
                 <h3 className="text-lg font-bold">Progressive Web App</h3>
               </div>
               <div className="grid grid-cols-1 sm:grid-cols-3 gap-3 mb-4">
                 <div className="bg-white/10 rounded-xl p-3 text-center">
-                  <svg className="w-5 h-5 mx-auto mb-1 text-green-300" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                    <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M5 13l4 4L19 7" />
+                  <svg
+                    className="w-5 h-5 mx-auto mb-1 text-green-300"
+                    fill="none"
+                    stroke="currentColor"
+                    viewBox="0 0 24 24"
+                  >
+                    <path
+                      strokeLinecap="round"
+                      strokeLinejoin="round"
+                      strokeWidth={2}
+                      d="M5 13l4 4L19 7"
+                    />
                   </svg>
-                  <p className="text-sm font-medium text-white/90">Offline Support</p>
+                  <p className="text-sm font-medium text-white/90">
+                    Offline Support
+                  </p>
                 </div>
                 <div className="bg-white/10 rounded-xl p-3 text-center">
-                  <svg className="w-5 h-5 mx-auto mb-1 text-green-300" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                    <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M5 13l4 4L19 7" />
+                  <svg
+                    className="w-5 h-5 mx-auto mb-1 text-green-300"
+                    fill="none"
+                    stroke="currentColor"
+                    viewBox="0 0 24 24"
+                  >
+                    <path
+                      strokeLinecap="round"
+                      strokeLinejoin="round"
+                      strokeWidth={2}
+                      d="M5 13l4 4L19 7"
+                    />
                   </svg>
-                  <p className="text-sm font-medium text-white/90">Push Notifications</p>
+                  <p className="text-sm font-medium text-white/90">
+                    Push Notifications
+                  </p>
                 </div>
                 <div className="bg-white/10 rounded-xl p-3 text-center">
-                  <svg className="w-5 h-5 mx-auto mb-1 text-green-300" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                    <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M5 13l4 4L19 7" />
+                  <svg
+                    className="w-5 h-5 mx-auto mb-1 text-green-300"
+                    fill="none"
+                    stroke="currentColor"
+                    viewBox="0 0 24 24"
+                  >
+                    <path
+                      strokeLinecap="round"
+                      strokeLinejoin="round"
+                      strokeWidth={2}
+                      d="M5 13l4 4L19 7"
+                    />
                   </svg>
-                  <p className="text-sm font-medium text-white/90">Installable</p>
+                  <p className="text-sm font-medium text-white/90">
+                    Installable
+                  </p>
                 </div>
               </div>
               {/* Install App Button */}
@@ -2061,22 +2622,45 @@ const AdminDashboard = () => {
                 <button
                   onClick={async () => {
                     const accepted = await promptInstall();
-                    if (accepted) toast.success("App installed successfully! 🎉");
+                    if (accepted)
+                      toast.success("App installed successfully! 🎉");
                   }}
                   className="w-full flex items-center justify-center gap-3 px-6 py-3 bg-white text-indigo-600 rounded-xl hover:bg-gray-50 transition-all font-bold shadow-lg"
                 >
-                  <svg className="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                    <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M4 16v1a3 3 0 003 3h10a3 3 0 003-3v-1m-4-4l-4 4m0 0l-4-4m4 4V4" />
+                  <svg
+                    className="w-5 h-5"
+                    fill="none"
+                    stroke="currentColor"
+                    viewBox="0 0 24 24"
+                  >
+                    <path
+                      strokeLinecap="round"
+                      strokeLinejoin="round"
+                      strokeWidth={2}
+                      d="M4 16v1a3 3 0 003 3h10a3 3 0 003-3v-1m-4-4l-4 4m0 0l-4-4m4 4V4"
+                    />
                   </svg>
                   Install ELOCAB App
                 </button>
               )}
               {isInstalled && (
                 <div className="flex items-center gap-2 justify-center bg-white/10 rounded-xl p-3">
-                  <svg className="w-5 h-5 text-green-300" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                    <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M5 13l4 4L19 7" />
+                  <svg
+                    className="w-5 h-5 text-green-300"
+                    fill="none"
+                    stroke="currentColor"
+                    viewBox="0 0 24 24"
+                  >
+                    <path
+                      strokeLinecap="round"
+                      strokeLinejoin="round"
+                      strokeWidth={2}
+                      d="M5 13l4 4L19 7"
+                    />
                   </svg>
-                  <span className="text-sm font-medium text-white/90">App installed on this device</span>
+                  <span className="text-sm font-medium text-white/90">
+                    App installed on this device
+                  </span>
                 </div>
               )}
             </div>
@@ -2096,7 +2680,7 @@ const AdminDashboard = () => {
       {/* Confirm Modal */}
       <ConfirmModal
         isOpen={confirmModal.isOpen}
-        onClose={() => setConfirmModal(prev => ({ ...prev, isOpen: false }))}
+        onClose={() => setConfirmModal((prev) => ({ ...prev, isOpen: false }))}
         onConfirm={confirmModal.onConfirm}
         title={confirmModal.title}
         message={confirmModal.message}

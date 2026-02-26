@@ -193,16 +193,18 @@ exports.updateBookingStatus = async (req, res) => {
       const statusMessages = {
         "on-the-way": `Your driver ${driver.name} is on the way to pick you up!`,
         "picked-up": `You've been picked up by ${driver.name}. Enjoy your ride!`,
-        "completed": `Your ride with ${driver.name} is complete. Thank you for riding with ELOCAB!`,
-        "cancelled": `Your ride has been cancelled by the driver.`,
+        completed: `Your ride with ${driver.name} is complete. Thank you for riding with ELOCAB!`,
+        cancelled: `Your ride has been cancelled by the driver.`,
       };
-      const msg = statusMessages[status] || `Your booking status has been updated to: ${status}`;
+      const msg =
+        statusMessages[status] ||
+        `Your booking status has been updated to: ${status}`;
       await createNotification(
         customer.userId,
         status === "completed" ? "booking_completed" : "booking_status",
         status === "completed" ? "Ride Completed" : "Ride Status Update",
         msg,
-        { bookingId: booking._id, status }
+        { bookingId: booking._id, status },
       );
     }
 
@@ -214,7 +216,7 @@ exports.updateBookingStatus = async (req, res) => {
         "booking_status",
         "Booking Status Updated",
         `${driver.name} updated booking to: ${status.replace("-", " ")}`,
-        { bookingId: booking._id, status }
+        { bookingId: booking._id, status },
       );
     }
 

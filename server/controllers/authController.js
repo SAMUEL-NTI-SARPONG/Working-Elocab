@@ -60,7 +60,9 @@ exports.register = async (req, res) => {
       await User.findByIdAndDelete(user._id);
       console.error("Profile creation error:", profileError);
       return res.status(400).json({
-        message: profileError.message || "Error creating profile. Please check your details and try again.",
+        message:
+          profileError.message ||
+          "Error creating profile. Please check your details and try again.",
       });
     }
 
@@ -68,11 +70,13 @@ exports.register = async (req, res) => {
     const welcomeMessages = {
       customer: {
         title: "Welcome to ELOCAB! 🎉",
-        message: "Your account has been created successfully. You can now book rides across Kumasi. Enjoy your journey!",
+        message:
+          "Your account has been created successfully. You can now book rides across Kumasi. Enjoy your journey!",
       },
       driver: {
         title: "Welcome to ELOCAB, Driver! 🚗",
-        message: "Your driver account has been created successfully. Set your availability to start receiving ride requests.",
+        message:
+          "Your driver account has been created successfully. Set your availability to start receiving ride requests.",
       },
     };
 
@@ -81,7 +85,7 @@ exports.register = async (req, res) => {
         user._id,
         "welcome",
         welcomeMessages[role].title,
-        welcomeMessages[role].message
+        welcomeMessages[role].message,
       );
     }
 
@@ -93,7 +97,7 @@ exports.register = async (req, res) => {
         "system",
         "New User Registered",
         `A new ${role} has registered: ${otherData.name || phoneNumber}`,
-        { userId: user._id, role }
+        { userId: user._id, role },
       );
     }
 
@@ -126,13 +130,17 @@ exports.login = async (req, res) => {
     // Check for user
     const user = await User.findOne({ phoneNumber });
     if (!user) {
-      return res.status(401).json({ message: "Invalid phone number or password" });
+      return res
+        .status(401)
+        .json({ message: "Invalid phone number or password" });
     }
 
     // Check password using model method
     const isMatch = await user.comparePassword(password);
     if (!isMatch) {
-      return res.status(401).json({ message: "Invalid phone number or password" });
+      return res
+        .status(401)
+        .json({ message: "Invalid phone number or password" });
     }
 
     // Get role-specific profile

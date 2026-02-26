@@ -38,14 +38,14 @@ This guide will help you deploy your ELOCAB application to production.
 
 5. **Add Environment Variables** (click "Environment Variables" before deploying):
 
-   | Key              | Value                                                                                                                           |
-   | ---------------- | ------------------------------------------------------------------------------------------------------------------------------- |
-   | `MONGODB_URI`    | Your MongoDB Atlas connection string                                                                                            |
-   | `JWT_SECRET`     | A strong random secret (generate one with `openssl rand -hex 32`)                                                               |
-   | `NODE_ENV`       | `production`                                                                                                                    |
-   | `CLIENT_URL`     | `https://elocab.vercel.app`                                                                                                     |
-   | `ADMIN_EMAIL`    | Your admin email                                                                                                                |
-   | `ADMIN_PASSWORD` | Your admin password                                                                                                             |
+   | Key              | Value                                                             |
+   | ---------------- | ----------------------------------------------------------------- |
+   | `MONGODB_URI`    | Your MongoDB Atlas connection string                              |
+   | `JWT_SECRET`     | A strong random secret (generate one with `openssl rand -hex 32`) |
+   | `NODE_ENV`       | `production`                                                      |
+   | `CLIENT_URL`     | `https://elocab.vercel.app`                                       |
+   | `ADMIN_EMAIL`    | Your admin email                                                  |
+   | `ADMIN_PASSWORD` | Your admin password                                               |
 
    ⚠️ **IMPORTANT**: Check all 3 environments (Production, Preview, Development) for each variable!
 

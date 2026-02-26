@@ -35,9 +35,13 @@ const CustomerDashboard = () => {
 
   useEffect(() => {
     // Only show install prompt once per session
-    const hasSeenThisSession = sessionStorage.getItem("elocab_install_shown_this_session");
-    const hasDismissedForever = localStorage.getItem("elocab_install_prompt_seen");
-    
+    const hasSeenThisSession = sessionStorage.getItem(
+      "elocab_install_shown_this_session",
+    );
+    const hasDismissedForever = localStorage.getItem(
+      "elocab_install_prompt_seen",
+    );
+
     if (!hasSeenThisSession && !hasDismissedForever) {
       const timer = setTimeout(() => {
         setShowInstallPrompt(true);
@@ -69,7 +73,9 @@ const CustomerDashboard = () => {
       setBookings(data);
     } catch (error) {
       if (error.response?.status !== 401) {
-        toast.error(error.response?.data?.message || "Failed to fetch bookings");
+        toast.error(
+          error.response?.data?.message || "Failed to fetch bookings",
+        );
       }
     }
   };
@@ -123,15 +129,18 @@ const CustomerDashboard = () => {
     setConfirmModal({
       isOpen: true,
       title: "Cancel Booking",
-      message: "Are you sure you want to cancel this booking? This action cannot be undone.",
+      message:
+        "Are you sure you want to cancel this booking? This action cannot be undone.",
       onConfirm: async () => {
-        setConfirmModal(prev => ({ ...prev, isOpen: false }));
+        setConfirmModal((prev) => ({ ...prev, isOpen: false }));
         try {
           await axios.put(`/api/customers/bookings/${bookingId}/cancel`);
           toast.success("Booking cancelled successfully");
           fetchBookings();
         } catch (error) {
-          toast.error(error.response?.data?.message || "Failed to cancel booking");
+          toast.error(
+            error.response?.data?.message || "Failed to cancel booking",
+          );
         }
       },
     });
@@ -160,7 +169,7 @@ const CustomerDashboard = () => {
                 src="/images/logo.png"
                 alt="ELOCAB"
                 className="h-10 w-auto"
-                onError={(e) => (e.target.style.display = 'none')}
+                onError={(e) => (e.target.style.display = "none")}
               />
               <div>
                 <h1 className="text-lg font-bold text-gray-900">ELOCAB</h1>
@@ -171,7 +180,9 @@ const CustomerDashboard = () => {
               <NotificationBell />
               <div className="hidden sm:flex items-center gap-2 px-3 py-2 bg-gray-50 rounded-lg border border-gray-100">
                 <div className="w-8 h-8 bg-gray-900 rounded-lg flex items-center justify-center text-white text-xs font-semibold">
-                  {(profile?.name || user?.phoneNumber || "U").charAt(0).toUpperCase()}
+                  {(profile?.name || user?.phoneNumber || "U")
+                    .charAt(0)
+                    .toUpperCase()}
                 </div>
                 <span className="text-sm text-gray-700 font-medium">
                   {profile?.name || user?.phoneNumber}
@@ -193,21 +204,63 @@ const CustomerDashboard = () => {
         <div className="container mx-auto px-4 sm:px-6">
           <div className="flex space-x-1 py-2">
             {[
-              { key: "book", label: "Book a Ride", icon: (
-                <svg className="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                  <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M12 4v16m8-8H4" />
-                </svg>
-              )},
-              { key: "history", label: "My Bookings", icon: (
-                <svg className="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                  <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M9 5H7a2 2 0 00-2 2v12a2 2 0 002 2h10a2 2 0 002-2V7a2 2 0 00-2-2h-2M9 5a2 2 0 002 2h2a2 2 0 002-2M9 5a2 2 0 012-2h2a2 2 0 012 2" />
-                </svg>
-              )},
-              { key: "profile", label: "Profile", icon: (
-                <svg className="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                  <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M16 7a4 4 0 11-8 0 4 4 0 018 0zM12 14a7 7 0 00-7 7h14a7 7 0 00-7-7z" />
-                </svg>
-              )},
+              {
+                key: "book",
+                label: "Book a Ride",
+                icon: (
+                  <svg
+                    className="w-4 h-4"
+                    fill="none"
+                    stroke="currentColor"
+                    viewBox="0 0 24 24"
+                  >
+                    <path
+                      strokeLinecap="round"
+                      strokeLinejoin="round"
+                      strokeWidth={2}
+                      d="M12 4v16m8-8H4"
+                    />
+                  </svg>
+                ),
+              },
+              {
+                key: "history",
+                label: "My Bookings",
+                icon: (
+                  <svg
+                    className="w-4 h-4"
+                    fill="none"
+                    stroke="currentColor"
+                    viewBox="0 0 24 24"
+                  >
+                    <path
+                      strokeLinecap="round"
+                      strokeLinejoin="round"
+                      strokeWidth={2}
+                      d="M9 5H7a2 2 0 00-2 2v12a2 2 0 002 2h10a2 2 0 002-2V7a2 2 0 00-2-2h-2M9 5a2 2 0 002 2h2a2 2 0 002-2M9 5a2 2 0 012-2h2a2 2 0 012 2"
+                    />
+                  </svg>
+                ),
+              },
+              {
+                key: "profile",
+                label: "Profile",
+                icon: (
+                  <svg
+                    className="w-4 h-4"
+                    fill="none"
+                    stroke="currentColor"
+                    viewBox="0 0 24 24"
+                  >
+                    <path
+                      strokeLinecap="round"
+                      strokeLinejoin="round"
+                      strokeWidth={2}
+                      d="M16 7a4 4 0 11-8 0 4 4 0 018 0zM12 14a7 7 0 00-7 7h14a7 7 0 00-7-7z"
+                    />
+                  </svg>
+                ),
+              },
             ].map((tab) => (
               <button
                 key={tab.key}
@@ -234,14 +287,33 @@ const CustomerDashboard = () => {
             <div className="bg-white rounded-2xl shadow-soft p-6 sm:p-8 border border-gray-100">
               <div className="flex items-center gap-3 mb-6">
                 <div className="p-3 bg-primary/10 rounded-xl">
-                  <svg className="w-6 h-6 text-primary" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                    <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M17.657 16.657L13.414 20.9a1.998 1.998 0 01-2.827 0l-4.244-4.243a8 8 0 1111.314 0z" />
-                    <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M15 11a3 3 0 11-6 0 3 3 0 016 0z" />
+                  <svg
+                    className="w-6 h-6 text-primary"
+                    fill="none"
+                    stroke="currentColor"
+                    viewBox="0 0 24 24"
+                  >
+                    <path
+                      strokeLinecap="round"
+                      strokeLinejoin="round"
+                      strokeWidth={2}
+                      d="M17.657 16.657L13.414 20.9a1.998 1.998 0 01-2.827 0l-4.244-4.243a8 8 0 1111.314 0z"
+                    />
+                    <path
+                      strokeLinecap="round"
+                      strokeLinejoin="round"
+                      strokeWidth={2}
+                      d="M15 11a3 3 0 11-6 0 3 3 0 016 0z"
+                    />
                   </svg>
                 </div>
                 <div>
-                  <h2 className="text-xl font-bold text-gray-800">Book Your Ride</h2>
-                  <p className="text-sm text-gray-500">Fill in the details to request a ride</p>
+                  <h2 className="text-xl font-bold text-gray-800">
+                    Book Your Ride
+                  </h2>
+                  <p className="text-sm text-gray-500">
+                    Fill in the details to request a ride
+                  </p>
                 </div>
               </div>
               <form onSubmit={handleBookingSubmit} className="space-y-4">
@@ -374,24 +446,49 @@ const CustomerDashboard = () => {
           <div className="animate-fade-in">
             <div className="flex items-center gap-3 mb-6">
               <div className="p-3 bg-primary/10 rounded-xl">
-                <svg className="w-5 h-5 text-primary" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                  <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M9 5H7a2 2 0 00-2 2v12a2 2 0 002 2h10a2 2 0 002-2V7a2 2 0 00-2-2h-2M9 5a2 2 0 002 2h2a2 2 0 002-2M9 5a2 2 0 012-2h2a2 2 0 012 2" />
+                <svg
+                  className="w-5 h-5 text-primary"
+                  fill="none"
+                  stroke="currentColor"
+                  viewBox="0 0 24 24"
+                >
+                  <path
+                    strokeLinecap="round"
+                    strokeLinejoin="round"
+                    strokeWidth={2}
+                    d="M9 5H7a2 2 0 00-2 2v12a2 2 0 002 2h10a2 2 0 002-2V7a2 2 0 00-2-2h-2M9 5a2 2 0 002 2h2a2 2 0 002-2M9 5a2 2 0 012-2h2a2 2 0 012 2"
+                  />
                 </svg>
               </div>
               <div>
                 <h2 className="text-xl font-bold text-gray-800">My Bookings</h2>
-                <p className="text-sm text-gray-500">{bookings.length} booking{bookings.length !== 1 ? "s" : ""} total</p>
+                <p className="text-sm text-gray-500">
+                  {bookings.length} booking{bookings.length !== 1 ? "s" : ""}{" "}
+                  total
+                </p>
               </div>
             </div>
             {bookings.length === 0 ? (
               <div className="bg-white rounded-2xl shadow-soft text-center py-16 border border-gray-100">
                 <div className="p-4 bg-gray-100 rounded-full w-16 h-16 mx-auto mb-4 flex items-center justify-center">
-                  <svg className="w-8 h-8 text-gray-400" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                    <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M9 5H7a2 2 0 00-2 2v12a2 2 0 002 2h10a2 2 0 002-2V7a2 2 0 00-2-2h-2M9 5a2 2 0 002 2h2a2 2 0 002-2M9 5a2 2 0 012-2h2a2 2 0 012 2" />
+                  <svg
+                    className="w-8 h-8 text-gray-400"
+                    fill="none"
+                    stroke="currentColor"
+                    viewBox="0 0 24 24"
+                  >
+                    <path
+                      strokeLinecap="round"
+                      strokeLinejoin="round"
+                      strokeWidth={2}
+                      d="M9 5H7a2 2 0 00-2 2v12a2 2 0 002 2h10a2 2 0 002-2V7a2 2 0 00-2-2h-2M9 5a2 2 0 002 2h2a2 2 0 002-2M9 5a2 2 0 012-2h2a2 2 0 012 2"
+                    />
                   </svg>
                 </div>
                 <p className="text-gray-500 font-medium">No bookings yet</p>
-                <p className="text-gray-400 text-sm mt-1">Your ride history will appear here</p>
+                <p className="text-gray-400 text-sm mt-1">
+                  Your ride history will appear here
+                </p>
                 <button
                   onClick={() => setActiveTab("book")}
                   className="mt-4 px-5 py-2.5 bg-primary text-white rounded-xl font-semibold text-sm hover:bg-primary-light"
@@ -474,11 +571,14 @@ const CustomerDashboard = () => {
                                 </div>
                               </div>
                             ) : (
-                              <span className="text-gray-400 text-xs">Awaiting assignment</span>
+                              <span className="text-gray-400 text-xs">
+                                Awaiting assignment
+                              </span>
                             )}
                           </td>
                           <td className="px-6 py-4">
-                            {(booking.status === "pending" || booking.status === "accepted") && (
+                            {(booking.status === "pending" ||
+                              booking.status === "accepted") && (
                               <button
                                 onClick={() => cancelBooking(booking._id)}
                                 className="px-3 py-1.5 bg-red-50 text-red-600 rounded-lg text-xs font-semibold hover:bg-red-100 transition-colors"
@@ -496,10 +596,7 @@ const CustomerDashboard = () => {
                 {/* Mobile Cards */}
                 <div className="md:hidden divide-y divide-gray-100">
                   {bookings.map((booking) => (
-                    <div
-                      key={booking._id}
-                      className="p-4"
-                    >
+                    <div key={booking._id} className="p-4">
                       <div className="flex justify-between items-start mb-3">
                         <span
                           className={`inline-block px-3 py-1 rounded-full text-xs font-semibold ${getStatusColor(booking.status)}`}
@@ -513,22 +610,46 @@ const CustomerDashboard = () => {
                       </div>
                       <div className="grid grid-cols-2 gap-3 text-sm">
                         <div className="bg-gray-50 rounded-xl p-3">
-                          <span className="text-gray-500 text-xs block">Service</span>
-                          <span className="font-semibold text-gray-800">{booking.serviceType}</span>
+                          <span className="text-gray-500 text-xs block">
+                            Service
+                          </span>
+                          <span className="font-semibold text-gray-800">
+                            {booking.serviceType}
+                          </span>
                         </div>
                         <div className="bg-gray-50 rounded-xl p-3">
-                          <span className="text-gray-500 text-xs block">Passengers</span>
-                          <span className="font-semibold text-gray-800">{booking.numberOfPeople}</span>
+                          <span className="text-gray-500 text-xs block">
+                            Passengers
+                          </span>
+                          <span className="font-semibold text-gray-800">
+                            {booking.numberOfPeople}
+                          </span>
                         </div>
                       </div>
                       <div className="mt-3 bg-gray-50 rounded-xl p-3">
-                        <span className="text-gray-500 text-xs block mb-1">Route</span>
+                        <span className="text-gray-500 text-xs block mb-1">
+                          Route
+                        </span>
                         <div className="flex items-center gap-2 text-sm">
-                          <span className="font-medium text-gray-800">{booking.pickupPoint}</span>
-                          <svg className="w-4 h-4 text-gray-400" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                            <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M14 5l7 7m0 0l-7 7m7-7H3" />
+                          <span className="font-medium text-gray-800">
+                            {booking.pickupPoint}
+                          </span>
+                          <svg
+                            className="w-4 h-4 text-gray-400"
+                            fill="none"
+                            stroke="currentColor"
+                            viewBox="0 0 24 24"
+                          >
+                            <path
+                              strokeLinecap="round"
+                              strokeLinejoin="round"
+                              strokeWidth={2}
+                              d="M14 5l7 7m0 0l-7 7m7-7H3"
+                            />
                           </svg>
-                          <span className="font-medium text-gray-800">{booking.destination}</span>
+                          <span className="font-medium text-gray-800">
+                            {booking.destination}
+                          </span>
                         </div>
                       </div>
                       {booking.driverId && booking.driverId.name && (
@@ -540,10 +661,13 @@ const CustomerDashboard = () => {
                             {booking.driverId.name}
                           </span>
                           <span className="text-gray-400">•</span>
-                          <span className="text-gray-500">{booking.driverId.contactNumber}</span>
+                          <span className="text-gray-500">
+                            {booking.driverId.contactNumber}
+                          </span>
                         </div>
                       )}
-                      {(booking.status === "pending" || booking.status === "accepted") && (
+                      {(booking.status === "pending" ||
+                        booking.status === "accepted") && (
                         <button
                           onClick={() => cancelBooking(booking._id)}
                           className="mt-3 w-full py-2 bg-red-50 text-red-600 rounded-xl text-sm font-semibold hover:bg-red-100 transition-colors"
@@ -565,13 +689,27 @@ const CustomerDashboard = () => {
             <div className="bg-white rounded-2xl shadow-soft p-6 sm:p-8 border border-gray-100">
               <div className="flex items-center gap-3 mb-6">
                 <div className="p-3 bg-primary/10 rounded-xl">
-                  <svg className="w-6 h-6 text-primary" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                    <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M16 7a4 4 0 11-8 0 4 4 0 018 0zM12 14a7 7 0 00-7 7h14a7 7 0 00-7-7z" />
+                  <svg
+                    className="w-6 h-6 text-primary"
+                    fill="none"
+                    stroke="currentColor"
+                    viewBox="0 0 24 24"
+                  >
+                    <path
+                      strokeLinecap="round"
+                      strokeLinejoin="round"
+                      strokeWidth={2}
+                      d="M16 7a4 4 0 11-8 0 4 4 0 018 0zM12 14a7 7 0 00-7 7h14a7 7 0 00-7-7z"
+                    />
                   </svg>
                 </div>
                 <div>
-                  <h2 className="text-xl font-bold text-gray-800">My Profile</h2>
-                  <p className="text-sm text-gray-500">Update your personal information</p>
+                  <h2 className="text-xl font-bold text-gray-800">
+                    My Profile
+                  </h2>
+                  <p className="text-sm text-gray-500">
+                    Update your personal information
+                  </p>
                 </div>
               </div>
               <form onSubmit={handleProfileUpdate} className="space-y-4">
@@ -600,7 +738,9 @@ const CustomerDashboard = () => {
                     className="input-field bg-gray-100"
                     disabled
                   />
-                  <p className="text-xs text-gray-400 mt-1">Phone number is used for login and cannot be changed here</p>
+                  <p className="text-xs text-gray-400 mt-1">
+                    Phone number is used for login and cannot be changed here
+                  </p>
                 </div>
 
                 <button
@@ -618,23 +758,46 @@ const CustomerDashboard = () => {
                   <button
                     onClick={async () => {
                       const accepted = await promptInstall();
-                      if (accepted) toast.success("App installed successfully! 🎉");
+                      if (accepted)
+                        toast.success("App installed successfully! 🎉");
                     }}
                     className="w-full flex items-center justify-center gap-3 px-6 py-3 bg-gradient-to-r from-amber-500 to-amber-600 text-white rounded-xl hover:from-amber-600 hover:to-amber-700 transition-all font-semibold shadow-lg"
                   >
-                    <svg className="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                      <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M4 16v1a3 3 0 003 3h10a3 3 0 003-3v-1m-4-4l-4 4m0 0l-4-4m4 4V4" />
+                    <svg
+                      className="w-5 h-5"
+                      fill="none"
+                      stroke="currentColor"
+                      viewBox="0 0 24 24"
+                    >
+                      <path
+                        strokeLinecap="round"
+                        strokeLinejoin="round"
+                        strokeWidth={2}
+                        d="M4 16v1a3 3 0 003 3h10a3 3 0 003-3v-1m-4-4l-4 4m0 0l-4-4m4 4V4"
+                      />
                     </svg>
                     Install ELOCAB App
                   </button>
-                  <p className="text-xs text-gray-400 text-center mt-2">Add to home screen for quick access</p>
+                  <p className="text-xs text-gray-400 text-center mt-2">
+                    Add to home screen for quick access
+                  </p>
                 </div>
               )}
               {isInstalled && (
                 <div className="mt-6 pt-6 border-t border-gray-100">
                   <div className="flex items-center gap-2 text-green-600 justify-center">
-                    <svg className="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                      <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M5 13l4 4L19 7" />
+                    <svg
+                      className="w-5 h-5"
+                      fill="none"
+                      stroke="currentColor"
+                      viewBox="0 0 24 24"
+                    >
+                      <path
+                        strokeLinecap="round"
+                        strokeLinejoin="round"
+                        strokeWidth={2}
+                        d="M5 13l4 4L19 7"
+                      />
                     </svg>
                     <span className="text-sm font-medium">App installed</span>
                   </div>

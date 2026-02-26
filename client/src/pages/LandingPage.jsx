@@ -22,8 +22,10 @@ const LandingPage = () => {
   // Show install prompt for first-time visitors after 2 seconds
   useEffect(() => {
     const hasSeenPrompt = localStorage.getItem("elocab_install_prompt_seen");
-    const hasSeenThisSession = sessionStorage.getItem("elocab_install_shown_this_session");
-    
+    const hasSeenThisSession = sessionStorage.getItem(
+      "elocab_install_shown_this_session",
+    );
+
     if (!hasSeenPrompt && !hasSeenThisSession) {
       const timer = setTimeout(() => {
         setShowInstallPrompt(true);
@@ -173,13 +175,26 @@ const LandingPage = () => {
             </div>
 
             {/* Download App Button - Always visible */}
-            <div className="mt-6 animate-fade-in" style={{ animationDelay: "0.9s" }}>
+            <div
+              className="mt-6 animate-fade-in"
+              style={{ animationDelay: "0.9s" }}
+            >
               <button
                 onClick={handleDownloadClick}
                 className="group inline-flex items-center gap-3 px-8 py-4 bg-gradient-to-r from-amber-500 to-amber-600 text-white rounded-2xl font-bold text-base shadow-lg hover:shadow-[0_10px_40px_rgba(245,158,11,0.4)] transform hover:scale-105 transition-all duration-300"
               >
-                <svg className="w-6 h-6" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                  <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M4 16v1a3 3 0 003 3h10a3 3 0 003-3v-1m-4-4l-4 4m0 0l-4-4m4 4V4" />
+                <svg
+                  className="w-6 h-6"
+                  fill="none"
+                  stroke="currentColor"
+                  viewBox="0 0 24 24"
+                >
+                  <path
+                    strokeLinecap="round"
+                    strokeLinejoin="round"
+                    strokeWidth={2}
+                    d="M4 16v1a3 3 0 003 3h10a3 3 0 003-3v-1m-4-4l-4 4m0 0l-4-4m4 4V4"
+                  />
                 </svg>
                 {isInstalled ? "App Installed ✓" : "Download App"}
               </button>
@@ -336,26 +351,50 @@ const LandingPage = () => {
 
       {/* Manual Install Instructions Modal (for browsers without beforeinstallprompt) */}
       {showInstructions && (
-        <div className="fixed inset-0 bg-black/60 flex items-center justify-center z-50 p-4" onClick={() => setShowInstructions(false)}>
-          <div className="bg-white rounded-2xl shadow-2xl max-w-md w-full p-6 animate-slide-up" onClick={(e) => e.stopPropagation()}>
+        <div
+          className="fixed inset-0 bg-black/60 flex items-center justify-center z-50 p-4"
+          onClick={() => setShowInstructions(false)}
+        >
+          <div
+            className="bg-white rounded-2xl shadow-2xl max-w-md w-full p-6 animate-slide-up"
+            onClick={(e) => e.stopPropagation()}
+          >
             <div className="flex justify-center mb-4">
               <div className="bg-gradient-to-br from-amber-400 to-amber-600 rounded-full p-4">
-                <svg className="w-10 h-10 text-white" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                  <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M4 16v1a3 3 0 003 3h10a3 3 0 003-3v-1m-4-4l-4 4m0 0l-4-4m4 4V4" />
+                <svg
+                  className="w-10 h-10 text-white"
+                  fill="none"
+                  stroke="currentColor"
+                  viewBox="0 0 24 24"
+                >
+                  <path
+                    strokeLinecap="round"
+                    strokeLinejoin="round"
+                    strokeWidth={2}
+                    d="M4 16v1a3 3 0 003 3h10a3 3 0 003-3v-1m-4-4l-4 4m0 0l-4-4m4 4V4"
+                  />
                 </svg>
               </div>
             </div>
-            <h2 className="text-xl font-bold text-gray-900 text-center mb-2">Install ELOCAB App</h2>
-            <p className="text-gray-600 text-center mb-6 text-sm">Follow these steps to add ELOCAB to your home screen:</p>
-            
+            <h2 className="text-xl font-bold text-gray-900 text-center mb-2">
+              Install ELOCAB App
+            </h2>
+            <p className="text-gray-600 text-center mb-6 text-sm">
+              Follow these steps to add ELOCAB to your home screen:
+            </p>
+
             <div className="space-y-4 mb-6">
               <div className="flex items-start gap-3">
                 <div className="w-7 h-7 bg-amber-100 rounded-full flex items-center justify-center flex-shrink-0 mt-0.5">
                   <span className="text-amber-700 font-bold text-sm">1</span>
                 </div>
                 <div>
-                  <p className="text-sm text-gray-800 font-semibold">For Chrome / Edge</p>
-                  <p className="text-xs text-gray-500">Tap the menu (⋮) → "Install app" or "Add to Home screen"</p>
+                  <p className="text-sm text-gray-800 font-semibold">
+                    For Chrome / Edge
+                  </p>
+                  <p className="text-xs text-gray-500">
+                    Tap the menu (⋮) → "Install app" or "Add to Home screen"
+                  </p>
                 </div>
               </div>
               <div className="flex items-start gap-3">
@@ -363,8 +402,12 @@ const LandingPage = () => {
                   <span className="text-amber-700 font-bold text-sm">2</span>
                 </div>
                 <div>
-                  <p className="text-sm text-gray-800 font-semibold">For Safari (iOS)</p>
-                  <p className="text-xs text-gray-500">Tap the Share button (□↗) → "Add to Home Screen"</p>
+                  <p className="text-sm text-gray-800 font-semibold">
+                    For Safari (iOS)
+                  </p>
+                  <p className="text-xs text-gray-500">
+                    Tap the Share button (□↗) → "Add to Home Screen"
+                  </p>
                 </div>
               </div>
               <div className="flex items-start gap-3">
@@ -372,8 +415,12 @@ const LandingPage = () => {
                   <span className="text-amber-700 font-bold text-sm">3</span>
                 </div>
                 <div>
-                  <p className="text-sm text-gray-800 font-semibold">For Firefox</p>
-                  <p className="text-xs text-gray-500">Tap the menu (⋮) → "Install" or "Add to Home screen"</p>
+                  <p className="text-sm text-gray-800 font-semibold">
+                    For Firefox
+                  </p>
+                  <p className="text-xs text-gray-500">
+                    Tap the menu (⋮) → "Install" or "Add to Home screen"
+                  </p>
                 </div>
               </div>
             </div>

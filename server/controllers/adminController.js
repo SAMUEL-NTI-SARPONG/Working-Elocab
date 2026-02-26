@@ -122,7 +122,7 @@ exports.assignDriver = async (req, res) => {
       "driver_assigned",
       "New Ride Assignment",
       `You have been assigned a ride: ${booking.pickupPoint || "Pickup"} → ${booking.destination || "Destination"}`,
-      { bookingId: booking._id }
+      { bookingId: booking._id },
     );
 
     // Create notification for customer
@@ -134,7 +134,7 @@ exports.assignDriver = async (req, res) => {
           "booking_assigned",
           "Driver Assigned",
           `${driver.name} has been assigned to your ride. Vehicle: ${driver.carType} (${driver.carNumber})`,
-          { bookingId: booking._id, driverName: driver.name }
+          { bookingId: booking._id, driverName: driver.name },
         );
       }
     }
@@ -311,8 +311,7 @@ exports.clearAllBookings = async (req, res) => {
 // Create new customer
 exports.createCustomer = async (req, res) => {
   try {
-    const { phoneNumber, password, name, city, digitalAddress } =
-      req.body;
+    const { phoneNumber, password, name, city, digitalAddress } = req.body;
 
     // Check if user already exists
     const existingUser = await User.findOne({ phoneNumber });

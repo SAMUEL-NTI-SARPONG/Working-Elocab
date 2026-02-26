@@ -38,7 +38,7 @@ export const AuthProvider = ({ children }) => {
           }
         }
         return Promise.reject(error);
-      }
+      },
     );
     return () => axios.interceptors.response.eject(interceptor);
   }, []);
@@ -60,8 +60,8 @@ export const AuthProvider = ({ children }) => {
     try {
       const endpoint = isAdmin ? "/api/auth/admin/login" : "/api/auth/login";
       // Admin uses email, regular users use phoneNumber
-      const payload = isAdmin 
-        ? { email: identifier, password } 
+      const payload = isAdmin
+        ? { email: identifier, password }
         : { phoneNumber: identifier, password };
       const { data } = await axios.post(endpoint, payload);
 

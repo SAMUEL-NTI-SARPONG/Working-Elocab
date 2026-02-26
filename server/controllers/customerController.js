@@ -100,7 +100,7 @@ exports.createBooking = async (req, res) => {
       "booking_created",
       "Booking Confirmed",
       `Your ${serviceType} ride from ${pickupPoint} to ${destination} has been submitted. We'll assign a driver soon.`,
-      { bookingId: booking._id }
+      { bookingId: booking._id },
     );
 
     // Create notification for all admins
@@ -111,7 +111,7 @@ exports.createBooking = async (req, res) => {
         "booking_created",
         "New Booking Received",
         `${customer.name} booked a ${serviceType} ride: ${pickupPoint} → ${destination}`,
-        { bookingId: booking._id }
+        { bookingId: booking._id },
       );
     }
 
@@ -209,7 +209,7 @@ exports.cancelBooking = async (req, res) => {
         "booking_cancelled",
         "Booking Cancelled",
         `${customer.name} cancelled their booking: ${booking.pickupPoint} → ${booking.destination}`,
-        { bookingId: booking._id }
+        { bookingId: booking._id },
       );
     }
 
@@ -222,7 +222,7 @@ exports.cancelBooking = async (req, res) => {
           "booking_cancelled",
           "Booking Cancelled by Customer",
           `${customer.name} cancelled the booking: ${booking.pickupPoint} → ${booking.destination}`,
-          { bookingId: booking._id }
+          { bookingId: booking._id },
         );
       }
     }

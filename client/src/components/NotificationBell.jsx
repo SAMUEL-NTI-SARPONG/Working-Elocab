@@ -38,7 +38,8 @@ const NotificationBell = () => {
     };
 
     refreshEvents.forEach((event) => socket.on(event, handleRefresh));
-    return () => refreshEvents.forEach((event) => socket.off(event, handleRefresh));
+    return () =>
+      refreshEvents.forEach((event) => socket.off(event, handleRefresh));
   }, [socket, isOpen]);
 
   // Close dropdown on outside click
@@ -78,7 +79,7 @@ const NotificationBell = () => {
     try {
       await axios.put(`/api/notifications/${id}/read`);
       setNotifications((prev) =>
-        prev.map((n) => (n._id === id ? { ...n, read: true } : n))
+        prev.map((n) => (n._id === id ? { ...n, read: true } : n)),
       );
       setUnreadCount((prev) => Math.max(0, prev - 1));
     } catch {
@@ -111,8 +112,18 @@ const NotificationBell = () => {
       case "booking_created":
         return (
           <div className="p-2 bg-blue-100 rounded-lg">
-            <svg className="w-4 h-4 text-blue-600" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-              <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M12 4v16m8-8H4" />
+            <svg
+              className="w-4 h-4 text-blue-600"
+              fill="none"
+              stroke="currentColor"
+              viewBox="0 0 24 24"
+            >
+              <path
+                strokeLinecap="round"
+                strokeLinejoin="round"
+                strokeWidth={2}
+                d="M12 4v16m8-8H4"
+              />
             </svg>
           </div>
         );
@@ -120,40 +131,90 @@ const NotificationBell = () => {
       case "driver_assigned":
         return (
           <div className="p-2 bg-green-100 rounded-lg">
-            <svg className="w-4 h-4 text-green-600" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-              <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M16 7a4 4 0 11-8 0 4 4 0 018 0zM12 14a7 7 0 00-7 7h14a7 7 0 00-7-7z" />
+            <svg
+              className="w-4 h-4 text-green-600"
+              fill="none"
+              stroke="currentColor"
+              viewBox="0 0 24 24"
+            >
+              <path
+                strokeLinecap="round"
+                strokeLinejoin="round"
+                strokeWidth={2}
+                d="M16 7a4 4 0 11-8 0 4 4 0 018 0zM12 14a7 7 0 00-7 7h14a7 7 0 00-7-7z"
+              />
             </svg>
           </div>
         );
       case "booking_completed":
         return (
           <div className="p-2 bg-emerald-100 rounded-lg">
-            <svg className="w-4 h-4 text-emerald-600" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-              <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M5 13l4 4L19 7" />
+            <svg
+              className="w-4 h-4 text-emerald-600"
+              fill="none"
+              stroke="currentColor"
+              viewBox="0 0 24 24"
+            >
+              <path
+                strokeLinecap="round"
+                strokeLinejoin="round"
+                strokeWidth={2}
+                d="M5 13l4 4L19 7"
+              />
             </svg>
           </div>
         );
       case "booking_cancelled":
         return (
           <div className="p-2 bg-red-100 rounded-lg">
-            <svg className="w-4 h-4 text-red-600" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-              <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M6 18L18 6M6 6l12 12" />
+            <svg
+              className="w-4 h-4 text-red-600"
+              fill="none"
+              stroke="currentColor"
+              viewBox="0 0 24 24"
+            >
+              <path
+                strokeLinecap="round"
+                strokeLinejoin="round"
+                strokeWidth={2}
+                d="M6 18L18 6M6 6l12 12"
+              />
             </svg>
           </div>
         );
       case "booking_status":
         return (
           <div className="p-2 bg-purple-100 rounded-lg">
-            <svg className="w-4 h-4 text-purple-600" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-              <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M13 10V3L4 14h7v7l9-11h-7z" />
+            <svg
+              className="w-4 h-4 text-purple-600"
+              fill="none"
+              stroke="currentColor"
+              viewBox="0 0 24 24"
+            >
+              <path
+                strokeLinecap="round"
+                strokeLinejoin="round"
+                strokeWidth={2}
+                d="M13 10V3L4 14h7v7l9-11h-7z"
+              />
             </svg>
           </div>
         );
       default:
         return (
           <div className="p-2 bg-gray-100 rounded-lg">
-            <svg className="w-4 h-4 text-gray-600" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-              <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M15 17h5l-1.405-1.405A2.032 2.032 0 0118 14.158V11a6.002 6.002 0 00-4-5.659V5a2 2 0 10-4 0v.341C7.67 6.165 6 8.388 6 11v3.159c0 .538-.214 1.055-.595 1.436L4 17h5m6 0v1a3 3 0 11-6 0v-1m6 0H9" />
+            <svg
+              className="w-4 h-4 text-gray-600"
+              fill="none"
+              stroke="currentColor"
+              viewBox="0 0 24 24"
+            >
+              <path
+                strokeLinecap="round"
+                strokeLinejoin="round"
+                strokeWidth={2}
+                d="M15 17h5l-1.405-1.405A2.032 2.032 0 0118 14.158V11a6.002 6.002 0 00-4-5.659V5a2 2 0 10-4 0v.341C7.67 6.165 6 8.388 6 11v3.159c0 .538-.214 1.055-.595 1.436L4 17h5m6 0v1a3 3 0 11-6 0v-1m6 0H9"
+              />
             </svg>
           </div>
         );
@@ -183,8 +244,18 @@ const NotificationBell = () => {
         className="relative p-2 text-gray-600 hover:text-gray-800 hover:bg-gray-100 rounded-xl transition-all"
         aria-label="Notifications"
       >
-        <svg className="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-          <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M15 17h5l-1.405-1.405A2.032 2.032 0 0118 14.158V11a6.002 6.002 0 00-4-5.659V5a2 2 0 10-4 0v.341C7.67 6.165 6 8.388 6 11v3.159c0 .538-.214 1.055-.595 1.436L4 17h5m6 0v1a3 3 0 11-6 0v-1m6 0H9" />
+        <svg
+          className="w-5 h-5"
+          fill="none"
+          stroke="currentColor"
+          viewBox="0 0 24 24"
+        >
+          <path
+            strokeLinecap="round"
+            strokeLinejoin="round"
+            strokeWidth={2}
+            d="M15 17h5l-1.405-1.405A2.032 2.032 0 0118 14.158V11a6.002 6.002 0 00-4-5.659V5a2 2 0 10-4 0v.341C7.67 6.165 6 8.388 6 11v3.159c0 .538-.214 1.055-.595 1.436L4 17h5m6 0v1a3 3 0 11-6 0v-1m6 0H9"
+          />
         </svg>
         {unreadCount > 0 && (
           <span className="absolute -top-0.5 -right-0.5 flex items-center justify-center min-w-[18px] h-[18px] px-1 text-[10px] font-bold text-white bg-red-500 rounded-full animate-pulse">
@@ -195,7 +266,7 @@ const NotificationBell = () => {
 
       {/* Dropdown */}
       {isOpen && (
-        <div 
+        <div
           className="absolute right-0 top-full mt-2 w-80 sm:w-96 bg-white rounded-2xl shadow-2xl border border-gray-100 overflow-hidden z-50"
           style={{ animation: "notifSlideDown 0.2s ease-out" }}
         >
@@ -228,18 +299,34 @@ const NotificationBell = () => {
               </div>
             ) : notifications.length === 0 ? (
               <div className="py-12 text-center">
-                <svg className="w-10 h-10 text-gray-300 mx-auto mb-2" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                  <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={1.5} d="M15 17h5l-1.405-1.405A2.032 2.032 0 0118 14.158V11a6.002 6.002 0 00-4-5.659V5a2 2 0 10-4 0v.341C7.67 6.165 6 8.388 6 11v3.159c0 .538-.214 1.055-.595 1.436L4 17h5m6 0v1a3 3 0 11-6 0v-1m6 0H9" />
+                <svg
+                  className="w-10 h-10 text-gray-300 mx-auto mb-2"
+                  fill="none"
+                  stroke="currentColor"
+                  viewBox="0 0 24 24"
+                >
+                  <path
+                    strokeLinecap="round"
+                    strokeLinejoin="round"
+                    strokeWidth={1.5}
+                    d="M15 17h5l-1.405-1.405A2.032 2.032 0 0118 14.158V11a6.002 6.002 0 00-4-5.659V5a2 2 0 10-4 0v.341C7.67 6.165 6 8.388 6 11v3.159c0 .538-.214 1.055-.595 1.436L4 17h5m6 0v1a3 3 0 11-6 0v-1m6 0H9"
+                  />
                 </svg>
-                <p className="text-gray-400 text-sm font-medium">No notifications yet</p>
-                <p className="text-gray-300 text-xs mt-1">You're all caught up!</p>
+                <p className="text-gray-400 text-sm font-medium">
+                  No notifications yet
+                </p>
+                <p className="text-gray-300 text-xs mt-1">
+                  You're all caught up!
+                </p>
               </div>
             ) : (
               <div>
                 {notifications.map((notification) => (
                   <div
                     key={notification._id}
-                    onClick={() => !notification.read && markAsRead(notification._id)}
+                    onClick={() =>
+                      !notification.read && markAsRead(notification._id)
+                    }
                     className={`px-4 py-3 border-b border-gray-50 hover:bg-gray-50 cursor-pointer transition-colors flex gap-3 ${
                       !notification.read ? "bg-blue-50/50" : ""
                     }`}
@@ -247,7 +334,9 @@ const NotificationBell = () => {
                     {getNotificationIcon(notification.type)}
                     <div className="flex-1 min-w-0">
                       <div className="flex items-start justify-between gap-2">
-                        <h4 className={`text-sm ${!notification.read ? "font-bold text-gray-900" : "font-medium text-gray-700"}`}>
+                        <h4
+                          className={`text-sm ${!notification.read ? "font-bold text-gray-900" : "font-medium text-gray-700"}`}
+                        >
                           {notification.title}
                         </h4>
                         {!notification.read && (
@@ -269,7 +358,9 @@ const NotificationBell = () => {
 
           {notifications.length > 0 && (
             <div className="px-4 py-2 bg-gray-50 border-t border-gray-100 flex items-center justify-between">
-              <p className="text-xs text-gray-400">Showing latest {notifications.length}</p>
+              <p className="text-xs text-gray-400">
+                Showing latest {notifications.length}
+              </p>
               <button
                 onClick={clearAllNotifications}
                 className="text-xs text-red-500 hover:text-red-700 font-semibold transition-colors"

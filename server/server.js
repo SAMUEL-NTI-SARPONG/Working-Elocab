@@ -18,7 +18,11 @@ const bookingRoutes = require("./routes/bookingRoutes");
 const adminRoutes = require("./routes/adminRoutes");
 const archiveRoutes = require("./routes/archiveRoutes");
 const notificationRoutes = require("./routes/notificationRoutes");
-const { apiLimiter, authLimiter, sanitizeInput } = require("./middleware/security");
+const {
+  apiLimiter,
+  authLimiter,
+  sanitizeInput,
+} = require("./middleware/security");
 
 const app = express();
 const server = http.createServer(app);
@@ -28,7 +32,9 @@ const getAllowedOrigins = () => {
   const origins = [];
   if (process.env.CLIENT_URL) {
     // Support comma-separated origins for multiple deployments
-    process.env.CLIENT_URL.split(",").forEach((url) => origins.push(url.trim()));
+    process.env.CLIENT_URL.split(",").forEach((url) =>
+      origins.push(url.trim()),
+    );
   }
   return origins;
 };
@@ -54,11 +60,13 @@ const io = socketIo(server, {
 });
 
 // Middleware
-app.use(helmet({
-  crossOriginResourcePolicy: { policy: "cross-origin" },
-  crossOriginOpenerPolicy: false,
-  contentSecurityPolicy: false,
-}));
+app.use(
+  helmet({
+    crossOriginResourcePolicy: { policy: "cross-origin" },
+    crossOriginOpenerPolicy: false,
+    contentSecurityPolicy: false,
+  }),
+);
 app.use(cors(corsOptions));
 app.use(express.json({ limit: "10mb" }));
 app.use(express.urlencoded({ extended: true }));
@@ -88,7 +96,7 @@ const connectDB = async () => {
 
   // If disconnecting, wait a moment
   if (mongoose.connection.readyState === 3) {
-    await new Promise(resolve => setTimeout(resolve, 500));
+    await new Promise((resolve) => setTimeout(resolve, 500));
   }
 
   // If a connection attempt is already in progress, wait for it
@@ -115,7 +123,7 @@ const connectDB = async () => {
       try {
         const userCollection = db.connection.collection("users");
         const indexes = await userCollection.indexes();
-        const emailIndex = indexes.find(idx => idx.key && idx.key.email);
+        const emailIndex = indexes.find((idx) => idx.key && idx.key.email);
         if (emailIndex) {
           await userCollection.dropIndex(emailIndex.name);
           console.log("✅ Dropped legacy email index");
@@ -137,9 +145,15 @@ const connectDB = async () => {
 };
 
 // Handle connection state changes
-mongoose.connection.on("connected", () => { isConnected = true; });
-mongoose.connection.on("disconnected", () => { isConnected = false; });
-mongoose.connection.on("error", () => { isConnected = false; });
+mongoose.connection.on("connected", () => {
+  isConnected = true;
+});
+mongoose.connection.on("disconnected", () => {
+  isConnected = false;
+});
+mongoose.connection.on("error", () => {
+  isConnected = false;
+});
 
 // Connect on startup (non-blocking for serverless)
 connectDB();
@@ -191,7 +205,7 @@ app.use("/api", async (req, res, next) => {
 
     // Attempt connection (will reuse cached promise if in progress)
     await connectDB();
-    
+
     if (mongoose.connection.readyState === 1) {
       isConnected = true;
       return next();
@@ -200,30 +214,31 @@ app.use("/api", async (req, res, next) => {
     // Retry with increasing delays (up to 3 attempts)
     for (let attempt = 1; attempt <= 2; attempt++) {
       console.log(`⏳ DB retry attempt ${attempt}...`);
-      await new Promise(resolve => setTimeout(resolve, attempt * 1500));
+      await new Promise((resolve) => setTimeout(resolve, attempt * 1500));
       await connectDB();
-      
+
       if (mongoose.connection.readyState === 1) {
         isConnected = true;
         return next();
       }
     }
 
-    return res.status(503).json({ 
+    return res.status(503).json({
       success: false,
-      message: "Database is temporarily unavailable. Please try again in a moment." 
+      message:
+        "Database is temporarily unavailable. Please try again in a moment.",
     });
   } catch (err) {
     console.error("DB connection middleware error:", err.message);
-    
+
     // Even on error, if bufferCommands is enabled and connection is in progress, let it through
     if (mongoose.connection.readyState === 2) {
       return next();
     }
-    
-    res.status(503).json({ 
+
+    res.status(503).json({
       success: false,
-      message: "Database connection error. Please try again." 
+      message: "Database connection error. Please try again.",
     });
   }
 });
