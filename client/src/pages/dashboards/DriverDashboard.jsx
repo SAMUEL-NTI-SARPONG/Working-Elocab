@@ -21,7 +21,7 @@ const DriverDashboard = () => {
     carType: "",
     carNumber: "",
     licenseNumber: "",
-    seats: "",
+    numberOfSeats: "",
     contactNumber: "",
   });
   const [showInstallPrompt, setShowInstallPrompt] = useState(false);
@@ -55,7 +55,7 @@ const DriverDashboard = () => {
         carType: data.carType || "",
         carNumber: data.carNumber || "",
         licenseNumber: data.licenseNumber || "",
-        seats: data.seats || "",
+        numberOfSeats: data.numberOfSeats || "",
         contactNumber: data.contactNumber || "",
       });
     } catch (error) {
@@ -141,54 +141,59 @@ const DriverDashboard = () => {
   );
 
   return (
-    <div className="min-h-screen bg-gray-50">
+    <div className="min-h-screen bg-gradient-to-br from-slate-50 via-gray-50 to-orange-50/20">
       {/* Header */}
-      <header className="bg-white shadow-sm border-b border-gray-100">
-        <div className="container mx-auto px-4 sm:px-6 py-4">
+      <header className="bg-gradient-to-r from-primary via-primary to-primary-light shadow-strong relative overflow-hidden">
+        <div className="absolute inset-0 opacity-10">
+          <div className="absolute top-0 right-0 w-40 h-40 bg-secondary/40 rounded-full blur-3xl animate-float" />
+          <div className="absolute bottom-0 left-0 w-56 h-56 bg-accent/20 rounded-full blur-3xl animate-float" style={{ animationDelay: '2s' }} />
+        </div>
+        <div className="container mx-auto px-4 sm:px-6 py-5 relative z-10">
           <div className="flex items-center justify-between">
-            <div className="flex items-center space-x-3 group">
+            <div className="flex items-center space-x-4 group">
               <div className="relative">
-                <div className="absolute inset-0 rounded-full bg-primary/5 scale-110 group-hover:scale-125" style={{ transition: "all 0.3s ease" }}></div>
+                <div className="absolute inset-0 rounded-2xl bg-white/10 scale-100 group-hover:scale-110" style={{ transition: 'all 0.4s ease' }} />
                 <img
                   src="/images/logo.png"
                   alt="ELOCAB"
-                  className="h-12 w-auto relative z-10 drop-shadow-lg"
-                  style={{ transition: "transform 0.3s ease" }}
-                  onError={(e) => (e.target.style.display = "none")}
+                  className="h-12 w-auto relative z-10 drop-shadow-lg group-hover:scale-105"
+                  style={{ transition: 'transform 0.3s ease' }}
+                  onError={(e) => (e.target.style.display = 'none')}
                 />
               </div>
               <div>
-                <h1 className="text-lg font-black tracking-tight text-gray-900">
+                <h1 className="text-xl font-black tracking-tight text-white drop-shadow-sm">
                   ELOCAB
                 </h1>
-                <p className="text-xs text-gray-500">Driver Portal</p>
+                <p className="text-[11px] text-gray-300/80 font-medium tracking-wider uppercase">Driver Portal</p>
               </div>
             </div>
             <div className="flex items-center gap-2 sm:gap-3">
               <button
                 onClick={toggleAvailability}
-                className={`flex items-center gap-2 px-3 sm:px-4 py-2 rounded-xl font-semibold text-sm border ${
+                className={`flex items-center gap-2 px-4 py-2.5 rounded-xl font-semibold text-sm transition-all duration-300 ${
                   profile?.isAvailable
-                    ? "bg-green-50 text-green-700 border-green-200"
-                    : "bg-gray-100 text-gray-600 border-gray-200"
+                    ? 'bg-green-500/20 text-green-300 border border-green-400/30 hover:bg-green-500/30'
+                    : 'bg-white/10 text-gray-300 border border-white/20 hover:bg-white/20'
                 }`}
-                style={{ transition: "all 0.2s ease" }}
               >
-                <span className={`w-2 h-2 rounded-full ${profile?.isAvailable ? "bg-green-500 animate-pulse" : "bg-gray-400"}`}></span>
-                <span className="hidden sm:inline">{profile?.isAvailable ? "Online" : "Offline"}</span>
+                <span className={`w-2.5 h-2.5 rounded-full shadow-sm ${
+                  profile?.isAvailable ? 'bg-green-400 animate-pulse shadow-green-400/50' : 'bg-gray-400'
+                }`} />
+                <span className="hidden sm:inline">{profile?.isAvailable ? 'Online' : 'Offline'}</span>
               </button>
               <NotificationBell />
-              <div className="hidden sm:flex items-center gap-2 bg-gray-50 px-3 py-2 rounded-xl">
-                <div className="w-8 h-8 bg-gradient-to-br from-secondary to-secondary-light rounded-full flex items-center justify-center text-white text-xs font-bold">
-                  {(profile?.name || user?.phoneNumber || "D").charAt(0).toUpperCase()}
+              <div className="hidden sm:flex items-center gap-2 glass rounded-xl px-3 py-2">
+                <div className="w-8 h-8 bg-gradient-to-br from-secondary to-secondary-light rounded-lg flex items-center justify-center text-white text-xs font-bold shadow-sm">
+                  {(profile?.name || user?.phoneNumber || 'D').charAt(0).toUpperCase()}
                 </div>
-                <span className="text-sm text-gray-700 font-medium">
+                <span className="text-sm text-white/90 font-medium">
                   {profile?.name || user?.phoneNumber}
                 </span>
               </div>
               <button
                 onClick={handleLogout}
-                className="px-4 py-2 bg-red-50 text-red-600 rounded-xl hover:bg-red-100 font-semibold text-sm border border-red-200"
+                className="px-4 py-2.5 glass text-white rounded-xl hover:bg-white/20 font-semibold text-sm transition-all duration-200"
               >
                 Logout
               </button>
@@ -198,9 +203,9 @@ const DriverDashboard = () => {
       </header>
 
       {/* Tabs */}
-      <div className="bg-white border-b border-gray-100">
+      <div className="bg-white/80 backdrop-blur-sm border-b border-gray-200/60 sticky top-0 z-30 shadow-sm">
         <div className="container mx-auto px-4 sm:px-6">
-          <div className="flex space-x-1">
+          <div className="flex gap-1 py-2">
             {[
               { key: "bookings", label: "My Rides", icon: (
                 <svg className="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
@@ -221,12 +226,11 @@ const DriverDashboard = () => {
               <button
                 key={tab.key}
                 onClick={() => setActiveTab(tab.key)}
-                className={`flex items-center gap-2 py-4 px-4 border-b-2 font-semibold text-sm ${
+                className={`flex items-center gap-2 py-2.5 px-4 rounded-xl font-semibold text-sm transition-all duration-200 ${
                   activeTab === tab.key
-                    ? "border-secondary text-secondary"
-                    : "border-transparent text-gray-500 hover:text-gray-700"
+                    ? 'bg-primary text-white shadow-md scale-[1.02]'
+                    : 'text-gray-500 hover:text-gray-700 hover:bg-gray-100'
                 }`}
-                style={{ transition: "all 0.2s ease" }}
               >
                 {tab.icon}
                 <span className="hidden sm:inline">{tab.label}</span>
@@ -240,7 +244,7 @@ const DriverDashboard = () => {
       <div className="container mx-auto px-4 sm:px-6 py-8">
         {/* Active Bookings Tab */}
         {activeTab === "bookings" && (
-          <div className="max-w-4xl mx-auto">
+          <div className="max-w-4xl mx-auto animate-fade-in">
             <div className="flex items-center gap-3 mb-6">
               <div className="p-3 bg-secondary/10 rounded-xl">
                 <svg className="w-5 h-5 text-secondary" fill="none" stroke="currentColor" viewBox="0 0 24 24">
@@ -286,28 +290,28 @@ const DriverDashboard = () => {
                 )}
               </div>
             ) : (
-              <div className="bg-white rounded-lg shadow-md overflow-hidden">
+              <div className="bg-white rounded-2xl shadow-soft overflow-hidden border border-gray-100">
                 {/* Desktop Table */}
                 <div className="hidden md:block overflow-x-auto">
                   <table className="w-full">
-                    <thead className="bg-gradient-to-r from-primary to-primary-light text-white">
+                    <thead className="bg-gray-50 border-b border-gray-200">
                       <tr>
-                        <th className="px-6 py-4 text-left text-sm font-semibold">
+                        <th className="px-6 py-4 text-left text-xs font-bold text-gray-500 uppercase tracking-wider">
                           Status
                         </th>
-                        <th className="px-6 py-4 text-left text-sm font-semibold">
+                        <th className="px-6 py-4 text-left text-xs font-bold text-gray-500 uppercase tracking-wider">
                           Service
                         </th>
-                        <th className="px-6 py-4 text-left text-sm font-semibold">
+                        <th className="px-6 py-4 text-left text-xs font-bold text-gray-500 uppercase tracking-wider">
                           Date & Time
                         </th>
-                        <th className="px-6 py-4 text-left text-sm font-semibold">
+                        <th className="px-6 py-4 text-left text-xs font-bold text-gray-500 uppercase tracking-wider">
                           Route
                         </th>
-                        <th className="px-6 py-4 text-left text-sm font-semibold">
+                        <th className="px-6 py-4 text-left text-xs font-bold text-gray-500 uppercase tracking-wider">
                           Customer
                         </th>
-                        <th className="px-6 py-4 text-left text-sm font-semibold">
+                        <th className="px-6 py-4 text-left text-xs font-bold text-gray-500 uppercase tracking-wider">
                           Actions
                         </th>
                       </tr>
@@ -508,7 +512,7 @@ const DriverDashboard = () => {
 
         {/* History Tab */}
         {activeTab === "history" && (
-          <div className="max-w-4xl mx-auto">
+          <div className="max-w-4xl mx-auto animate-fade-in">
             <div className="flex items-center gap-3 mb-6">
               <div className="p-3 bg-secondary/10 rounded-xl">
                 <svg className="w-5 h-5 text-secondary" fill="none" stroke="currentColor" viewBox="0 0 24 24">
@@ -532,25 +536,25 @@ const DriverDashboard = () => {
                 <p className="text-gray-400 text-sm mt-1">Your ride history will appear here</p>
               </div>
             ) : (
-              <div className="bg-white rounded-lg shadow-md overflow-hidden">
+              <div className="bg-white rounded-2xl shadow-soft overflow-hidden border border-gray-100">
                 {/* Desktop Table */}
                 <div className="hidden md:block overflow-x-auto">
                   <table className="w-full">
-                    <thead className="bg-gradient-to-r from-primary to-primary-light text-white">
+                    <thead className="bg-gray-50 border-b border-gray-200">
                       <tr>
-                        <th className="px-6 py-4 text-left text-sm font-semibold">
+                        <th className="px-6 py-4 text-left text-xs font-bold text-gray-500 uppercase tracking-wider">
                           Status
                         </th>
-                        <th className="px-6 py-4 text-left text-sm font-semibold">
+                        <th className="px-6 py-4 text-left text-xs font-bold text-gray-500 uppercase tracking-wider">
                           Service Type
                         </th>
-                        <th className="px-6 py-4 text-left text-sm font-semibold">
+                        <th className="px-6 py-4 text-left text-xs font-bold text-gray-500 uppercase tracking-wider">
                           Date
                         </th>
-                        <th className="px-6 py-4 text-left text-sm font-semibold">
+                        <th className="px-6 py-4 text-left text-xs font-bold text-gray-500 uppercase tracking-wider">
                           Route
                         </th>
-                        <th className="px-6 py-4 text-left text-sm font-semibold">
+                        <th className="px-6 py-4 text-left text-xs font-bold text-gray-500 uppercase tracking-wider">
                           Passengers
                         </th>
                       </tr>
@@ -648,7 +652,7 @@ const DriverDashboard = () => {
 
         {/* Profile Tab */}
         {activeTab === "profile" && (
-          <div className="max-w-2xl mx-auto">
+          <div className="max-w-2xl mx-auto animate-fade-in">
             <div className="bg-white rounded-2xl shadow-soft p-6 sm:p-8 border border-gray-100">
               <div className="flex items-center gap-3 mb-6">
                 <div className="p-3 bg-secondary/10 rounded-xl">
@@ -704,7 +708,7 @@ const DriverDashboard = () => {
                     <div className="bg-gray-50 rounded-xl p-4">
                       <p className="text-gray-500 text-xs font-medium mb-1">Seats</p>
                       <p className="text-gray-800 font-semibold">
-                        {profile?.seats || "Not set"}
+                        {profile?.numberOfSeats || "Not set"}
                       </p>
                     </div>
                     <div className="bg-gray-50 rounded-xl p-4">
@@ -816,11 +820,11 @@ const DriverDashboard = () => {
                     </label>
                     <input
                       type="number"
-                      value={profileForm.seats}
+                      value={profileForm.numberOfSeats}
                       onChange={(e) =>
                         setProfileForm({
                           ...profileForm,
-                          seats: e.target.value,
+                          numberOfSeats: e.target.value,
                         })
                       }
                       className="input-field"
@@ -866,7 +870,7 @@ const DriverDashboard = () => {
                           carType: profile?.carType || "",
                           carNumber: profile?.carNumber || "",
                           licenseNumber: profile?.licenseNumber || "",
-                          seats: profile?.seats || "",
+                          numberOfSeats: profile?.numberOfSeats || "",
                           contactNumber: profile?.contactNumber || "",
                         });
                       }}

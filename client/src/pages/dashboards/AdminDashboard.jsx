@@ -529,34 +529,45 @@ const AdminDashboard = () => {
   );
 
   return (
-    <div className="min-h-screen bg-gray-50">
+    <div className="min-h-screen bg-gradient-to-br from-slate-50 via-gray-50 to-blue-50/30">
       {/* Header */}
-      <header className="bg-gradient-to-r from-primary to-primary-light shadow-lg">
-        <div className="container mx-auto px-4 sm:px-6 py-4">
+      <header className="bg-gradient-to-r from-primary via-primary to-primary-light shadow-strong relative overflow-hidden">
+        {/* Animated background pattern */}
+        <div className="absolute inset-0 opacity-10">
+          <div className="absolute top-0 left-0 w-40 h-40 bg-secondary/30 rounded-full blur-3xl animate-float" />
+          <div className="absolute bottom-0 right-0 w-56 h-56 bg-accent/20 rounded-full blur-3xl animate-float" style={{ animationDelay: '1.5s' }} />
+        </div>
+        <div className="container mx-auto px-4 sm:px-6 py-5 relative z-10">
           <div className="flex items-center justify-between">
-            <div className="flex items-center space-x-3 group">
+            <div className="flex items-center space-x-4 group">
               <div className="relative">
-                <div className="absolute inset-0 rounded-full bg-white/10 scale-100 group-hover:scale-125" style={{ transition: "all 0.3s ease" }}></div>
+                <div className="absolute inset-0 rounded-2xl bg-white/10 scale-100 group-hover:scale-110" style={{ transition: 'all 0.4s ease' }} />
                 <img
                   src="/images/logo.png"
                   alt="ELOCAB"
-                  className="h-12 w-auto relative z-10 drop-shadow-lg"
-                  style={{ transition: "transform 0.3s ease" }}
-                  onError={(e) => (e.target.style.display = "none")}
+                  className="h-12 w-auto relative z-10 drop-shadow-lg group-hover:scale-105"
+                  style={{ transition: 'transform 0.3s ease' }}
+                  onError={(e) => (e.target.style.display = 'none')}
                 />
               </div>
               <div>
-                <h1 className="text-lg font-black tracking-tight text-white">
+                <h1 className="text-xl font-black tracking-tight text-white drop-shadow-sm">
                   ELOCAB
                 </h1>
-                <p className="text-xs text-gray-300">Admin Control Panel</p>
+                <p className="text-[11px] text-gray-300/80 font-medium tracking-wider uppercase">Admin Control Panel</p>
               </div>
             </div>
-            <div className="flex items-center gap-2 sm:gap-3">
+            <div className="flex items-center gap-3">
               <NotificationBell />
+              <div className="hidden sm:flex items-center gap-2 glass rounded-xl px-3 py-2">
+                <div className="w-8 h-8 bg-gradient-to-br from-secondary to-secondary-light rounded-lg flex items-center justify-center text-white text-xs font-bold shadow-sm">
+                  A
+                </div>
+                <span className="text-sm text-white/90 font-medium">Admin</span>
+              </div>
               <button
                 onClick={handleLogout}
-                className="px-4 py-2 bg-white/15 text-white rounded-xl hover:bg-white/25 font-semibold text-sm border border-white/20"
+                className="px-4 py-2.5 glass text-white rounded-xl hover:bg-white/20 font-semibold text-sm transition-all duration-200"
               >
                 Logout
               </button>
@@ -566,24 +577,39 @@ const AdminDashboard = () => {
       </header>
 
       {/* Tabs */}
-      <div className="bg-white border-b">
-        <div className="container mx-auto px-6">
-          <div className="flex space-x-4 md:space-x-8 overflow-x-auto">
-            {["dashboard", "bookings", "drivers", "customers", "settings"].map(
-              (tab) => (
-                <button
-                  key={tab}
-                  onClick={() => setActiveTab(tab)}
-                  className={`py-4 px-2 border-b-2 font-semibold capitalize transition-all whitespace-nowrap ${
-                    activeTab === tab
-                      ? "border-primary text-primary"
-                      : "border-transparent text-gray-500 hover:text-gray-700"
-                  }`}
-                >
-                  {tab}
-                </button>
-              ),
-            )}
+      <div className="bg-white/80 backdrop-blur-sm border-b border-gray-200/60 sticky top-0 z-30 shadow-sm">
+        <div className="container mx-auto px-4 sm:px-6">
+          <div className="flex gap-1 overflow-x-auto py-2 -mb-px scrollbar-hide">
+            {[
+              { key: 'dashboard', label: 'Dashboard', icon: (
+                <svg className="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M4 6a2 2 0 012-2h2a2 2 0 012 2v2a2 2 0 01-2 2H6a2 2 0 01-2-2V6zM14 6a2 2 0 012-2h2a2 2 0 012 2v2a2 2 0 01-2 2h-2a2 2 0 01-2-2V6zM4 16a2 2 0 012-2h2a2 2 0 012 2v2a2 2 0 01-2 2H6a2 2 0 01-2-2v-2zM14 16a2 2 0 012-2h2a2 2 0 012 2v2a2 2 0 01-2 2h-2a2 2 0 01-2-2v-2z" /></svg>
+              )},
+              { key: 'bookings', label: 'Bookings', icon: (
+                <svg className="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M9 5H7a2 2 0 00-2 2v12a2 2 0 002 2h10a2 2 0 002-2V7a2 2 0 00-2-2h-2M9 5a2 2 0 002 2h2a2 2 0 002-2M9 5a2 2 0 012-2h2a2 2 0 012 2" /></svg>
+              )},
+              { key: 'drivers', label: 'Drivers', icon: (
+                <svg className="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M8 7h12m0 0l-4-4m4 4l-4 4m0 6H4m0 0l4 4m-4-4l4-4" /></svg>
+              )},
+              { key: 'customers', label: 'Customers', icon: (
+                <svg className="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M12 4.354a4 4 0 110 5.292M15 21H3v-1a6 6 0 0112 0v1zm0 0h6v-1a6 6 0 00-9-5.197" /></svg>
+              )},
+              { key: 'settings', label: 'Settings', icon: (
+                <svg className="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M10.325 4.317c.426-1.756 2.924-1.756 3.35 0a1.724 1.724 0 002.573 1.066c1.543-.94 3.31.826 2.37 2.37a1.724 1.724 0 001.066 2.573c1.756.426 1.756 2.924 0 3.35a1.724 1.724 0 00-1.066 2.573c.94 1.543-.826 3.31-2.37 2.37a1.724 1.724 0 00-2.573 1.066c-.426 1.756-2.924 1.756-3.35 0a1.724 1.724 0 00-2.573-1.066c-1.543.94-3.31-.826-2.37-2.37a1.724 1.724 0 00-1.066-2.573c-1.756-.426-1.756-2.924 0-3.35a1.724 1.724 0 001.066-2.573c-.94-1.543.826-3.31 2.37-2.37.996.608 2.296.07 2.572-1.065z" /><path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M15 12a3 3 0 11-6 0 3 3 0 016 0z" /></svg>
+              )},
+            ].map((tab) => (
+              <button
+                key={tab.key}
+                onClick={() => setActiveTab(tab.key)}
+                className={`flex items-center gap-2 py-2.5 px-4 rounded-xl font-semibold text-sm whitespace-nowrap transition-all duration-200 ${
+                  activeTab === tab.key
+                    ? 'bg-primary text-white shadow-md scale-[1.02]'
+                    : 'text-gray-500 hover:text-gray-700 hover:bg-gray-100'
+                }`}
+              >
+                {tab.icon}
+                <span className="hidden sm:inline">{tab.label}</span>
+              </button>
+            ))}
           </div>
         </div>
       </div>
@@ -592,11 +618,18 @@ const AdminDashboard = () => {
       <div className="container mx-auto px-4 sm:px-6 py-8">
         {/* Dashboard Tab */}
         {activeTab === "dashboard" && stats && (
-          <div>
-            <h2 className="text-2xl font-bold text-gray-800 mb-2">
-              Dashboard Overview
-            </h2>
-            <p className="text-gray-500 mb-8">Real-time overview of your fleet operations</p>
+          <div className="animate-fade-in">
+            <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-3 mb-8">
+              <div>
+                <h2 className="text-2xl font-black text-gray-900 tracking-tight">
+                  Dashboard Overview
+                </h2>
+                <p className="text-gray-500 text-sm mt-1">Real-time overview of your fleet operations</p>
+              </div>
+              <div className="text-xs text-gray-400 font-medium bg-white px-3 py-1.5 rounded-lg border border-gray-100 shadow-sm">
+                Last updated: {new Date().toLocaleTimeString()}
+              </div>
+            </div>
 
             {/* Stats Grid */}
             <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-6 mb-8">
@@ -789,8 +822,8 @@ const AdminDashboard = () => {
 
         {/* Bookings Tab */}
         {activeTab === "bookings" && (
-          <div>
-            <h2 className="text-2xl font-bold text-primary mb-6">
+          <div className="animate-fade-in">
+            <h2 className="text-2xl font-black text-gray-900 tracking-tight mb-6">
               Booking Management
             </h2>
 
@@ -800,11 +833,11 @@ const AdminDashboard = () => {
                 <h3 className="text-xl font-bold text-yellow-600 mb-4">
                   ⏳ Pending Assignments ({pendingBookings.length})
                 </h3>
-                <div className="bg-white rounded-lg shadow-md overflow-hidden">
+                <div className="bg-white rounded-2xl shadow-soft overflow-hidden border border-gray-100">
                   {/* Desktop Table */}
                   <div className="hidden md:block overflow-x-auto">
                     <table className="w-full">
-                      <thead className="bg-gradient-to-r from-yellow-500 to-yellow-400 text-white">
+                      <thead className="bg-gradient-to-r from-amber-500 to-amber-400 text-white">
                         <tr>
                           <th className="px-6 py-4 text-left text-sm font-semibold">
                             Service
@@ -1006,28 +1039,28 @@ const AdminDashboard = () => {
                 <h3 className="text-xl font-bold text-gray-600 mb-4">
                   🚗 Active Rides ({assignedBookings.length})
                 </h3>
-                <div className="bg-white rounded-lg shadow-md overflow-hidden">
+                <div className="bg-white rounded-2xl shadow-soft overflow-hidden border border-gray-100">
                   {/* Desktop Table */}
                   <div className="hidden md:block overflow-x-auto">
                     <table className="w-full">
-                      <thead className="bg-gradient-to-r from-primary to-primary-light text-white">
+                      <thead className="bg-gray-50 border-b border-gray-200">
                         <tr>
-                          <th className="px-6 py-4 text-left text-sm font-semibold">
+                          <th className="px-6 py-4 text-left text-xs font-bold text-gray-500 uppercase tracking-wider">
                             Status
                           </th>
-                          <th className="px-6 py-4 text-left text-sm font-semibold">
+                          <th className="px-6 py-4 text-left text-xs font-bold text-gray-500 uppercase tracking-wider">
                             Service
                           </th>
-                          <th className="px-6 py-4 text-left text-sm font-semibold">
+                          <th className="px-6 py-4 text-left text-xs font-bold text-gray-500 uppercase tracking-wider">
                             Date & Time
                           </th>
-                          <th className="px-6 py-4 text-left text-sm font-semibold">
+                          <th className="px-6 py-4 text-left text-xs font-bold text-gray-500 uppercase tracking-wider">
                             Route
                           </th>
-                          <th className="px-6 py-4 text-left text-sm font-semibold">
+                          <th className="px-6 py-4 text-left text-xs font-bold text-gray-500 uppercase tracking-wider">
                             Driver
                           </th>
-                          <th className="px-6 py-4 text-left text-sm font-semibold">
+                          <th className="px-6 py-4 text-left text-xs font-bold text-gray-500 uppercase tracking-wider">
                             Customer
                           </th>
                         </tr>
@@ -1218,26 +1251,41 @@ const AdminDashboard = () => {
 
         {/* Drivers Tab */}
         {activeTab === "drivers" && (
-          <div>
-            <div className="flex justify-between items-center mb-6">
-              <h2 className="text-2xl font-bold text-primary">
-                Driver Management
-              </h2>
+          <div className="animate-fade-in">
+            <div className="flex flex-col sm:flex-row justify-between items-start sm:items-center gap-4 mb-6">
+              <div>
+                <h2 className="text-2xl font-black text-gray-900 tracking-tight">
+                  Driver Management
+                </h2>
+                <p className="text-sm text-gray-500 mt-1">{drivers.length} driver{drivers.length !== 1 ? 's' : ''} registered</p>
+              </div>
               <button
                 onClick={() => setShowCreateDriver(!showCreateDriver)}
-                className="px-4 py-2 bg-primary text-white rounded-lg hover:bg-primary-dark transition-all font-semibold"
+                className={`px-5 py-2.5 rounded-xl font-semibold text-sm transition-all duration-200 flex items-center gap-2 ${
+                  showCreateDriver
+                    ? 'bg-gray-100 text-gray-600 hover:bg-gray-200'
+                    : 'bg-primary text-white hover:bg-primary-light shadow-md hover:shadow-lg'
+                }`}
               >
-                {showCreateDriver ? "Cancel" : "+ Add New Driver"}
+                {showCreateDriver ? (
+                  <><svg className="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M6 18L18 6M6 6l12 12" /></svg> Cancel</>
+                ) : (
+                  <><svg className="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M12 4v16m8-8H4" /></svg> Add Driver</>
+                )}
               </button>
             </div>
 
             {/* Create Driver Form*/}
             {showCreateDriver && (
-              <div className="card mb-6 bg-blue-50 border-l-4 border-primary">
-                <h3 className="font-bold text-gray-800 mb-4">
-                  Create New Driver
-                </h3>
-                <form onSubmit={createDriver} className="space-y-4">
+              <div className="bg-white rounded-2xl shadow-soft mb-6 border border-gray-100 overflow-hidden animate-slide-up">
+                <div className="bg-gradient-to-r from-primary/5 to-accent/5 px-6 py-4 border-b border-gray-100">
+                  <h3 className="font-bold text-gray-800 flex items-center gap-2">
+                    <svg className="w-5 h-5 text-primary" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M18 9v3m0 0v3m0-3h3m-3 0h-3m-2-5a4 4 0 11-8 0 4 4 0 018 0zM3 20a6 6 0 0112 0v1H3v-1z" /></svg>
+                    Register New Driver
+                  </h3>
+                  <p className="text-sm text-gray-500 mt-1">Fields match the driver registration form</p>
+                </div>
+                <form onSubmit={createDriver} className="p-6 space-y-4">
                   <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
                     <div>
                       <label className="block text-sm font-medium text-gray-700 mb-1">
@@ -1286,11 +1334,10 @@ const AdminDashboard = () => {
                     </div>
                     <div>
                       <label className="block text-sm font-medium text-gray-700 mb-1">
-                        Contact Number *
+                        Contact Number <span className="text-gray-400">(optional)</span>
                       </label>
                       <input
                         type="text"
-                        required
                         value={newDriver.contactNumber}
                         onChange={(e) =>
                           setNewDriver({
@@ -1298,6 +1345,7 @@ const AdminDashboard = () => {
                             contactNumber: e.target.value,
                           })
                         }
+                        placeholder="Defaults to phone number"
                         className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-primary focus:border-transparent"
                       />
                     </div>
@@ -1322,8 +1370,7 @@ const AdminDashboard = () => {
                       <label className="block text-sm font-medium text-gray-700 mb-1">
                         Car Type *
                       </label>
-                      <input
-                        type="text"
+                      <select
                         required
                         value={newDriver.carType}
                         onChange={(e) =>
@@ -1332,9 +1379,15 @@ const AdminDashboard = () => {
                             carType: e.target.value,
                           })
                         }
-                        placeholder="e.g., Sedan, SUV"
                         className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-primary focus:border-transparent"
-                      />
+                      >
+                        <option value="">Select car type</option>
+                        <option value="Toyota Vitz">Toyota Vitz</option>
+                        <option value="Toyota Voxy">Toyota Voxy</option>
+                        <option value="Toyota Hiace">Toyota Hiace</option>
+                        <option value="Nissan Caravan">Nissan Caravan</option>
+                        <option value="Other">Other</option>
+                      </select>
                     </div>
                     <div>
                       <label className="block text-sm font-medium text-gray-700 mb-1">
@@ -1392,9 +1445,9 @@ const AdminDashboard = () => {
                   <button
                     type="submit"
                     disabled={loading}
-                    className="w-full px-4 py-2 bg-primary text-white rounded-lg hover:bg-primary-dark disabled:opacity-50 transition-all font-semibold"
+                    className="w-full px-5 py-3 bg-primary text-white rounded-xl hover:bg-primary-light disabled:opacity-50 transition-all font-semibold shadow-md hover:shadow-lg"
                   >
-                    {loading ? "Creating..." : "Create Driver"}
+                    {loading ? "Creating..." : "Create Driver Account"}
                   </button>
                 </form>
               </div>
@@ -1405,31 +1458,31 @@ const AdminDashboard = () => {
                 <p className="text-gray-500">No drivers registered yet</p>
               </div>
             ) : (
-              <div className="bg-white rounded-lg shadow-md overflow-hidden">
+              <div className="bg-white rounded-2xl shadow-soft overflow-hidden border border-gray-100">
                 {/* Desktop Table */}
                 <div className="hidden lg:block overflow-x-auto">
                   <table className="w-full">
-                    <thead className="bg-gradient-to-r from-primary to-primary-light text-white">
+                    <thead className="bg-gray-50 border-b border-gray-200">
                       <tr>
-                        <th className="px-6 py-4 text-left text-sm font-semibold">
+                        <th className="px-6 py-4 text-left text-xs font-bold text-gray-500 uppercase tracking-wider">
                           Name
                         </th>
-                        <th className="px-6 py-4 text-left text-sm font-semibold">
+                        <th className="px-6 py-4 text-left text-xs font-bold text-gray-500 uppercase tracking-wider">
                           Status
                         </th>
-                        <th className="px-6 py-4 text-left text-sm font-semibold">
+                        <th className="px-6 py-4 text-left text-xs font-bold text-gray-500 uppercase tracking-wider">
                           Phone
                         </th>
-                        <th className="px-6 py-4 text-left text-sm font-semibold">
+                        <th className="px-6 py-4 text-left text-xs font-bold text-gray-500 uppercase tracking-wider">
                           Vehicle
                         </th>
-                        <th className="px-6 py-4 text-left text-sm font-semibold">
+                        <th className="px-6 py-4 text-left text-xs font-bold text-gray-500 uppercase tracking-wider">
                           Contact
                         </th>
-                        <th className="px-6 py-4 text-left text-sm font-semibold">
+                        <th className="px-6 py-4 text-left text-xs font-bold text-gray-500 uppercase tracking-wider">
                           Location
                         </th>
-                        <th className="px-6 py-4 text-left text-sm font-semibold">
+                        <th className="px-6 py-4 text-left text-xs font-bold text-gray-500 uppercase tracking-wider">
                           Actions
                         </th>
                       </tr>
@@ -1554,27 +1607,41 @@ const AdminDashboard = () => {
 
         {/* Customers Tab */}
         {activeTab === "customers" && (
-          <div>
-            <div className="flex justify-between items-center mb-6">
-              <h2 className="text-2xl font-bold text-primary">
-                Customer Management
-              </h2>
+          <div className="animate-fade-in">
+            <div className="flex flex-col sm:flex-row justify-between items-start sm:items-center gap-4 mb-6">
+              <div>
+                <h2 className="text-2xl font-black text-gray-900 tracking-tight">
+                  Customer Management
+                </h2>
+                <p className="text-sm text-gray-500 mt-1">{customers.length} customer{customers.length !== 1 ? 's' : ''} registered</p>
+              </div>
               <button
                 onClick={() => setShowCreateCustomer(!showCreateCustomer)}
-                className="px-4 py-2 bg-primary text-white rounded-lg hover:bg-primary-dark transition-all font-semibold"
+                className={`px-5 py-2.5 rounded-xl font-semibold text-sm transition-all duration-200 flex items-center gap-2 ${
+                  showCreateCustomer
+                    ? 'bg-gray-100 text-gray-600 hover:bg-gray-200'
+                    : 'bg-emerald-600 text-white hover:bg-emerald-700 shadow-md hover:shadow-lg'
+                }`}
               >
-                {showCreateCustomer ? "Cancel" : "+ Add New Customer"}
+                {showCreateCustomer ? (
+                  <><svg className="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M6 18L18 6M6 6l12 12" /></svg> Cancel</>
+                ) : (
+                  <><svg className="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M12 4v16m8-8H4" /></svg> Add Customer</>
+                )}
               </button>
             </div>
 
             {/* Create Customer Form */}
             {showCreateCustomer && (
-              <div className="card mb-6 bg-green-50 border-l-4 border-green-500">
-                <h3 className="font-bold text-gray-800 mb-4">
-                  Create New Customer
-                </h3>
-                <p className="text-sm text-gray-500 mb-4">Fields marked with * are required during customer signup</p>
-                <form onSubmit={createCustomer} className="space-y-4">
+              <div className="bg-white rounded-2xl shadow-soft mb-6 border border-gray-100 overflow-hidden animate-slide-up">
+                <div className="bg-gradient-to-r from-emerald-50 to-green-50 px-6 py-4 border-b border-gray-100">
+                  <h3 className="font-bold text-gray-800 flex items-center gap-2">
+                    <svg className="w-5 h-5 text-emerald-600" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M18 9v3m0 0v3m0-3h3m-3 0h-3m-2-5a4 4 0 11-8 0 4 4 0 018 0zM3 20a6 6 0 0112 0v1H3v-1z" /></svg>
+                    Register New Customer
+                  </h3>
+                  <p className="text-sm text-gray-500 mt-1">Fields match the customer signup form</p>
+                </div>
+                <form onSubmit={createCustomer} className="p-6 space-y-4">
                   <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
                     <div>
                       <label className="block text-sm font-medium text-gray-700 mb-1">
@@ -1670,9 +1737,9 @@ const AdminDashboard = () => {
                   <button
                     type="submit"
                     disabled={loading}
-                    className="w-full px-4 py-2 bg-green-600 text-white rounded-lg hover:bg-green-700 disabled:opacity-50 transition-all font-semibold"
+                    className="w-full px-5 py-3 bg-emerald-600 text-white rounded-xl hover:bg-emerald-700 disabled:opacity-50 transition-all font-semibold shadow-md hover:shadow-lg"
                   >
-                    {loading ? "Creating..." : "Create Customer"}
+                    {loading ? "Creating..." : "Create Customer Account"}
                   </button>
                 </form>
               </div>
@@ -1683,22 +1750,22 @@ const AdminDashboard = () => {
                 <p className="text-gray-500">No customers registered yet</p>
               </div>
             ) : (
-              <div className="bg-white rounded-lg shadow-md overflow-hidden">
+              <div className="bg-white rounded-2xl shadow-soft overflow-hidden border border-gray-100">
                 {/* Desktop Table */}
                 <div className="hidden md:block overflow-x-auto">
                   <table className="w-full">
-                    <thead className="bg-gradient-to-r from-primary to-primary-light text-white">
+                    <thead className="bg-gray-50 border-b border-gray-200">
                       <tr>
-                        <th className="px-6 py-4 text-left text-sm font-semibold">
+                        <th className="px-6 py-4 text-left text-xs font-bold text-gray-500 uppercase tracking-wider">
                           Name
                         </th>
-                        <th className="px-6 py-4 text-left text-sm font-semibold">
+                        <th className="px-6 py-4 text-left text-xs font-bold text-gray-500 uppercase tracking-wider">
                           Phone
                         </th>
-                        <th className="px-6 py-4 text-left text-sm font-semibold">
+                        <th className="px-6 py-4 text-left text-xs font-bold text-gray-500 uppercase tracking-wider">
                           City
                         </th>
-                        <th className="px-6 py-4 text-left text-sm font-semibold">
+                        <th className="px-6 py-4 text-left text-xs font-bold text-gray-500 uppercase tracking-wider">
                           Actions
                         </th>
                       </tr>
@@ -1777,7 +1844,7 @@ const AdminDashboard = () => {
         {/* Settings Tab */}
         {activeTab === "settings" && (
           <div className="max-w-4xl mx-auto">
-            <h2 className="text-2xl font-bold text-gray-800 mb-2">
+            <h2 className="text-2xl font-black text-gray-900 tracking-tight mb-2">
               System Settings
             </h2>
             <p className="text-gray-500 mb-8">Manage notifications, data, and application settings</p>

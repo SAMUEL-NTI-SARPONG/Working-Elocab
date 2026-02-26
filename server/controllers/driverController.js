@@ -34,7 +34,7 @@ exports.updateProfile = async (req, res) => {
       "carType",
       "carNumber",
       "licenseNumber",
-      "seats",
+      "numberOfSeats",
       "contactNumber",
     ];
     const updates = {};

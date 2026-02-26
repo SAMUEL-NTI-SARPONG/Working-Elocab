@@ -398,7 +398,7 @@ exports.createDriver = async (req, res) => {
       carType,
       carNumber,
       licenseNumber,
-      seats: seats || 4,
+      numberOfSeats: seats || 4,
       contactNumber: contactNumber || phoneNumber,
       isAvailable: true,
     });
