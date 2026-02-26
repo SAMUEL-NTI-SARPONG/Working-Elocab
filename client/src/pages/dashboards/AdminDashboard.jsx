@@ -6,7 +6,7 @@ import toast from "react-hot-toast";
 import ArchiveViewer from "../../components/ArchiveViewer";
 import InstallPrompt from "../../components/InstallPrompt";
 import ConfirmModal from "../../components/ConfirmModal";
-import NotificationBell from "../../components/NotificationBell";
+import NotificationModal from "../../components/NotificationModal";
 import { useInstallPrompt } from "../../hooks/useInstallPrompt";
 
 const AdminDashboard = () => {
@@ -549,7 +549,7 @@ const AdminDashboard = () => {
               </div>
             </div>
             <div className="flex items-center gap-3">
-              <NotificationBell />
+              <NotificationModal />
               <div className="hidden sm:flex items-center gap-2 px-3 py-2 bg-gray-50 rounded-lg border border-gray-100">
                 <div className="w-8 h-8 bg-gray-900 rounded-lg flex items-center justify-center text-white text-xs font-semibold">
                   A
