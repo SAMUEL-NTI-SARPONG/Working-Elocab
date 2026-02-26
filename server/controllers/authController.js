@@ -3,6 +3,7 @@ const User = require("../models/User");
 const Driver = require("../models/Driver");
 const Customer = require("../models/Customer");
 const generateToken = require("../utils/generateToken");
+const { createNotification } = require("./notificationController");
 
 // Register new user (Driver or Customer)
 exports.register = async (req, res) => {
@@ -61,6 +62,39 @@ exports.register = async (req, res) => {
       return res.status(400).json({
         message: profileError.message || "Error creating profile. Please check your details and try again.",
       });
+    }
+
+    // Create welcome notification for new user
+    const welcomeMessages = {
+      customer: {
+        title: "Welcome to ELOCAB! 🎉",
+        message: "Your account has been created successfully. You can now book rides across Kumasi. Enjoy your journey!",
+      },
+      driver: {
+        title: "Welcome to ELOCAB, Driver! 🚗",
+        message: "Your driver account has been created successfully. Set your availability to start receiving ride requests.",
+      },
+    };
+
+    if (welcomeMessages[role]) {
+      await createNotification(
+        user._id,
+        "welcome",
+        welcomeMessages[role].title,
+        welcomeMessages[role].message
+      );
+    }
+
+    // Notify all admins about new registration
+    const admins = await User.find({ role: "admin" });
+    for (const admin of admins) {
+      await createNotification(
+        admin._id,
+        "system",
+        "New User Registered",
+        `A new ${role} has registered: ${otherData.name || phoneNumber}`,
+        { userId: user._id, role }
+      );
     }
 
     res.status(201).json({

@@ -96,6 +96,16 @@ const NotificationBell = () => {
     }
   };
 
+  const clearAllNotifications = async () => {
+    try {
+      await axios.delete("/api/notifications");
+      setNotifications([]);
+      setUnreadCount(0);
+    } catch {
+      // Silently fail
+    }
+  };
+
   const getNotificationIcon = (type) => {
     switch (type) {
       case "booking_created":
@@ -258,8 +268,14 @@ const NotificationBell = () => {
           </div>
 
           {notifications.length > 0 && (
-            <div className="px-4 py-2 bg-gray-50 border-t border-gray-100 text-center">
-              <p className="text-xs text-gray-400">Showing latest {notifications.length} notifications</p>
+            <div className="px-4 py-2 bg-gray-50 border-t border-gray-100 flex items-center justify-between">
+              <p className="text-xs text-gray-400">Showing latest {notifications.length}</p>
+              <button
+                onClick={clearAllNotifications}
+                className="text-xs text-red-500 hover:text-red-700 font-semibold transition-colors"
+              >
+                Clear All
+              </button>
             </div>
           )}
         </div>

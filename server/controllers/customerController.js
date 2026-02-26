@@ -1,5 +1,6 @@
 const Customer = require("../models/Customer");
 const Booking = require("../models/Booking");
+const Driver = require("../models/Driver");
 const Statistics = require("../models/Statistics");
 const User = require("../models/User");
 const { createNotification } = require("./notificationController");
@@ -210,6 +211,20 @@ exports.cancelBooking = async (req, res) => {
         `${customer.name} cancelled their booking: ${booking.pickupPoint} → ${booking.destination}`,
         { bookingId: booking._id }
       );
+    }
+
+    // Create notification for the assigned driver (if any)
+    if (booking.driverId) {
+      const driver = await Driver.findById(booking.driverId);
+      if (driver && driver.userId) {
+        await createNotification(
+          driver.userId,
+          "booking_cancelled",
+          "Booking Cancelled by Customer",
+          `${customer.name} cancelled the booking: ${booking.pickupPoint} → ${booking.destination}`,
+          { bookingId: booking._id }
+        );
+      }
     }
 
     res.json(booking);

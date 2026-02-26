@@ -5,10 +5,12 @@ import axios from "axios";
 import toast from "react-hot-toast";
 import InstallPrompt from "../../components/InstallPrompt";
 import NotificationBell from "../../components/NotificationBell";
+import { useInstallPrompt } from "../../hooks/useInstallPrompt";
 
 const DriverDashboard = () => {
   const { user, logout } = useAuth();
   const navigate = useNavigate();
+  const { isInstallable, isInstalled, promptInstall } = useInstallPrompt();
   const [activeTab, setActiveTab] = useState("bookings");
   const [profile, setProfile] = useState(null);
   const [bookings, setBookings] = useState([]);
@@ -870,6 +872,35 @@ const DriverDashboard = () => {
                     </button>
                   </div>
                 </form>
+              )}
+
+              {/* Install App Button */}
+              {isInstallable && !isInstalled && (
+                <div className="mt-6 pt-6 border-t border-gray-100">
+                  <button
+                    onClick={async () => {
+                      const accepted = await promptInstall();
+                      if (accepted) toast.success("App installed successfully! 🎉");
+                    }}
+                    className="w-full flex items-center justify-center gap-3 px-6 py-3 bg-gradient-to-r from-amber-500 to-amber-600 text-white rounded-xl hover:from-amber-600 hover:to-amber-700 transition-all font-semibold shadow-lg"
+                  >
+                    <svg className="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                      <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M4 16v1a3 3 0 003 3h10a3 3 0 003-3v-1m-4-4l-4 4m0 0l-4-4m4 4V4" />
+                    </svg>
+                    Install ELOCAB App
+                  </button>
+                  <p className="text-xs text-gray-400 text-center mt-2">Add to home screen for quick access</p>
+                </div>
+              )}
+              {isInstalled && (
+                <div className="mt-6 pt-6 border-t border-gray-100">
+                  <div className="flex items-center gap-2 text-green-600 justify-center">
+                    <svg className="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                      <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M5 13l4 4L19 7" />
+                    </svg>
+                    <span className="text-sm font-medium">App installed</span>
+                  </div>
+                </div>
               )}
             </div>
           </div>

@@ -5,6 +5,7 @@ import { Autoplay } from "swiper/modules";
 import { useAuth } from "../context/AuthContext";
 import Navbar from "../components/Navbar";
 import Footer from "../components/Footer";
+import InstallPrompt from "../components/InstallPrompt";
 
 import "swiper/css";
 
@@ -12,6 +13,21 @@ const LandingPage = () => {
   const { user } = useAuth();
   const navigate = useNavigate();
   const [secretCode, setSecretCode] = useState("");
+  const [showInstallPrompt, setShowInstallPrompt] = useState(false);
+
+  // Show install prompt for first-time visitors after 2 seconds
+  useEffect(() => {
+    const hasSeenPrompt = localStorage.getItem("elocab_install_prompt_seen");
+    const hasSeenThisSession = sessionStorage.getItem("elocab_install_shown_this_session");
+    
+    if (!hasSeenPrompt && !hasSeenThisSession) {
+      const timer = setTimeout(() => {
+        setShowInstallPrompt(true);
+        sessionStorage.setItem("elocab_install_shown_this_session", "true");
+      }, 2000);
+      return () => clearTimeout(timer);
+    }
+  }, []);
 
   // Secret admin access - type "admin" anywhere on the page
   useEffect(() => {
@@ -278,6 +294,12 @@ const LandingPage = () => {
       </section>
 
       <Footer />
+
+      {/* PWA Install Prompt for first-time visitors */}
+      <InstallPrompt
+        show={showInstallPrompt}
+        onClose={() => setShowInstallPrompt(false)}
+      />
     </div>
   );
 };
