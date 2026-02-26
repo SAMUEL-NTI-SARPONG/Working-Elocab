@@ -529,45 +529,34 @@ const AdminDashboard = () => {
   );
 
   return (
-    <div className="min-h-screen bg-gradient-to-br from-slate-50 via-gray-50 to-blue-50/30">
+    <div className="min-h-screen bg-gray-50">
       {/* Header */}
-      <header className="bg-gradient-to-r from-primary via-primary to-primary-light shadow-strong relative overflow-hidden">
-        {/* Animated background pattern */}
-        <div className="absolute inset-0 opacity-10">
-          <div className="absolute top-0 left-0 w-40 h-40 bg-secondary/30 rounded-full blur-3xl animate-float" />
-          <div className="absolute bottom-0 right-0 w-56 h-56 bg-accent/20 rounded-full blur-3xl animate-float" style={{ animationDelay: '1.5s' }} />
-        </div>
-        <div className="container mx-auto px-4 sm:px-6 py-5 relative z-10">
+      <header className="bg-white border-b border-gray-200">
+        <div className="container mx-auto px-4 sm:px-6 py-4">
           <div className="flex items-center justify-between">
-            <div className="flex items-center space-x-4 group">
-              <div className="relative">
-                <div className="absolute inset-0 rounded-2xl bg-white/10 scale-100 group-hover:scale-110" style={{ transition: 'all 0.4s ease' }} />
-                <img
-                  src="/images/logo.png"
-                  alt="ELOCAB"
-                  className="h-12 w-auto relative z-10 drop-shadow-lg group-hover:scale-105"
-                  style={{ transition: 'transform 0.3s ease' }}
-                  onError={(e) => (e.target.style.display = 'none')}
-                />
-              </div>
+            <div className="flex items-center space-x-3">
+              <img
+                src="/images/logo.png"
+                alt="ELOCAB"
+                className="h-10 w-auto"
+                onError={(e) => (e.target.style.display = 'none')}
+              />
               <div>
-                <h1 className="text-xl font-black tracking-tight text-white drop-shadow-sm">
-                  ELOCAB
-                </h1>
-                <p className="text-[11px] text-gray-300/80 font-medium tracking-wider uppercase">Admin Control Panel</p>
+                <h1 className="text-lg font-bold text-gray-900">ELOCAB</h1>
+                <p className="text-xs text-gray-500">Admin Control Panel</p>
               </div>
             </div>
             <div className="flex items-center gap-3">
               <NotificationBell />
-              <div className="hidden sm:flex items-center gap-2 glass rounded-xl px-3 py-2">
-                <div className="w-8 h-8 bg-gradient-to-br from-secondary to-secondary-light rounded-lg flex items-center justify-center text-white text-xs font-bold shadow-sm">
+              <div className="hidden sm:flex items-center gap-2 px-3 py-2 bg-gray-50 rounded-lg border border-gray-100">
+                <div className="w-8 h-8 bg-gray-900 rounded-lg flex items-center justify-center text-white text-xs font-semibold">
                   A
                 </div>
-                <span className="text-sm text-white/90 font-medium">Admin</span>
+                <span className="text-sm text-gray-700 font-medium">Admin</span>
               </div>
               <button
                 onClick={handleLogout}
-                className="px-4 py-2.5 glass text-white rounded-xl hover:bg-white/20 font-semibold text-sm transition-all duration-200"
+                className="px-4 py-2 text-sm font-medium text-gray-600 hover:text-gray-900 bg-gray-100 hover:bg-gray-200 rounded-lg transition-colors"
               >
                 Logout
               </button>
@@ -577,7 +566,7 @@ const AdminDashboard = () => {
       </header>
 
       {/* Tabs */}
-      <div className="bg-white/80 backdrop-blur-sm border-b border-gray-200/60 sticky top-0 z-30 shadow-sm">
+      <div className="bg-white border-b border-gray-200 sticky top-0 z-30">
         <div className="container mx-auto px-4 sm:px-6">
           <div className="flex gap-1 overflow-x-auto py-2 -mb-px scrollbar-hide">
             {[
@@ -602,8 +591,8 @@ const AdminDashboard = () => {
                 onClick={() => setActiveTab(tab.key)}
                 className={`flex items-center gap-2 py-2.5 px-4 rounded-xl font-semibold text-sm whitespace-nowrap transition-all duration-200 ${
                   activeTab === tab.key
-                    ? 'bg-primary text-white shadow-md scale-[1.02]'
-                    : 'text-gray-500 hover:text-gray-700 hover:bg-gray-100'
+                    ? 'bg-gray-900 text-white'
+                    : 'text-gray-500 hover:text-gray-700 hover:bg-gray-50'
                 }`}
               >
                 {tab.icon}
@@ -837,24 +826,24 @@ const AdminDashboard = () => {
                   {/* Desktop Table */}
                   <div className="hidden md:block overflow-x-auto">
                     <table className="w-full">
-                      <thead className="bg-gradient-to-r from-amber-500 to-amber-400 text-white">
+                      <thead className="bg-gray-50 border-b border-gray-200">
                         <tr>
-                          <th className="px-6 py-4 text-left text-sm font-semibold">
+                          <th className="px-6 py-3 text-left text-xs font-semibold text-gray-500 uppercase tracking-wider">
                             Service
                           </th>
-                          <th className="px-6 py-4 text-left text-sm font-semibold">
+                          <th className="px-6 py-3 text-left text-xs font-semibold text-gray-500 uppercase tracking-wider">
                             Date & Time
                           </th>
-                          <th className="px-6 py-4 text-left text-sm font-semibold">
+                          <th className="px-6 py-3 text-left text-xs font-semibold text-gray-500 uppercase tracking-wider">
                             Route
                           </th>
-                          <th className="px-6 py-4 text-left text-sm font-semibold">
+                          <th className="px-6 py-3 text-left text-xs font-semibold text-gray-500 uppercase tracking-wider">
                             Customer
                           </th>
-                          <th className="px-6 py-4 text-left text-sm font-semibold">
+                          <th className="px-6 py-3 text-left text-xs font-semibold text-gray-500 uppercase tracking-wider">
                             Passengers
                           </th>
-                          <th className="px-6 py-4 text-left text-sm font-semibold">
+                          <th className="px-6 py-3 text-left text-xs font-semibold text-gray-500 uppercase tracking-wider">
                             Assign Driver
                           </th>
                         </tr>

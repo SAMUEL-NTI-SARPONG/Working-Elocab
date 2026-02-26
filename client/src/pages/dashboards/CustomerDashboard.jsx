@@ -148,50 +148,36 @@ const CustomerDashboard = () => {
   };
 
   return (
-    <div className="min-h-screen bg-gradient-to-br from-slate-50 via-gray-50 to-blue-50/30">
+    <div className="min-h-screen bg-gray-50">
       {/* Header */}
-      <header className="relative overflow-hidden bg-gradient-to-r from-primary via-primary to-primary-light shadow-strong">
-        <div className="absolute inset-0 overflow-hidden">
-          <div className="absolute -top-10 -right-10 w-40 h-40 bg-white/5 rounded-full animate-float"></div>
-          <div className="absolute top-20 -left-10 w-32 h-32 bg-secondary/10 rounded-full animate-float" style={{ animationDelay: '1s' }}></div>
-          <div className="absolute -bottom-5 right-1/3 w-24 h-24 bg-accent/10 rounded-full animate-float" style={{ animationDelay: '2s' }}></div>
-        </div>
-        <div className="relative container mx-auto px-4 sm:px-6 py-5">
+      <header className="bg-white border-b border-gray-200">
+        <div className="container mx-auto px-4 sm:px-6 py-4">
           <div className="flex items-center justify-between">
             <div className="flex items-center space-x-3">
-              <div className="relative">
-                <div className="w-12 h-12 rounded-xl bg-white/10 backdrop-blur-sm border border-white/20 flex items-center justify-center shadow-lg">
-                  <img
-                    src="/images/logo.png"
-                    alt="ELOCAB"
-                    className="h-8 w-auto drop-shadow-lg"
-                    onError={(e) => {
-                      e.target.style.display = 'none';
-                      e.target.parentElement.innerHTML = '<span class="text-white font-black text-lg">E</span>';
-                    }}
-                  />
-                </div>
-              </div>
+              <img
+                src="/images/logo.png"
+                alt="ELOCAB"
+                className="h-10 w-auto"
+                onError={(e) => (e.target.style.display = 'none')}
+              />
               <div>
-                <h1 className="text-lg font-black tracking-tight text-white">
-                  ELOCAB
-                </h1>
-                <p className="text-xs text-white/60">Customer Portal</p>
+                <h1 className="text-lg font-bold text-gray-900">ELOCAB</h1>
+                <p className="text-xs text-gray-500">Customer Portal</p>
               </div>
             </div>
             <div className="flex items-center gap-3">
               <NotificationBell />
-              <div className="hidden sm:flex items-center gap-2 bg-white/10 backdrop-blur-sm px-3 py-2 rounded-xl border border-white/20">
-                <div className="w-8 h-8 bg-gradient-to-br from-secondary to-orange-400 rounded-full flex items-center justify-center text-white text-xs font-bold shadow-md">
+              <div className="hidden sm:flex items-center gap-2 px-3 py-2 bg-gray-50 rounded-lg border border-gray-100">
+                <div className="w-8 h-8 bg-gray-900 rounded-lg flex items-center justify-center text-white text-xs font-semibold">
                   {(profile?.name || user?.phoneNumber || "U").charAt(0).toUpperCase()}
                 </div>
-                <span className="text-sm text-white/90 font-medium">
+                <span className="text-sm text-gray-700 font-medium">
                   {profile?.name || user?.phoneNumber}
                 </span>
               </div>
               <button
                 onClick={handleLogout}
-                className="px-4 py-2 bg-white/10 backdrop-blur-sm text-white/90 rounded-xl hover:bg-white/20 font-semibold text-sm border border-white/20 transition-all"
+                className="px-4 py-2 text-sm font-medium text-gray-600 hover:text-gray-900 bg-gray-100 hover:bg-gray-200 rounded-lg transition-colors"
               >
                 Logout
               </button>
@@ -201,7 +187,7 @@ const CustomerDashboard = () => {
       </header>
 
       {/* Tabs */}
-      <div className="sticky top-0 z-30 bg-white/80 backdrop-blur-xl border-b border-gray-200/60 shadow-sm">
+      <div className="sticky top-0 z-30 bg-white border-b border-gray-200">
         <div className="container mx-auto px-4 sm:px-6">
           <div className="flex space-x-1 py-2">
             {[
@@ -226,8 +212,8 @@ const CustomerDashboard = () => {
                 onClick={() => setActiveTab(tab.key)}
                 className={`flex items-center gap-2 py-2.5 px-5 rounded-xl font-semibold text-sm transition-all duration-200 ${
                   activeTab === tab.key
-                    ? "bg-primary text-white shadow-md shadow-primary/25"
-                    : "text-gray-500 hover:text-gray-700 hover:bg-gray-100"
+                    ? "bg-gray-900 text-white"
+                    : "text-gray-500 hover:text-gray-700 hover:bg-gray-50"
                 }`}
               >
                 {tab.icon}
