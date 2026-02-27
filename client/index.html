@@ -18,15 +18,40 @@
     <link rel="apple-touch-icon" href="/logo.png" />
     <title>ELOCAB - Reliable Rides Anytime, Your Journey Our Priority</title>
     <script>
-      // Register service worker
+      // Register service worker with auto-update
       if ("serviceWorker" in navigator) {
         window.addEventListener("load", () => {
           navigator.serviceWorker
             .register("/sw.js")
-            .then((reg) => console.log("Service Worker registered"))
+            .then((reg) => {
+              console.log("Service Worker registered");
+              // Check for updates every 60 seconds
+              setInterval(() => reg.update(), 60000);
+              // When a new SW is found and activated, reload to get fresh content
+              reg.addEventListener("updatefound", () => {
+                const newWorker = reg.installing;
+                newWorker.addEventListener("statechange", () => {
+                  if (
+                    newWorker.state === "activated" &&
+                    navigator.serviceWorker.controller
+                  ) {
+                    console.log("New version available, reloading...");
+                    window.location.reload();
+                  }
+                });
+              });
+            })
             .catch((err) =>
               console.log("Service Worker registration failed:", err),
             );
+        });
+        // Also reload when the controlling SW changes (e.g. skipWaiting)
+        let refreshing = false;
+        navigator.serviceWorker.addEventListener("controllerchange", () => {
+          if (!refreshing) {
+            refreshing = true;
+            window.location.reload();
+          }
         });
       }
     </script>

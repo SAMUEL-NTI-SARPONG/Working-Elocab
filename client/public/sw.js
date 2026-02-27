@@ -1,18 +1,19 @@
-const CACHE_NAME = "elocab-cache-v1";
-const urlsToCache = ["/", "/index.html", "/logo.png", "/manifest.json"];
+const CACHE_NAME = "elocab-cache-v3";
+// Only cache static assets, NOT HTML or JS bundles
+const urlsToCache = ["/logo.png", "/manifest.json"];
 
-// Install service worker
+// Install service worker — skip waiting to activate immediately
 self.addEventListener("install", (event) => {
   event.waitUntil(
     caches.open(CACHE_NAME).then((cache) => {
-      console.log("Opened cache");
+      console.log("Opened cache:", CACHE_NAME);
       return cache.addAll(urlsToCache);
     }),
   );
   self.skipWaiting();
 });
 
-// Activate service worker
+// Activate service worker — delete ALL old caches
 self.addEventListener("activate", (event) => {
   event.waitUntil(
     caches.keys().then((cacheNames) => {
@@ -26,30 +27,67 @@ self.addEventListener("activate", (event) => {
       );
     }),
   );
+  // Take control of all clients immediately
   self.clients.claim();
 });
 
-// Fetch with cache-first strategy
+// Fetch with NETWORK-FIRST strategy for HTML/JS/CSS, cache-first only for images
 self.addEventListener("fetch", (event) => {
+  const url = new URL(event.request.url);
+
+  // Skip non-GET requests and API/socket requests
+  if (
+    event.request.method !== "GET" ||
+    url.pathname.startsWith("/api/") ||
+    url.pathname.startsWith("/socket.io/")
+  ) {
+    return;
+  }
+
+  // For navigation requests (HTML) and JS/CSS — always go network-first
+  const isNavigationOrAsset =
+    event.request.mode === "navigate" ||
+    url.pathname.endsWith(".js") ||
+    url.pathname.endsWith(".css") ||
+    url.pathname === "/" ||
+    url.pathname.endsWith(".html");
+
+  if (isNavigationOrAsset) {
+    // Network-first: try network, fall back to cache
+    event.respondWith(
+      fetch(event.request)
+        .then((response) => {
+          // Cache the fresh response for offline fallback
+          if (response && response.status === 200) {
+            const responseToCache = response.clone();
+            caches.open(CACHE_NAME).then((cache) => {
+              cache.put(event.request, responseToCache);
+            });
+          }
+          return response;
+        })
+        .catch(() => {
+          // Network failed, try cache as fallback
+          return caches.match(event.request);
+        }),
+    );
+    return;
+  }
+
+  // For static assets (images, fonts) — cache-first
   event.respondWith(
     caches.match(event.request).then((response) => {
-      // Cache hit - return response
       if (response) {
         return response;
       }
       return fetch(event.request).then((response) => {
-        // Check if valid response
         if (!response || response.status !== 200 || response.type !== "basic") {
           return response;
         }
-
-        // Clone the response
         const responseToCache = response.clone();
-
         caches.open(CACHE_NAME).then((cache) => {
           cache.put(event.request, responseToCache);
         });
-
         return response;
       });
     }),
