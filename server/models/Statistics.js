@@ -1,137 +1,78 @@
-﻿const mongoose = require("mongoose");
-
-const statisticsSchema = new mongoose.Schema(
+const mongoose = require("mongoose");
+const schema = new mongoose.Schema(
   {
-    // Lifetime counters that persist even after data deletion
-    totalBookingsAllTime: {
-      type: Number,
-      default: 0,
-    },
-    totalCompletedBookingsAllTime: {
-      type: Number,
-      default: 0,
-    },
-    totalCancelledBookingsAllTime: {
-      type: Number,
-      default: 0,
-    },
-    totalRevenueAllTime: {
-      type: Number,
-      default: 0,
-    },
-    
-    // Daily booking statistics
+    singletonKey: { type: String, unique: true, sparse: true },
+    totalBookingsAllTime: { type: Number, default: 0 },
+    totalCompletedBookingsAllTime: { type: Number, default: 0 },
+    totalCancelledBookingsAllTime: { type: Number, default: 0 },
+    totalRevenueAllTime: { type: Number, default: 0 },
     dailyBookings: [
       {
-        date: {
-          type: Date,
-          required: true,
-        },
-        bookingCount: {
-          type: Number,
-          default: 0,
-        },
-        completedCount: {
-          type: Number,
-          default: 0,
-        },
-        cancelledCount: {
-          type: Number,
-          default: 0,
-        },
-        revenue: {
-          type: Number,
-          default: 0,
-        },
+        date: { type: Date, required: true },
+        bookingCount: { type: Number, default: 0 },
+        completedCount: { type: Number, default: 0 },
+        cancelledCount: { type: Number, default: 0 },
+        revenue: { type: Number, default: 0 },
       },
     ],
-    
-    // Last updated timestamp
-    lastUpdated: {
-      type: Date,
-      default: Date.now,
-    },
+    lastUpdated: { type: Date, default: Date.now },
   },
-  {
-    timestamps: true,
-  }
+  { timestamps: true },
 );
-
-// Ensure only one statistics document exists (singleton pattern)
-statisticsSchema.statics.getInstance = async function () {
-  let stats = await this.findOne();
-  if (!stats) {
-    stats = await this.create({});
+schema.statics.getInstance = async function () {
+  const existing = await this.findOne();
+  if (existing) return existing;
+  try {
+    return await this.findOneAndUpdate(
+      { singletonKey: "global" },
+      { $setOnInsert: { singletonKey: "global" } },
+      { upsert: true, new: true, setDefaultsOnInsert: true },
+    );
+  } catch (e) {
+    if (e.code !== 11000) throw e;
+    return this.findOne({ singletonKey: "global" });
   }
-  return stats;
 };
-
-// Method to increment booking count
-statisticsSchema.methods.incrementBooking = async function (totalAmount = 0) {
-  this.totalBookingsAllTime += 1;
-  
-  // Update daily statistics
-  const today = new Date();
-  today.setHours(0, 0, 0, 0);
-  
-  const dailyStat = this.dailyBookings.find(
-    (stat) => stat.date.getTime() === today.getTime()
+async function record(lifetimeKey, dailyKey, amount = 0) {
+  const day = new Date();
+  day.setUTCHours(0, 0, 0, 0);
+  const Model = this.constructor;
+  await Model.updateOne(
+    { _id: this._id, "dailyBookings.date": { $ne: day } },
+    {
+      $push: {
+        dailyBookings: {
+          date: day,
+          bookingCount: 0,
+          completedCount: 0,
+          cancelledCount: 0,
+          revenue: 0,
+        },
+      },
+    },
   );
-  
-  if (dailyStat) {
-    dailyStat.bookingCount += 1;
-  } else {
-    this.dailyBookings.push({
-      date: today,
-      bookingCount: 1,
-      completedCount: 0,
-      cancelledCount: 0,
-      revenue: 0,
-    });
+  const increments = { [lifetimeKey]: 1, [`dailyBookings.$.${dailyKey}`]: 1 };
+  if (amount) {
+    increments.totalRevenueAllTime = amount;
+    increments["dailyBookings.$.revenue"] = amount;
   }
-  
-  this.lastUpdated = Date.now();
-  await this.save();
-};
-
-// Method to record completed booking
-statisticsSchema.methods.recordCompleted = async function (totalAmount = 0) {
-  this.totalCompletedBookingsAllTime += 1;
-  this.totalRevenueAllTime += totalAmount;
-  
-  const today = new Date();
-  today.setHours(0, 0, 0, 0);
-  
-  const dailyStat = this.dailyBookings.find(
-    (stat) => stat.date.getTime() === today.getTime()
+  await Model.updateOne(
+    { _id: this._id, "dailyBookings.date": day },
+    { $inc: increments, $set: { lastUpdated: new Date() } },
   );
-  
-  if (dailyStat) {
-    dailyStat.completedCount += 1;
-    dailyStat.revenue += totalAmount;
-  }
-  
-  this.lastUpdated = Date.now();
-  await this.save();
+}
+schema.methods.incrementBooking = function () {
+  return record.call(this, "totalBookingsAllTime", "bookingCount");
 };
-
-// Method to record cancelled booking
-statisticsSchema.methods.recordCancelled = async function () {
-  this.totalCancelledBookingsAllTime += 1;
-  
-  const today = new Date();
-  today.setHours(0, 0, 0, 0);
-  
-  const dailyStat = this.dailyBookings.find(
-    (stat) => stat.date.getTime() === today.getTime()
+schema.methods.recordCompleted = function (amount = 0) {
+  return record.call(
+    this,
+    "totalCompletedBookingsAllTime",
+    "completedCount",
+    amount,
   );
-  
-  if (dailyStat) {
-    dailyStat.cancelledCount += 1;
-  }
-  
-  this.lastUpdated = Date.now();
-  await this.save();
 };
-
-module.exports = mongoose.model("Statistics", statisticsSchema);
+schema.methods.recordCancelled = function () {
+  return record.call(this, "totalCancelledBookingsAllTime", "cancelledCount");
+};
+module.exports = mongoose.model("Statistics", schema);

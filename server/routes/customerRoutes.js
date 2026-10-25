@@ -1,5 +1,7 @@
 const express = require("express");
 const router = express.Router();
+const { createLimiter } = require("../middleware/security");
+require("../middleware/recordIds")(router);
 const {
   getProfile,
   updateProfile,
@@ -16,7 +18,7 @@ router.use(customer);
 
 router.get("/profile", getProfile);
 router.put("/profile", updateProfile);
-router.post("/bookings", createBooking);
+router.post("/bookings", createLimiter, createBooking);
 router.get("/bookings", getMyBookings);
 router.get("/bookings/:bookingId", getBookingById);
 router.put("/bookings/:bookingId/cancel", cancelBooking);

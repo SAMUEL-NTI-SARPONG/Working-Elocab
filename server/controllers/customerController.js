@@ -1,75 +1,87 @@
 const Customer = require("../models/Customer");
 const Booking = require("../models/Booking");
-const Driver = require("../models/Driver");
 const Statistics = require("../models/Statistics");
 const User = require("../models/User");
-const { createNotification } = require("./notificationController");
-
-// Get customer profile
+const { requirePhone } = require("../utils/accounts");
+const { fail, sendError } = require("../utils/errors");
+const {
+  notifyBooking,
+  transitionBooking,
+} = require("../utils/bookingWorkflow");
+const profile = async (req) => {
+  const result = await Customer.findOne({ userId: req.user._id });
+  if (!result) throw fail(404, "Customer profile not found.");
+  return result;
+};
 exports.getProfile = async (req, res) => {
   try {
-    const customer = await Customer.findOne({ userId: req.user._id });
-    if (!customer) {
-      return res.status(404).json({ message: "Customer profile not found" });
-    }
-    res.json(customer);
-  } catch (error) {
-    res.status(500).json({
-      message: "Error fetching customer profile",
-      error: error.message,
-    });
+    res.json(await profile(req));
+  } catch (e) {
+    sendError(res, e);
   }
 };
-
-// Update customer profile
 exports.updateProfile = async (req, res) => {
   try {
-    const customer = await Customer.findOne({ userId: req.user._id });
-    if (!customer) {
-      return res.status(404).json({ message: "Customer profile not found" });
-    }
-
-    const allowedUpdates = ["name", "phoneNumber", "digitalAddress", "city"];
-    const updates = {};
-
-    allowedUpdates.forEach((field) => {
-      if (req.body[field] !== undefined) {
-        updates[field] = req.body[field];
-      }
-    });
-
-    const updatedCustomer = await Customer.findByIdAndUpdate(
-      customer._id,
-      { $set: updates },
-      { new: true, runValidators: true },
+    const customer = await profile(req);
+    const previousPhone = req.user.phoneNumber;
+    for (const key of ["name", "digitalAddress", "city"])
+      if (req.body[key] !== undefined) customer[key] = req.body[key];
+    if (req.body.phoneNumber !== undefined)
+      customer.phoneNumber = requirePhone(req.body.phoneNumber);
+    await customer.validate();
+    await User.updateOne(
+      { _id: req.user._id },
+      { $set: { phoneNumber: customer.phoneNumber } },
+      { runValidators: true },
     );
-
-    res.json(updatedCustomer);
-  } catch (error) {
-    res.status(500).json({
-      message: "Error updating customer profile",
-      error: error.message,
-    });
+    try {
+      await customer.save();
+    } catch (e) {
+      await User.updateOne(
+        { _id: req.user._id },
+        { phoneNumber: previousPhone },
+      );
+      throw e;
+    }
+    res.json(customer);
+  } catch (e) {
+    sendError(res, e);
   }
 };
-
-// Create new booking
 exports.createBooking = async (req, res) => {
   try {
-    const customer = await Customer.findOne({ userId: req.user._id });
-    if (!customer) {
-      return res.status(404).json({ message: "Customer profile not found" });
-    }
-
+    const customer = await profile(req);
     const {
       serviceType,
       dateTime,
       pickupPoint,
       destination,
       numberOfPeople,
-      notes,
+      notes = "",
     } = req.body;
-
+    if (!["Dropping", "Hiring"].includes(serviceType))
+      throw fail(400, "Choose dropping or hiring.");
+    if (
+      !dateTime ||
+      !Number.isFinite(new Date(dateTime).getTime()) ||
+      new Date(dateTime) < new Date(Date.now() - 60000)
+    )
+      throw fail(400, "Choose a date and time in the future.");
+    if (
+      typeof pickupPoint !== "string" ||
+      !pickupPoint.trim() ||
+      typeof destination !== "string" ||
+      !destination.trim()
+    )
+      throw fail(400, "Enter a pickup point and destination.");
+    if (
+      !Number.isInteger(Number(numberOfPeople)) ||
+      Number(numberOfPeople) < 1 ||
+      Number(numberOfPeople) > 30
+    )
+      throw fail(400, "Choose between 1 and 30 passengers.");
+    if (typeof notes !== "string" || notes.length > 1000)
+      throw fail(400, "Keep notes to 1,000 characters.");
     const booking = await Booking.create({
       customerId: customer._id,
       serviceType,
@@ -80,157 +92,51 @@ exports.createBooking = async (req, res) => {
       notes,
       status: "pending",
     });
-
-    const populatedBooking = await Booking.findById(booking._id).populate(
-      "customerId",
-      "name phoneNumber city",
+    await (await Statistics.getInstance()).incrementBooking();
+    await Customer.updateOne(
+      { _id: customer._id },
+      { $inc: { totalBookings: 1 } },
     );
-
-    // Track statistics
-    const stats = await Statistics.getInstance();
-    await stats.incrementBooking(booking.totalAmount || 0);
-
-    // Notify admin via Socket.io
-    const io = req.app.get("io");
-    io.emit("newBooking", populatedBooking);
-
-    // Create notification for customer
-    await createNotification(
-      req.user._id,
-      "booking_created",
-      "Booking Confirmed",
-      `Your ${serviceType} ride from ${pickupPoint} to ${destination} has been submitted. We'll assign a driver soon.`,
-      { bookingId: booking._id },
-    );
-
-    // Create notification for all admins
-    const admins = await User.find({ role: "admin" });
-    for (const admin of admins) {
-      await createNotification(
-        admin._id,
-        "booking_created",
-        "New Booking Received",
-        `${customer.name} booked a ${serviceType} ride: ${pickupPoint} → ${destination}`,
-        { bookingId: booking._id },
-      );
-    }
-
-    res.status(201).json(populatedBooking);
-  } catch (error) {
-    res
-      .status(500)
-      .json({ message: "Error creating booking", error: error.message });
+    res.status(201).json(await notifyBooking(req, "newBooking", booking));
+  } catch (e) {
+    sendError(res, e);
   }
 };
-
-// Get customer's bookings
 exports.getMyBookings = async (req, res) => {
   try {
-    const customer = await Customer.findOne({ userId: req.user._id });
-    if (!customer) {
-      return res.status(404).json({ message: "Customer profile not found" });
-    }
-
-    const bookings = await Booking.find({ customerId: customer._id })
-      .populate("driverId", "name contactNumber carType carNumber")
-      .sort({ createdAt: -1 });
-
-    res.json(bookings);
-  } catch (error) {
-    res
-      .status(500)
-      .json({ message: "Error fetching bookings", error: error.message });
+    const customer = await profile(req);
+    res.json(
+      await Booking.find({ customerId: customer._id })
+        .populate("driverId", "name contactNumber carType carNumber")
+        .sort({ createdAt: -1 }),
+    );
+  } catch (e) {
+    sendError(res, e);
   }
 };
-
-// Get booking by ID
+const ownBooking = async (req) => {
+  const customer = await profile(req);
+  const booking = await Booking.findById(req.params.bookingId);
+  if (!booking) throw fail(404, "Booking not found.");
+  if (String(booking.customerId) !== String(customer._id))
+    throw fail(403, "You cannot access this booking.");
+  return booking;
+};
 exports.getBookingById = async (req, res) => {
   try {
-    const { bookingId } = req.params;
-    const customer = await Customer.findOne({ userId: req.user._id });
-
-    const booking = await Booking.findById(bookingId).populate(
-      "driverId",
-      "name contactNumber carType carNumber",
+    res.json(
+      await (
+        await ownBooking(req)
+      ).populate("driverId", "name contactNumber carType carNumber"),
     );
-
-    if (!booking) {
-      return res.status(404).json({ message: "Booking not found" });
-    }
-
-    if (booking.customerId.toString() !== customer._id.toString()) {
-      return res
-        .status(403)
-        .json({ message: "Not authorized to view this booking" });
-    }
-
-    res.json(booking);
-  } catch (error) {
-    res
-      .status(500)
-      .json({ message: "Error fetching booking", error: error.message });
+  } catch (e) {
+    sendError(res, e);
   }
 };
-
-// Cancel booking
 exports.cancelBooking = async (req, res) => {
   try {
-    const { bookingId } = req.params;
-    const customer = await Customer.findOne({ userId: req.user._id });
-
-    const booking = await Booking.findById(bookingId);
-
-    if (!booking) {
-      return res.status(404).json({ message: "Booking not found" });
-    }
-
-    if (booking.customerId.toString() !== customer._id.toString()) {
-      return res
-        .status(403)
-        .json({ message: "Not authorized to cancel this booking" });
-    }
-
-    if (booking.status === "completed" || booking.status === "cancelled") {
-      return res.status(400).json({ message: "Cannot cancel this booking" });
-    }
-
-    booking.status = "cancelled";
-    await booking.save();
-
-    // Notify admin and driver via Socket.io
-    const io = req.app.get("io");
-    io.emit("bookingCancelled", booking);
-
-    // Create notification for admins
-    const admins = await User.find({ role: "admin" });
-    for (const admin of admins) {
-      await createNotification(
-        admin._id,
-        "booking_cancelled",
-        "Booking Cancelled",
-        `${customer.name} cancelled their booking: ${booking.pickupPoint} → ${booking.destination}`,
-        { bookingId: booking._id },
-      );
-    }
-
-    // Create notification for the assigned driver (if any)
-    if (booking.driverId) {
-      const driver = await Driver.findById(booking.driverId);
-      if (driver && driver.userId) {
-        await createNotification(
-          driver.userId,
-          "booking_cancelled",
-          "Booking Cancelled by Customer",
-          `${customer.name} cancelled the booking: ${booking.pickupPoint} → ${booking.destination}`,
-          { bookingId: booking._id },
-        );
-      }
-    }
-
-    res.json(booking);
-  } catch (error) {
-    res
-      .status(500)
-      .json({ message: "Error cancelling booking", error: error.message });
+    res.json(await transitionBooking(req, await ownBooking(req), "cancelled"));
+  } catch (e) {
+    sendError(res, e);
   }
 };

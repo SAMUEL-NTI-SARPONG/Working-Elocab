@@ -1,118 +1,80 @@
-const CACHE_NAME = "elocab-cache-v3";
-// Only cache static assets, NOT HTML or JS bundles
-const urlsToCache = ["/logo.png", "/manifest.json"];
-
-// Install service worker — skip waiting to activate immediately
+const CACHE_NAME = "elocab-static-v4";
+const STATIC = ["/index.html", "/images/logo.png", "/manifest.json"];
 self.addEventListener("install", (event) => {
   event.waitUntil(
-    caches.open(CACHE_NAME).then((cache) => {
-      console.log("Opened cache:", CACHE_NAME);
-      return cache.addAll(urlsToCache);
-    }),
+    caches.open(CACHE_NAME).then((cache) => cache.addAll(STATIC)),
   );
   self.skipWaiting();
 });
-
-// Activate service worker — delete ALL old caches
 self.addEventListener("activate", (event) => {
   event.waitUntil(
-    caches.keys().then((cacheNames) => {
-      return Promise.all(
-        cacheNames.map((cacheName) => {
-          if (cacheName !== CACHE_NAME) {
-            console.log("Deleting old cache:", cacheName);
-            return caches.delete(cacheName);
-          }
-        }),
-      );
-    }),
+    Promise.all([
+      caches
+        .keys()
+        .then((keys) =>
+          Promise.all(
+            keys
+              .filter((k) => k.startsWith("elocab-") && k !== CACHE_NAME)
+              .map((k) => caches.delete(k)),
+          ),
+        ),
+      self.clients.claim(),
+    ]),
   );
-  // Take control of all clients immediately
-  self.clients.claim();
 });
-
-// Fetch with NETWORK-FIRST strategy for HTML/JS/CSS, cache-first only for images
 self.addEventListener("fetch", (event) => {
   const url = new URL(event.request.url);
-
-  // Skip non-GET requests and API/socket requests
   if (
     event.request.method !== "GET" ||
+    url.origin !== self.location.origin ||
     url.pathname.startsWith("/api/") ||
     url.pathname.startsWith("/socket.io/")
-  ) {
+  )
     return;
-  }
-
-  // For navigation requests (HTML) and JS/CSS — always go network-first
-  const isNavigationOrAsset =
-    event.request.mode === "navigate" ||
-    url.pathname.endsWith(".js") ||
-    url.pathname.endsWith(".css") ||
-    url.pathname === "/" ||
-    url.pathname.endsWith(".html");
-
-  if (isNavigationOrAsset) {
-    // Network-first: try network, fall back to cache
-    event.respondWith(
-      fetch(event.request)
-        .then((response) => {
-          // Cache the fresh response for offline fallback
-          if (response && response.status === 200) {
-            const responseToCache = response.clone();
-            caches.open(CACHE_NAME).then((cache) => {
-              cache.put(event.request, responseToCache);
-            });
-          }
-          return response;
-        })
-        .catch(() => {
-          // Network failed, try cache as fallback
-          return caches.match(event.request);
-        }),
-    );
-    return;
-  }
-
-  // For static assets (images, fonts) — cache-first
   event.respondWith(
-    caches.match(event.request).then((response) => {
-      if (response) {
-        return response;
-      }
-      return fetch(event.request).then((response) => {
-        if (!response || response.status !== 200 || response.type !== "basic") {
-          return response;
+    fetch(event.request)
+      .then((response) => {
+        if (response.ok) {
+          const copy = response.clone();
+          event.waitUntil(
+            caches
+              .open(CACHE_NAME)
+              .then((cache) => cache.put(event.request, copy)),
+          );
         }
-        const responseToCache = response.clone();
-        caches.open(CACHE_NAME).then((cache) => {
-          cache.put(event.request, responseToCache);
-        });
         return response;
-      });
+      })
+      .catch(
+        async () =>
+          (await caches.match(event.request)) ||
+          (event.request.mode === "navigate"
+            ? await caches.match("/index.html")
+            : Response.error()),
+      ),
+  );
+});
+self.addEventListener("push", (event) => {
+  let data = {};
+  try {
+    data = event.data?.json() || {};
+  } catch {}
+  event.waitUntil(
+    self.registration.showNotification(data.title || "ELOCAB update", {
+      body: data.body || "Your journey has an update.",
+      icon: "/images/logo.png",
+      badge: "/images/logo.png",
+      data: data.data || {},
     }),
   );
 });
-
-// Push notification handler
-self.addEventListener("push", (event) => {
-  const data = event.data ? event.data.json() : {};
-  const title = data.title || "ELOCAB Notification";
-  const options = {
-    body: data.body || "You have a new notification",
-    icon: "/logo.png",
-    badge: "/logo.png",
-    vibrate: [200, 100, 200],
-    data: data.data || {},
-    actions: data.actions || [],
-  };
-
-  event.waitUntil(self.registration.showNotification(title, options));
-});
-
-// Notification click handler
 self.addEventListener("notificationclick", (event) => {
   event.notification.close();
-
-  event.waitUntil(clients.openWindow(event.notification.data.url || "/"));
+  const value = event.notification.data?.url;
+  const url =
+    typeof value === "string" &&
+    value.startsWith("/") &&
+    !value.startsWith("//")
+      ? value
+      : "/";
+  event.waitUntil(clients.openWindow(url));
 });

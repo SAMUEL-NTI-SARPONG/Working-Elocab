@@ -1,2696 +1,899 @@
-import { useState, useEffect } from "react";
-import { useNavigate } from "react-router-dom";
-import { useAuth } from "../../context/AuthContext";
+import NotificationPreferences from "../../components/NotificationPreferences";
+import { useState } from "react";
 import axios from "axios";
 import toast from "react-hot-toast";
-import ArchiveViewer from "../../components/ArchiveViewer";
-import InstallPrompt from "../../components/InstallPrompt";
-import ConfirmModal from "../../components/ConfirmModal";
-import NotificationModal from "../../components/NotificationModal";
+import DashboardShell from "../../components/DashboardShell";
+import RideList from "../../components/RideList";
+import AccountForm from "../../components/AccountForm";
+import {
+  PageHeading,
+  Stat,
+  Icon,
+  Button,
+  Field,
+  Modal,
+  EmptyState,
+  ErrorBanner,
+  LoadingState,
+  formatDate,
+  downloadJSON,
+} from "../../components/ui";
+import useDashboardData from "../../hooks/useDashboardData";
+import useAction from "../../hooks/useAction";
 import { useInstallPrompt } from "../../hooks/useInstallPrompt";
-
-const AdminDashboard = () => {
-  const { user, logout } = useAuth();
-  const navigate = useNavigate();
-  const { isInstallable, isInstalled, promptInstall } = useInstallPrompt();
-  const [activeTab, setActiveTab] = useState("dashboard");
-  const [stats, setStats] = useState(null);
-  const [drivers, setDrivers] = useState([]);
-  const [customers, setCustomers] = useState([]);
-  const [bookings, setBookings] = useState([]);
-  const [loading, setLoading] = useState(false);
-  const [selectedBooking, setSelectedBooking] = useState(null);
-  const [selectedDriver, setSelectedDriver] = useState("");
-  const [archiveStats, setArchiveStats] = useState(null);
-  const [archiveLoading, setArchiveLoading] = useState(false);
-  const [showCreateCustomer, setShowCreateCustomer] = useState(false);
-  const [showCreateDriver, setShowCreateDriver] = useState(false);
-  const [newCustomer, setNewCustomer] = useState({
-    phoneNumber: "",
-    password: "",
-    name: "",
-    city: "",
-    digitalAddress: "",
-  });
-  const [newDriver, setNewDriver] = useState({
-    phoneNumber: "",
-    password: "",
-    name: "",
-    contactNumber: "",
-    baseLocation: "",
-    carType: "",
-    carNumber: "",
-    licenseNumber: "",
-    seats: 4,
-  });
-  const [notificationPermission, setNotificationPermission] = useState(
-    typeof Notification !== "undefined" ? Notification.permission : "default",
+function People({ people, role, onCreate, onDelete, onToggle, busy }) {
+  const [search, setSearch] = useState("");
+  const filtered = people.filter((p) =>
+    [
+      p.name,
+      p.phoneNumber,
+      p.contactNumber,
+      p.carNumber,
+      p.baseLocation,
+      p.city,
+    ].some((v) =>
+      String(v || "")
+        .toLowerCase()
+        .includes(search.toLowerCase()),
+    ),
   );
-  const [showInstallPrompt, setShowInstallPrompt] = useState(false);
-  const [confirmModal, setConfirmModal] = useState({
-    isOpen: false,
-    title: "",
-    message: "",
-    variant: "danger",
-    confirmText: "Confirm",
-    requireType: null,
-    onConfirm: () => {},
-  });
-
-  useEffect(() => {
-    // Only show install prompt once per session
-    const hasSeenThisSession = sessionStorage.getItem(
-      "elocab_install_shown_this_session",
-    );
-    const hasDismissedForever = localStorage.getItem(
-      "elocab_install_prompt_seen",
-    );
-
-    if (!hasSeenThisSession && !hasDismissedForever) {
-      const timer = setTimeout(() => {
-        setShowInstallPrompt(true);
-        sessionStorage.setItem("elocab_install_shown_this_session", "true");
-      }, 3000);
-      return () => clearTimeout(timer);
-    }
-  }, []);
-
-  useEffect(() => {
-    fetchStats();
-    fetchDrivers();
-    fetchCustomers();
-    fetchBookings();
-
-    // Note: Do NOT auto-request notification permission on mount
-    // Modern browsers block this — permission must be requested via user gesture (button click)
-  }, []);
-
-  // Fetch archive stats when settings tab is opened
-  useEffect(() => {
-    if (activeTab === "settings") {
-      fetchArchiveStats();
-    }
-  }, [activeTab]);
-
-  // Listen for new bookings for notifications
-  useEffect(() => {
-    const checkForNewBookings = () => {
-      // This will trigger when bookings change
-      if (
-        bookings.length > 0 &&
-        "Notification" in window &&
-        Notification.permission === "granted"
-      ) {
-        const pendingCount = bookings.filter(
-          (b) => b.status === "pending",
-        ).length;
-        if (pendingCount > 0 && activeTab !== "bookings") {
-          // Show notification if there are pending bookings and user is not on bookings tab
-          try {
-            new Notification("New Booking Alert", {
-              body: `You have ${pendingCount} pending booking(s) awaiting assignment`,
-              icon: "/images/logo.png",
-              badge: "/images/logo.png",
-            });
-          } catch (e) {
-            console.log("Notification failed:", e);
-          }
-        }
-      }
-    };
-
-    const interval = setInterval(() => {
-      fetchBookings();
-    }, 30000); // Check every 30 seconds
-
-    return () => clearInterval(interval);
-  }, [bookings, activeTab]);
-
-  const fetchStats = async () => {
-    try {
-      const { data } = await axios.get("/api/admin/stats");
-      setStats(data);
-    } catch (error) {
-      if (error.response?.status !== 401) {
-        toast.error(
-          error.response?.data?.message || "Failed to fetch statistics",
-        );
-      }
-    }
-  };
-
-  const fetchDrivers = async () => {
-    try {
-      const { data } = await axios.get("/api/admin/drivers");
-      setDrivers(data);
-    } catch (error) {
-      if (error.response?.status !== 401) {
-        toast.error(error.response?.data?.message || "Failed to fetch drivers");
-      }
-    }
-  };
-
-  const fetchCustomers = async () => {
-    try {
-      const { data } = await axios.get("/api/admin/customers");
-      setCustomers(data);
-    } catch (error) {
-      if (error.response?.status !== 401) {
-        toast.error(
-          error.response?.data?.message || "Failed to fetch customers",
-        );
-      }
-    }
-  };
-
-  const fetchBookings = async () => {
-    try {
-      const { data } = await axios.get("/api/admin/bookings");
-      setBookings(data);
-    } catch (error) {
-      if (error.response?.status !== 401) {
-        toast.error(
-          error.response?.data?.message || "Failed to fetch bookings",
-        );
-      }
-    }
-  };
-
-  const assignDriver = async () => {
-    if (!selectedBooking || !selectedDriver) {
-      toast.error("Please select both booking and driver");
-      return;
-    }
-
-    setLoading(true);
-    try {
-      await axios.post("/api/admin/bookings/assign", {
-        bookingId: selectedBooking,
-        driverId: selectedDriver,
-      });
-      toast.success("Driver assigned successfully!");
-      setSelectedBooking(null);
-      setSelectedDriver("");
-      fetchBookings();
-      fetchStats();
-    } catch (error) {
-      toast.error(error.response?.data?.message || "Failed to assign driver");
-    } finally {
-      setLoading(false);
-    }
-  };
-
-  const deleteDriver = async (driverId) => {
-    setConfirmModal({
-      isOpen: true,
-      title: "Delete Driver",
-      message:
-        "Are you sure you want to delete this driver? Their account and all associated data will be permanently removed.",
-      variant: "danger",
-      confirmText: "Delete Driver",
-      requireType: null,
-      onConfirm: async () => {
-        setConfirmModal((prev) => ({ ...prev, isOpen: false }));
-        try {
-          await axios.delete(`/api/admin/drivers/${driverId}`);
-          toast.success("Driver deleted successfully");
-          fetchDrivers();
-          fetchStats();
-        } catch (error) {
-          toast.error(
-            error.response?.data?.message || "Failed to delete driver",
-          );
-        }
-      },
-    });
-  };
-
-  const deleteCustomer = async (customerId) => {
-    setConfirmModal({
-      isOpen: true,
-      title: "Delete Customer",
-      message:
-        "Are you sure you want to delete this customer? Their account and booking history will be permanently removed.",
-      variant: "danger",
-      confirmText: "Delete Customer",
-      requireType: null,
-      onConfirm: async () => {
-        setConfirmModal((prev) => ({ ...prev, isOpen: false }));
-        try {
-          await axios.delete(`/api/admin/customers/${customerId}`);
-          toast.success("Customer deleted successfully");
-          fetchCustomers();
-          fetchStats();
-        } catch (error) {
-          toast.error(
-            error.response?.data?.message || "Failed to delete customer",
-          );
-        }
-      },
-    });
-  };
-
-  const toggleDriverStatus = async (driverId) => {
-    try {
-      await axios.put(`/api/admin/drivers/${driverId}/toggle-status`);
-      toast.success("Driver status updated");
-      fetchDrivers();
-    } catch (error) {
-      toast.error(
-        error.response?.data?.message || "Failed to update driver status",
-      );
-    }
-  };
-
-  const clearCompletedBookings = async () => {
-    setConfirmModal({
-      isOpen: true,
-      title: "Clear Completed Bookings",
-      message:
-        "This will permanently delete all completed and cancelled bookings. This action cannot be undone.",
-      variant: "warning",
-      confirmText: "Clear Bookings",
-      requireType: null,
-      onConfirm: async () => {
-        setConfirmModal((prev) => ({ ...prev, isOpen: false }));
-        setLoading(true);
-        try {
-          const { data } = await axios.delete(
-            "/api/admin/bookings/clear-completed",
-          );
-          toast.success(data.message);
-          fetchBookings();
-          fetchStats();
-        } catch (error) {
-          toast.error(
-            error.response?.data?.message ||
-              "Failed to clear completed bookings",
-          );
-        } finally {
-          setLoading(false);
-        }
-      },
-    });
-  };
-
-  const clearAllBookings = async () => {
-    setConfirmModal({
-      isOpen: true,
-      title: "Delete ALL Bookings",
-      message:
-        "This will permanently delete ALL bookings including active ones. This is irreversible and cannot be undone.",
-      variant: "danger",
-      confirmText: "Delete Everything",
-      requireType: "DELETE ALL",
-      onConfirm: async () => {
-        setConfirmModal((prev) => ({ ...prev, isOpen: false }));
-        setLoading(true);
-        try {
-          const { data } = await axios.delete("/api/admin/bookings/clear-all");
-          toast.success(data.message);
-          fetchBookings();
-          fetchStats();
-        } catch (error) {
-          toast.error(
-            error.response?.data?.message || "Failed to clear all bookings",
-          );
-        } finally {
-          setLoading(false);
-        }
-      },
-    });
-  };
-
-  const requestNotificationPermission = async () => {
-    if (!("Notification" in window)) {
-      toast.error("This browser does not support notifications");
-      return;
-    }
-
-    if (Notification.permission === "granted") {
-      toast.success("Notifications are already enabled!");
-      setNotificationPermission("granted");
-      // Show a test notification
-      try {
-        new Notification("ELOCAB Admin", {
-          body: "Notifications are working correctly",
-          icon: "/images/logo.png",
-        });
-      } catch (e) {
-        console.log("Test notification failed:", e);
-      }
-      return;
-    }
-
-    if (Notification.permission === "denied") {
-      toast.error(
-        "Notifications are blocked. Please enable them in your browser settings (click the lock icon in the address bar).",
-        { duration: 6000 },
-      );
-      return;
-    }
-
-    try {
-      const permission = await Notification.requestPermission();
-      setNotificationPermission(permission);
-
-      if (permission === "granted") {
-        toast.success("Notifications enabled successfully!");
-        try {
-          new Notification("ELOCAB Admin", {
-            body: "You will now receive notifications for new bookings",
-            icon: "/images/logo.png",
-          });
-        } catch (e) {
-          console.log("Test notification failed:", e);
-        }
-      } else if (permission === "denied") {
-        toast.error(
-          "Notifications were denied. You can enable them later in browser settings.",
-          { duration: 5000 },
-        );
-      } else {
-        toast.error("Notification permission was dismissed. Try again.");
-      }
-    } catch (error) {
-      console.error("Notification error:", error);
-      toast.error("Failed to enable notifications. Try using Chrome or Edge.");
-    }
-  };
-
-  const fetchArchiveStats = async () => {
-    try {
-      const { data } = await axios.get("/api/admin/archive/stats");
-      setArchiveStats(data);
-    } catch (error) {
-      if (error.response?.status !== 401) {
-        toast.error(
-          error.response?.data?.message || "Failed to fetch archive statistics",
-        );
-      }
-    }
-  };
-
-  const resetStatistics = async () => {
-    setConfirmModal({
-      isOpen: true,
-      title: "Reset All Statistics",
-      message:
-        "This will reset ALL lifetime statistics to zero. This is irreversible and cannot be undone.",
-      variant: "danger",
-      confirmText: "Reset Statistics",
-      requireType: "RESET",
-      onConfirm: async () => {
-        setConfirmModal((prev) => ({ ...prev, isOpen: false }));
-        setLoading(true);
-        try {
-          const { data } = await axios.post("/api/admin/stats/reset");
-          toast.success(data.message);
-          fetchStats();
-        } catch (error) {
-          toast.error(
-            error.response?.data?.message || "Failed to reset statistics",
-          );
-        } finally {
-          setLoading(false);
-        }
-      },
-    });
-  };
-
-  const previewArchive = async () => {
-    setArchiveLoading(true);
-    try {
-      const { data } = await axios.get("/api/admin/archive/preview");
-      if (data.count === 0) {
-        toast("No bookings available for archiving", { icon: "ℹ️" });
-        return;
-      }
-
-      toast.success(
-        `Found ${data.count} booking(s) older than 90 days ready for archiving. Cutoff: ${new Date(data.cutoffDate).toLocaleDateString()}`,
-        { duration: 5000 },
-      );
-      console.log("Archivable bookings:", data.bookings);
-    } catch (error) {
-      toast.error(error.response?.data?.message || "Failed to preview archive");
-    } finally {
-      setArchiveLoading(false);
-    }
-  };
-
-  const executeArchive = async () => {
-    if (!archiveStats || archiveStats.archivable === 0) {
-      toast.error("No bookings available for archiving");
-      return;
-    }
-
-    setConfirmModal({
-      isOpen: true,
-      title: "Archive & Download",
-      message: `This will archive and delete ${archiveStats.archivable} booking(s) older than 90 days. The data will be downloaded as a JSON file before deletion.`,
-      variant: "warning",
-      confirmText: "Archive & Download",
-      requireType: null,
-      onConfirm: async () => {
-        setConfirmModal((prev) => ({ ...prev, isOpen: false }));
-        setArchiveLoading(true);
-        try {
-          const { data } = await axios.post("/api/admin/archive/execute");
-
-          // Create and download JSON file
-          const blob = new Blob([JSON.stringify(data.data, null, 2)], {
-            type: "application/json",
-          });
-          const url = URL.createObjectURL(blob);
-          const link = document.createElement("a");
-          link.href = url;
-          link.download = data.filename;
-          document.body.appendChild(link);
-          link.click();
-          document.body.removeChild(link);
-          URL.revokeObjectURL(url);
-
-          toast.success(data.message);
-
-          // Refresh data
-          fetchBookings();
-          fetchStats();
-          fetchArchiveStats();
-        } catch (error) {
-          toast.error(
-            error.response?.data?.message || "Failed to execute archive",
-          );
-        } finally {
-          setArchiveLoading(false);
-        }
-      },
-    });
-  };
-
-  const createCustomer = async (e) => {
-    e.preventDefault();
-    setLoading(true);
-    try {
-      await axios.post("/api/admin/customers", newCustomer);
-      toast.success("Customer created successfully!");
-      setShowCreateCustomer(false);
-      setNewCustomer({
-        phoneNumber: "",
-        password: "",
-        name: "",
-        city: "",
-        digitalAddress: "",
-      });
-      fetchCustomers();
-      fetchStats();
-    } catch (error) {
-      toast.error(error.response?.data?.message || "Failed to create customer");
-    } finally {
-      setLoading(false);
-    }
-  };
-
-  const createDriver = async (e) => {
-    e.preventDefault();
-    setLoading(true);
-    try {
-      await axios.post("/api/admin/drivers", newDriver);
-      toast.success("Driver created successfully!");
-      setShowCreateDriver(false);
-      setNewDriver({
-        phoneNumber: "",
-        password: "",
-        name: "",
-        contactNumber: "",
-        baseLocation: "",
-        carType: "",
-        carNumber: "",
-        licenseNumber: "",
-        seats: 4,
-      });
-      fetchDrivers();
-      fetchStats();
-    } catch (error) {
-      toast.error(error.response?.data?.message || "Failed to create driver");
-    } finally {
-      setLoading(false);
-    }
-  };
-
-  const handleLogout = () => {
-    logout();
-    navigate("/");
-    toast.success("Logged out successfully");
-  };
-
-  const getStatusColor = (status) => {
-    const colors = {
-      pending: "bg-yellow-100 text-yellow-800",
-      assigned: "bg-blue-100 text-blue-800",
-      accepted: "bg-cyan-100 text-cyan-800",
-      "on-the-way": "bg-purple-100 text-purple-800",
-      "picked-up": "bg-indigo-100 text-indigo-800",
-      completed: "bg-green-100 text-green-800",
-      cancelled: "bg-red-100 text-red-800",
-    };
-    return colors[status] || "bg-gray-100 text-gray-800";
-  };
-
-  const pendingBookings = bookings.filter((b) => b.status === "pending");
-  const assignedBookings = bookings.filter(
-    (b) => !["pending", "completed", "cancelled"].includes(b.status),
-  );
-  const activeBookings = bookings.filter(
-    (b) => !["completed", "cancelled"].includes(b.status),
-  );
-  const completedBookings = bookings.filter((b) =>
-    ["completed", "cancelled"].includes(b.status),
-  );
-
   return (
-    <div className="min-h-screen bg-gray-50">
-      {/* Header */}
-      <header className="bg-white border-b border-gray-200">
-        <div className="container mx-auto px-4 sm:px-6 py-4">
-          <div className="flex items-center justify-between">
-            <div className="flex items-center space-x-3">
-              <img
-                src="/images/logo.png"
-                alt="ELOCAB"
-                className="h-10 w-auto"
-                onError={(e) => (e.target.style.display = "none")}
-              />
-              <div>
-                <h1 className="text-lg font-bold text-gray-900">ELOCAB</h1>
-                <p className="text-xs text-gray-500">Admin Control Panel</p>
-              </div>
-            </div>
-            <div className="flex items-center gap-3">
-              <NotificationModal />
-              <div className="hidden sm:flex items-center gap-2 px-3 py-2 bg-gray-50 rounded-lg border border-gray-100">
-                <div className="w-8 h-8 bg-gray-900 rounded-lg flex items-center justify-center text-white text-xs font-semibold">
-                  A
-                </div>
-                <span className="text-sm text-gray-700 font-medium">Admin</span>
-              </div>
-              <button
-                onClick={handleLogout}
-                className="px-4 py-2 text-sm font-medium text-gray-600 hover:text-gray-900 bg-gray-100 hover:bg-gray-200 rounded-lg transition-colors"
-              >
-                Logout
-              </button>
-            </div>
-          </div>
+    <>
+      <div className="toolbar">
+        <div className="search-field">
+          <Icon name="search" />
+          <input
+            className="input"
+            aria-label={`Search ${role}s`}
+            placeholder={`Search ${role}s by name, phone or location`}
+            value={search}
+            onChange={(e) => setSearch(e.target.value)}
+          />
         </div>
-      </header>
-
-      {/* Tabs */}
-      <div className="bg-white border-b border-gray-200 sticky top-0 z-30">
-        <div className="container mx-auto px-4 sm:px-6">
-          <div className="flex gap-1 overflow-x-auto py-2 -mb-px scrollbar-hide">
-            {[
-              {
-                key: "dashboard",
-                label: "Dashboard",
-                icon: (
-                  <svg
-                    className="w-4 h-4"
-                    fill="none"
-                    stroke="currentColor"
-                    viewBox="0 0 24 24"
+        <span className="filter-count">
+          {filtered.length} {role}
+          {filtered.length !== 1 ? "s" : ""}
+        </span>
+      </div>
+      {filtered.length ? (
+        <div className="people-list">
+          {filtered.map((p) => (
+            <article className="person-row" key={p._id}>
+              <div className="person-name">
+                <span className="account-avatar">{p.name.slice(0, 1)}</span>
+                <div>
+                  <strong>{p.name}</strong>
+                  <small>
+                    {p.baseLocation || p.city || "Kumasi"}
+                    {role === "driver" &&
+                      ` · ${p.isActive ? (p.isAvailable ? "Online" : "Offline") : "Inactive"}`}
+                  </small>
+                </div>
+              </div>
+              <div className="person-meta">
+                <a href={`tel:${p.phoneNumber || p.contactNumber}`}>
+                  {p.phoneNumber || p.contactNumber}
+                </a>
+                {role === "driver" ? (
+                  <span>
+                    {p.carType} · {p.carNumber}
+                    <br />
+                    {p.numberOfSeats} passenger seats · {p.totalRides || 0}{" "}
+                    rides completed
+                  </span>
+                ) : (
+                  <span>
+                    {p.digitalAddress === "N/A"
+                      ? "No digital address added"
+                      : p.digitalAddress || "No digital address added"}
+                  </span>
+                )}
+              </div>
+              <div className="person-actions">
+                {role === "driver" && (
+                  <Button
+                    variant="outline"
+                    disabled={busy}
+                    onClick={() => onToggle(p)}
                   >
-                    <path
-                      strokeLinecap="round"
-                      strokeLinejoin="round"
-                      strokeWidth={2}
-                      d="M4 6a2 2 0 012-2h2a2 2 0 012 2v2a2 2 0 01-2 2H6a2 2 0 01-2-2V6zM14 6a2 2 0 012-2h2a2 2 0 012 2v2a2 2 0 01-2 2h-2a2 2 0 01-2-2V6zM4 16a2 2 0 012-2h2a2 2 0 012 2v2a2 2 0 01-2 2H6a2 2 0 01-2-2v-2zM14 16a2 2 0 012-2h2a2 2 0 012 2v2a2 2 0 01-2 2h-2a2 2 0 01-2-2v-2z"
-                    />
-                  </svg>
-                ),
-              },
-              {
-                key: "bookings",
-                label: "Bookings",
-                icon: (
-                  <svg
-                    className="w-4 h-4"
-                    fill="none"
-                    stroke="currentColor"
-                    viewBox="0 0 24 24"
-                  >
-                    <path
-                      strokeLinecap="round"
-                      strokeLinejoin="round"
-                      strokeWidth={2}
-                      d="M9 5H7a2 2 0 00-2 2v12a2 2 0 002 2h10a2 2 0 002-2V7a2 2 0 00-2-2h-2M9 5a2 2 0 002 2h2a2 2 0 002-2M9 5a2 2 0 012-2h2a2 2 0 012 2"
-                    />
-                  </svg>
-                ),
-              },
-              {
-                key: "drivers",
-                label: "Drivers",
-                icon: (
-                  <svg
-                    className="w-4 h-4"
-                    fill="none"
-                    stroke="currentColor"
-                    viewBox="0 0 24 24"
-                  >
-                    <path
-                      strokeLinecap="round"
-                      strokeLinejoin="round"
-                      strokeWidth={2}
-                      d="M8 7h12m0 0l-4-4m4 4l-4 4m0 6H4m0 0l4 4m-4-4l4-4"
-                    />
-                  </svg>
-                ),
-              },
-              {
-                key: "customers",
-                label: "Customers",
-                icon: (
-                  <svg
-                    className="w-4 h-4"
-                    fill="none"
-                    stroke="currentColor"
-                    viewBox="0 0 24 24"
-                  >
-                    <path
-                      strokeLinecap="round"
-                      strokeLinejoin="round"
-                      strokeWidth={2}
-                      d="M12 4.354a4 4 0 110 5.292M15 21H3v-1a6 6 0 0112 0v1zm0 0h6v-1a6 6 0 00-9-5.197"
-                    />
-                  </svg>
-                ),
-              },
-              {
-                key: "settings",
-                label: "Settings",
-                icon: (
-                  <svg
-                    className="w-4 h-4"
-                    fill="none"
-                    stroke="currentColor"
-                    viewBox="0 0 24 24"
-                  >
-                    <path
-                      strokeLinecap="round"
-                      strokeLinejoin="round"
-                      strokeWidth={2}
-                      d="M10.325 4.317c.426-1.756 2.924-1.756 3.35 0a1.724 1.724 0 002.573 1.066c1.543-.94 3.31.826 2.37 2.37a1.724 1.724 0 001.066 2.573c1.756.426 1.756 2.924 0 3.35a1.724 1.724 0 00-1.066 2.573c.94 1.543-.826 3.31-2.37 2.37a1.724 1.724 0 00-2.573 1.066c-.426 1.756-2.924 1.756-3.35 0a1.724 1.724 0 00-2.573-1.066c-1.543.94-3.31-.826-2.37-2.37a1.724 1.724 0 00-1.066-2.573c-1.756-.426-1.756-2.924 0-3.35a1.724 1.724 0 001.066-2.573c-.94-1.543.826-3.31 2.37-2.37.996.608 2.296.07 2.572-1.065z"
-                    />
-                    <path
-                      strokeLinecap="round"
-                      strokeLinejoin="round"
-                      strokeWidth={2}
-                      d="M15 12a3 3 0 11-6 0 3 3 0 016 0z"
-                    />
-                  </svg>
-                ),
-              },
-            ].map((tab) => (
-              <button
-                key={tab.key}
-                onClick={() => setActiveTab(tab.key)}
-                className={`flex items-center gap-2 py-2.5 px-4 rounded-xl font-semibold text-sm whitespace-nowrap transition-all duration-200 ${
-                  activeTab === tab.key
-                    ? "bg-gray-900 text-white"
-                    : "text-gray-500 hover:text-gray-700 hover:bg-gray-50"
-                }`}
-              >
-                {tab.icon}
-                <span className="hidden sm:inline">{tab.label}</span>
-              </button>
-            ))}
-          </div>
+                    {p.isActive ? "Deactivate" : "Activate"}
+                  </Button>
+                )}
+                <Button
+                  variant="text"
+                  disabled={busy}
+                  onClick={() => onDelete(p)}
+                >
+                  Delete account
+                </Button>
+              </div>
+            </article>
+          ))}
         </div>
+      ) : (
+        <EmptyState
+          icon="users"
+          title={search ? "No matching people" : `No ${role}s yet`}
+          text={
+            search
+              ? "Try another name, number, or location."
+              : `Create a ${role} account to get started.`
+          }
+        >
+          {search ? (
+            <Button variant="outline" onClick={() => setSearch("")}>
+              Clear search
+            </Button>
+          ) : (
+            <Button onClick={onCreate}>
+              Add {role} <Icon name="plus" size={16} />
+            </Button>
+          )}
+        </EmptyState>
+      )}
+    </>
+  );
+}
+function ActivityChart({ stats }) {
+  const days = Array.from({ length: 7 }, (_, i) => {
+    const date = new Date();
+    date.setUTCHours(0, 0, 0, 0);
+    date.setUTCDate(date.getUTCDate() - 6 + i);
+    const record = stats?.lifetime?.last7Days?.find(
+      (d) =>
+        new Date(d.date).toISOString().slice(0, 10) ===
+        date.toISOString().slice(0, 10),
+    );
+    return { date, count: record?.bookingCount || 0 };
+  });
+  const max = Math.max(1, ...days.map((d) => d.count));
+  return (
+    <div className="panel">
+      <div className="panel-heading">
+        <div>
+          <h2>A week of journeys</h2>
+          <p>Ride requests over the last seven days</p>
+        </div>
+        <Icon name="rides" />
       </div>
-
-      {/* Content */}
-      <div className="container mx-auto px-4 sm:px-6 py-8">
-        {/* Dashboard Tab */}
-        {activeTab === "dashboard" && stats && (
-          <div className="animate-fade-in">
-            <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-3 mb-8">
-              <div>
-                <h2 className="text-2xl font-black text-gray-900 tracking-tight">
-                  Dashboard Overview
-                </h2>
-                <p className="text-gray-500 text-sm mt-1">
-                  Real-time overview of your fleet operations
-                </p>
-              </div>
-              <div className="text-xs text-gray-400 font-medium bg-white px-3 py-1.5 rounded-lg border border-gray-100 shadow-sm">
-                Last updated: {new Date().toLocaleTimeString()}
-              </div>
-            </div>
-
-            {/* Stats Grid */}
-            <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-6 mb-8">
-              <div
-                className="stat-card border-blue-500 animate-fade-in-up"
-                style={{ animationDelay: "0s" }}
-              >
-                <div className="flex items-center justify-between mb-4">
-                  <div className="p-3 bg-blue-100 rounded-xl">
-                    <svg
-                      className="w-6 h-6 text-blue-600"
-                      fill="none"
-                      stroke="currentColor"
-                      viewBox="0 0 24 24"
-                    >
-                      <path
-                        strokeLinecap="round"
-                        strokeLinejoin="round"
-                        strokeWidth={2}
-                        d="M17 20h5v-2a3 3 0 00-5.356-1.857M17 20H7m10 0v-2c0-.656-.126-1.283-.356-1.857M7 20H2v-2a3 3 0 015.356-1.857M7 20v-2c0-.656.126-1.283.356-1.857m0 0a5.002 5.002 0 019.288 0M15 7a3 3 0 11-6 0 3 3 0 016 0z"
-                      />
-                    </svg>
-                  </div>
-                  <span className="text-xs font-semibold text-green-600 bg-green-50 px-2.5 py-1 rounded-full">
-                    {stats.drivers.active} active
-                  </span>
-                </div>
-                <p className="text-3xl font-black text-gray-800 stat-number">
-                  {stats.drivers.total}
-                </p>
-                <p className="text-sm text-gray-500 mt-1 font-medium">
-                  Total Drivers
-                </p>
-              </div>
-
-              <div
-                className="stat-card border-emerald-500 animate-fade-in-up"
-                style={{ animationDelay: "0.1s" }}
-              >
-                <div className="flex items-center justify-between mb-4">
-                  <div className="p-3 bg-emerald-100 rounded-xl">
-                    <svg
-                      className="w-6 h-6 text-emerald-600"
-                      fill="none"
-                      stroke="currentColor"
-                      viewBox="0 0 24 24"
-                    >
-                      <path
-                        strokeLinecap="round"
-                        strokeLinejoin="round"
-                        strokeWidth={2}
-                        d="M12 4.354a4 4 0 110 5.292M15 21H3v-1a6 6 0 0112 0v1zm0 0h6v-1a6 6 0 00-9-5.197m13.5-9a2.5 2.5 0 11-5 0 2.5 2.5 0 015 0z"
-                      />
-                    </svg>
-                  </div>
-                </div>
-                <p className="text-3xl font-black text-gray-800 stat-number">
-                  {stats.customers.total}
-                </p>
-                <p className="text-sm text-gray-500 mt-1 font-medium">
-                  Total Customers
-                </p>
-              </div>
-
-              <div
-                className="stat-card border-amber-500 animate-fade-in-up"
-                style={{ animationDelay: "0.2s" }}
-              >
-                <div className="flex items-center justify-between mb-4">
-                  <div className="p-3 bg-amber-100 rounded-xl">
-                    <svg
-                      className="w-6 h-6 text-amber-600"
-                      fill="none"
-                      stroke="currentColor"
-                      viewBox="0 0 24 24"
-                    >
-                      <path
-                        strokeLinecap="round"
-                        strokeLinejoin="round"
-                        strokeWidth={2}
-                        d="M12 8v4l3 3m6-3a9 9 0 11-18 0 9 9 0 0118 0z"
-                      />
-                    </svg>
-                  </div>
-                  {stats.bookings.pending > 0 && (
-                    <span className="text-xs font-semibold text-amber-600 bg-amber-50 px-2.5 py-1 rounded-full animate-pulse">
-                      Needs action
-                    </span>
-                  )}
-                </div>
-                <p className="text-3xl font-black text-gray-800 stat-number">
-                  {stats.bookings.pending}
-                </p>
-                <p className="text-sm text-gray-500 mt-1 font-medium">
-                  Pending Bookings
-                </p>
-              </div>
-
-              <div
-                className="stat-card border-violet-500 animate-fade-in-up"
-                style={{ animationDelay: "0.3s" }}
-              >
-                <div className="flex items-center justify-between mb-4">
-                  <div className="p-3 bg-violet-100 rounded-xl">
-                    <svg
-                      className="w-6 h-6 text-violet-600"
-                      fill="none"
-                      stroke="currentColor"
-                      viewBox="0 0 24 24"
-                    >
-                      <path
-                        strokeLinecap="round"
-                        strokeLinejoin="round"
-                        strokeWidth={2}
-                        d="M9 12l2 2 4-4m6 2a9 9 0 11-18 0 9 9 0 0118 0z"
-                      />
-                    </svg>
-                  </div>
-                </div>
-                <p className="text-3xl font-black text-gray-800 stat-number">
-                  {stats.bookings.completed}
-                </p>
-                <p className="text-sm text-gray-500 mt-1 font-medium">
-                  Completed Bookings
-                </p>
-              </div>
-            </div>
-
-            {/* Lifetime Statistics */}
-            {stats.lifetime && (
-              <div className="mb-8">
-                <div className="flex flex-col sm:flex-row justify-between items-start sm:items-center mb-4 gap-3">
-                  <div>
-                    <h3 className="text-lg font-bold text-gray-800">
-                      Lifetime Statistics
-                    </h3>
-                    <p className="text-sm text-gray-500">
-                      Persists after data cleanup
-                    </p>
-                  </div>
-                  <button
-                    onClick={resetStatistics}
-                    className="px-4 py-2 bg-red-50 text-red-600 text-sm rounded-xl hover:bg-red-100 border border-red-200 font-semibold"
-                    disabled={loading}
-                  >
-                    Reset Stats
-                  </button>
-                </div>
-                <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
-                  <div className="bg-gradient-to-br from-blue-500 to-blue-600 rounded-2xl p-6 text-white shadow-lg">
-                    <div className="flex items-center justify-between mb-3">
-                      <div className="p-2 bg-white/20 rounded-lg">
-                        <svg
-                          className="w-5 h-5"
-                          fill="none"
-                          stroke="currentColor"
-                          viewBox="0 0 24 24"
-                        >
-                          <path
-                            strokeLinecap="round"
-                            strokeLinejoin="round"
-                            strokeWidth={2}
-                            d="M9 5H7a2 2 0 00-2 2v12a2 2 0 002 2h10a2 2 0 002-2V7a2 2 0 00-2-2h-2M9 5a2 2 0 002 2h2a2 2 0 002-2M9 5a2 2 0 012-2h2a2 2 0 012 2"
-                          />
-                        </svg>
-                      </div>
-                      <span className="text-xs font-medium text-blue-200">
-                        All time
-                      </span>
-                    </div>
-                    <p className="text-3xl font-black">
-                      {stats.lifetime.totalBookings}
-                    </p>
-                    <p className="text-sm text-blue-200 mt-1">Total Bookings</p>
-                  </div>
-                  <div className="bg-gradient-to-br from-emerald-500 to-emerald-600 rounded-2xl p-6 text-white shadow-lg">
-                    <div className="flex items-center justify-between mb-3">
-                      <div className="p-2 bg-white/20 rounded-lg">
-                        <svg
-                          className="w-5 h-5"
-                          fill="none"
-                          stroke="currentColor"
-                          viewBox="0 0 24 24"
-                        >
-                          <path
-                            strokeLinecap="round"
-                            strokeLinejoin="round"
-                            strokeWidth={2}
-                            d="M5 13l4 4L19 7"
-                          />
-                        </svg>
-                      </div>
-                      <span className="text-xs font-medium text-emerald-200">
-                        All time
-                      </span>
-                    </div>
-                    <p className="text-3xl font-black">
-                      {stats.lifetime.totalCompleted}
-                    </p>
-                    <p className="text-sm text-emerald-200 mt-1">Completed</p>
-                  </div>
-                  <div className="bg-gradient-to-br from-rose-500 to-rose-600 rounded-2xl p-6 text-white shadow-lg">
-                    <div className="flex items-center justify-between mb-3">
-                      <div className="p-2 bg-white/20 rounded-lg">
-                        <svg
-                          className="w-5 h-5"
-                          fill="none"
-                          stroke="currentColor"
-                          viewBox="0 0 24 24"
-                        >
-                          <path
-                            strokeLinecap="round"
-                            strokeLinejoin="round"
-                            strokeWidth={2}
-                            d="M6 18L18 6M6 6l12 12"
-                          />
-                        </svg>
-                      </div>
-                      <span className="text-xs font-medium text-rose-200">
-                        All time
-                      </span>
-                    </div>
-                    <p className="text-3xl font-black">
-                      {stats.lifetime.totalCancelled}
-                    </p>
-                    <p className="text-sm text-rose-200 mt-1">Cancelled</p>
-                  </div>
-                </div>
-                {stats.lifetime.last7Days &&
-                  stats.lifetime.last7Days.length > 0 && (
-                    <div className="mt-4 bg-white rounded-2xl shadow-soft p-6">
-                      <h4 className="text-sm font-bold text-gray-700 mb-4 flex items-center gap-2">
-                        <svg
-                          className="w-4 h-4 text-primary"
-                          fill="none"
-                          stroke="currentColor"
-                          viewBox="0 0 24 24"
-                        >
-                          <path
-                            strokeLinecap="round"
-                            strokeLinejoin="round"
-                            strokeWidth={2}
-                            d="M8 7V3m8 4V3m-9 8h10M5 21h14a2 2 0 002-2V7a2 2 0 00-2-2H5a2 2 0 00-2 2v12a2 2 0 002 2z"
-                          />
-                        </svg>
-                        Last 7 Days Activity
-                      </h4>
-                      <div className="space-y-3">
-                        {stats.lifetime.last7Days.map((day, idx) => (
-                          <div
-                            key={idx}
-                            className="flex justify-between items-center text-sm py-2 px-3 rounded-lg hover:bg-gray-50"
-                          >
-                            <span className="text-gray-600 font-medium">
-                              {new Date(day.date).toLocaleDateString("en-US", {
-                                weekday: "short",
-                                month: "short",
-                                day: "numeric",
-                              })}
-                            </span>
-                            <div className="flex gap-4">
-                              <span className="text-blue-600 font-semibold bg-blue-50 px-2 py-0.5 rounded-md text-xs">
-                                {day.bookingCount} bookings
-                              </span>
-                              <span className="text-green-600 font-semibold bg-green-50 px-2 py-0.5 rounded-md text-xs">
-                                {day.completedCount} done
-                              </span>
-                            </div>
-                          </div>
-                        ))}
-                      </div>
-                    </div>
-                  )}
-              </div>
-            )}
-
-            {pendingBookings.length > 0 && (
-              <div className="bg-amber-50 border border-amber-200 rounded-2xl p-6 flex flex-col sm:flex-row items-start sm:items-center gap-4">
-                <div className="p-3 bg-amber-100 rounded-xl shrink-0">
-                  <svg
-                    className="w-6 h-6 text-amber-600"
-                    fill="none"
-                    stroke="currentColor"
-                    viewBox="0 0 24 24"
-                  >
-                    <path
-                      strokeLinecap="round"
-                      strokeLinejoin="round"
-                      strokeWidth={2}
-                      d="M12 9v2m0 4h.01m-6.938 4h13.856c1.54 0 2.502-1.667 1.732-2.5L13.732 4.5c-.77-.833-2.694-.833-3.464 0L3.34 16.5c-.77.833.192 2.5 1.732 2.5z"
-                    />
-                  </svg>
-                </div>
-                <div className="flex-1">
-                  <h3 className="font-bold text-amber-800 text-lg">
-                    {pendingBookings.length} Pending Booking
-                    {pendingBookings.length > 1 ? "s" : ""} Require Action
-                  </h3>
-                  <p className="text-amber-700 text-sm mt-1">
-                    Assign drivers to these bookings to keep your service
-                    running smoothly.
-                  </p>
-                </div>
-                <button
-                  onClick={() => setActiveTab("bookings")}
-                  className="px-5 py-2.5 bg-amber-600 text-white rounded-xl hover:bg-amber-700 font-semibold text-sm shrink-0"
-                >
-                  View & Assign
-                </button>
-              </div>
-            )}
+      <div
+        className="chart-bars"
+        role="img"
+        aria-label={`Daily booking counts: ${days.map((d) => `${d.date.toLocaleDateString("en-GH", { weekday: "short", timeZone: "Africa/Accra" })} ${d.count}`).join(", ")}`}
+      >
+        {days.map((d) => (
+          <div
+            className="chart-bar"
+            key={d.date.toISOString()}
+            style={{ height: `${Math.max(3, (d.count / max) * 110)}px` }}
+          >
+            <span>{d.count}</span>
+            <small>
+              {d.date.toLocaleDateString("en-GH", {
+                weekday: "short",
+                timeZone: "Africa/Accra",
+              })}
+            </small>
           </div>
-        )}
-
-        {/* Bookings Tab */}
-        {activeTab === "bookings" && (
-          <div className="animate-fade-in">
-            <h2 className="text-2xl font-black text-gray-900 tracking-tight mb-6">
-              Booking Management
-            </h2>
-
-            {/* Pending Bookings */}
-            {pendingBookings.length > 0 && (
-              <div className="mb-8">
-                <h3 className="text-xl font-bold text-yellow-600 mb-4">
-                  ⏳ Pending Assignments ({pendingBookings.length})
-                </h3>
-                <div className="bg-white rounded-2xl shadow-soft overflow-hidden border border-gray-100">
-                  {/* Desktop Table */}
-                  <div className="hidden md:block overflow-x-auto">
-                    <table className="w-full">
-                      <thead className="bg-gray-50 border-b border-gray-200">
-                        <tr>
-                          <th className="px-6 py-3 text-left text-xs font-semibold text-gray-500 uppercase tracking-wider">
-                            Service
-                          </th>
-                          <th className="px-6 py-3 text-left text-xs font-semibold text-gray-500 uppercase tracking-wider">
-                            Date & Time
-                          </th>
-                          <th className="px-6 py-3 text-left text-xs font-semibold text-gray-500 uppercase tracking-wider">
-                            Route
-                          </th>
-                          <th className="px-6 py-3 text-left text-xs font-semibold text-gray-500 uppercase tracking-wider">
-                            Customer
-                          </th>
-                          <th className="px-6 py-3 text-left text-xs font-semibold text-gray-500 uppercase tracking-wider">
-                            Passengers
-                          </th>
-                          <th className="px-6 py-3 text-left text-xs font-semibold text-gray-500 uppercase tracking-wider">
-                            Assign Driver
-                          </th>
-                        </tr>
-                      </thead>
-                      <tbody className="divide-y divide-gray-200">
-                        {pendingBookings.map((booking) => (
-                          <tr
-                            key={booking._id}
-                            className="hover:bg-gray-50 transition-colors"
-                          >
-                            <td className="px-6 py-4 font-medium text-gray-800">
-                              {booking.serviceType}
-                            </td>
-                            <td className="px-6 py-4 text-gray-600 text-sm">
-                              {new Date(booking.dateTime).toLocaleString()}
-                            </td>
-                            <td className="px-6 py-4">
-                              <div className="text-sm">
-                                <div className="font-semibold text-gray-800">
-                                  {booking.pickupPoint}
-                                </div>
-                                <div className="text-gray-500 text-xs">→</div>
-                                <div className="font-semibold text-gray-800">
-                                  {booking.destination}
-                                </div>
-                              </div>
-                            </td>
-                            <td className="px-6 py-4">
-                              {booking.customerId && (
-                                <div className="text-sm">
-                                  <div className="font-bold text-gray-800">
-                                    {booking.customerId.name}
-                                  </div>
-                                  <div className="text-gray-600">
-                                    {booking.customerId.phoneNumber}
-                                  </div>
-                                </div>
-                              )}
-                            </td>
-                            <td className="px-6 py-4 text-gray-600">
-                              {booking.numberOfPeople}
-                            </td>
-                            <td className="px-6 py-4">
-                              <div className="flex gap-2">
-                                <select
-                                  className="flex-1 min-w-[180px] px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-primary focus:border-transparent text-sm"
-                                  value={
-                                    selectedBooking === booking._id
-                                      ? selectedDriver
-                                      : ""
-                                  }
-                                  onChange={(e) => {
-                                    setSelectedBooking(booking._id);
-                                    setSelectedDriver(e.target.value);
-                                  }}
-                                >
-                                  <option value="">Select driver...</option>
-                                  {drivers.map((driver) => (
-                                    <option key={driver._id} value={driver._id}>
-                                      {driver.name} - {driver.carType} (
-                                      {driver.numberOfSeats} seats){" "}
-                                      {driver.isAvailable ? "✅" : "⚫"}
-                                    </option>
-                                  ))}
-                                </select>
-                                <button
-                                  onClick={assignDriver}
-                                  disabled={
-                                    selectedBooking !== booking._id ||
-                                    !selectedDriver ||
-                                    loading
-                                  }
-                                  className="px-4 py-2 bg-green-600 text-white rounded-lg hover:bg-green-700 disabled:opacity-50 disabled:cursor-not-allowed font-semibold text-sm whitespace-nowrap"
-                                >
-                                  Assign
-                                </button>
-                              </div>
-                            </td>
-                          </tr>
-                        ))}
-                      </tbody>
-                    </table>
-                  </div>
-
-                  {/* Mobile Cards */}
-                  <div className="md:hidden space-y-4 p-4">
-                    {pendingBookings.map((booking) => (
-                      <div
-                        key={booking._id}
-                        className="border border-yellow-200 rounded-lg p-4 shadow-sm bg-yellow-50"
-                      >
-                        <div className="mb-3">
-                          <div className="font-bold text-gray-800 text-lg">
-                            {booking.serviceType}
-                          </div>
-                          <div className="text-sm text-gray-600">
-                            {new Date(booking.dateTime).toLocaleString()}
-                          </div>
-                        </div>
-
-                        <div className="space-y-2 mb-3">
-                          <div>
-                            <div className="text-xs text-gray-500 font-semibold">
-                              Route
-                            </div>
-                            <div className="font-semibold text-gray-800">
-                              {booking.pickupPoint} → {booking.destination}
-                            </div>
-                          </div>
-
-                          {booking.customerId && (
-                            <div>
-                              <div className="text-xs text-gray-500 font-semibold">
-                                Customer
-                              </div>
-                              <div className="font-bold text-gray-800">
-                                {booking.customerId.name}
-                              </div>
-                              <div className="text-sm text-gray-600">
-                                {booking.customerId.phoneNumber}
-                              </div>
-                            </div>
-                          )}
-
-                          <div>
-                            <div className="text-xs text-gray-500 font-semibold">
-                              Passengers
-                            </div>
-                            <div className="text-gray-800">
-                              {booking.numberOfPeople}
-                            </div>
-                          </div>
-                        </div>
-
-                        <div className="border-t pt-3">
-                          <label className="block text-sm font-semibold text-gray-700 mb-2">
-                            Assign Driver
-                          </label>
-                          <select
-                            className="w-full px-3 py-2 border border-gray-300 rounded-lg mb-2 text-sm"
-                            value={
-                              selectedBooking === booking._id
-                                ? selectedDriver
-                                : ""
-                            }
-                            onChange={(e) => {
-                              setSelectedBooking(booking._id);
-                              setSelectedDriver(e.target.value);
-                            }}
-                          >
-                            <option value="">Select driver...</option>
-                            {drivers.map((driver) => (
-                              <option key={driver._id} value={driver._id}>
-                                {driver.name} - {driver.carType} (
-                                {driver.numberOfSeats} seats){" "}
-                                {driver.isAvailable ? "✅" : "⚫"}
-                              </option>
-                            ))}
-                          </select>
-                          <button
-                            onClick={assignDriver}
-                            disabled={
-                              selectedBooking !== booking._id ||
-                              !selectedDriver ||
-                              loading
-                            }
-                            className="w-full px-4 py-2 bg-green-600 text-white rounded-lg hover:bg-green-700 disabled:opacity-50 disabled:cursor-not-allowed font-semibold text-sm"
-                          >
-                            Assign
-                          </button>
-                        </div>
-                      </div>
-                    ))}
-                  </div>
-                </div>
-              </div>
-            )}
-
-            {/* Active Bookings */}
-            {assignedBookings.length > 0 && (
-              <div className="mb-8">
-                <h3 className="text-xl font-bold text-gray-600 mb-4">
-                  🚗 Active Rides ({assignedBookings.length})
-                </h3>
-                <div className="bg-white rounded-2xl shadow-soft overflow-hidden border border-gray-100">
-                  {/* Desktop Table */}
-                  <div className="hidden md:block overflow-x-auto">
-                    <table className="w-full">
-                      <thead className="bg-gray-50 border-b border-gray-200">
-                        <tr>
-                          <th className="px-6 py-4 text-left text-xs font-bold text-gray-500 uppercase tracking-wider">
-                            Status
-                          </th>
-                          <th className="px-6 py-4 text-left text-xs font-bold text-gray-500 uppercase tracking-wider">
-                            Service
-                          </th>
-                          <th className="px-6 py-4 text-left text-xs font-bold text-gray-500 uppercase tracking-wider">
-                            Date & Time
-                          </th>
-                          <th className="px-6 py-4 text-left text-xs font-bold text-gray-500 uppercase tracking-wider">
-                            Route
-                          </th>
-                          <th className="px-6 py-4 text-left text-xs font-bold text-gray-500 uppercase tracking-wider">
-                            Driver
-                          </th>
-                          <th className="px-6 py-4 text-left text-xs font-bold text-gray-500 uppercase tracking-wider">
-                            Customer
-                          </th>
-                        </tr>
-                      </thead>
-                      <tbody className="divide-y divide-gray-200">
-                        {assignedBookings.map((booking) => (
-                          <tr
-                            key={booking._id}
-                            className="hover:bg-gray-50 transition-colors"
-                          >
-                            <td className="px-6 py-4">
-                              <span
-                                className={`px-3 py-1 rounded-full text-xs font-semibold ${getStatusColor(
-                                  booking.status,
-                                )}`}
-                              >
-                                {booking.status.replace("-", " ").toUpperCase()}
-                              </span>
-                            </td>
-                            <td className="px-6 py-4 font-medium text-gray-800">
-                              {booking.serviceType}
-                            </td>
-                            <td className="px-6 py-4 text-gray-600 text-sm">
-                              {new Date(booking.dateTime).toLocaleString()}
-                            </td>
-                            <td className="px-6 py-4">
-                              <div className="text-sm">
-                                <div className="font-semibold text-gray-800">
-                                  {booking.pickupPoint}
-                                </div>
-                                <div className="text-gray-500 text-xs">→</div>
-                                <div className="font-semibold text-gray-800">
-                                  {booking.destination}
-                                </div>
-                              </div>
-                            </td>
-                            <td className="px-6 py-4">
-                              {booking.driverId && (
-                                <div className="text-sm">
-                                  <div className="font-bold text-gray-800">
-                                    {booking.driverId.name}
-                                  </div>
-                                  <div className="text-gray-600">
-                                    {booking.driverId.contactNumber}
-                                  </div>
-                                </div>
-                              )}
-                            </td>
-                            <td className="px-6 py-4">
-                              {booking.customerId && (
-                                <div className="text-sm">
-                                  <div className="font-bold text-gray-800">
-                                    {booking.customerId.name}
-                                  </div>
-                                  <div className="text-gray-600">
-                                    {booking.customerId.phoneNumber}
-                                  </div>
-                                  <div className="text-gray-500 text-xs">
-                                    {booking.numberOfPeople} passengers
-                                  </div>
-                                </div>
-                              )}
-                            </td>
-                          </tr>
-                        ))}
-                      </tbody>
-                    </table>
-                  </div>
-
-                  {/* Mobile Cards */}
-                  <div className="md:hidden space-y-4 p-4">
-                    {assignedBookings.map((booking) => (
-                      <div
-                        key={booking._id}
-                        className="border border-blue-200 rounded-lg p-4 shadow-sm bg-blue-50"
-                      >
-                        <div className="flex justify-between items-start mb-3">
-                          <div>
-                            <div className="font-bold text-gray-800 text-lg">
-                              {booking.serviceType}
-                            </div>
-                            <div className="text-sm text-gray-600">
-                              {new Date(booking.dateTime).toLocaleString()}
-                            </div>
-                          </div>
-                          <span
-                            className={`px-3 py-1 rounded-full text-xs font-semibold ${getStatusColor(
-                              booking.status,
-                            )}`}
-                          >
-                            {booking.status.replace("-", " ").toUpperCase()}
-                          </span>
-                        </div>
-
-                        <div className="space-y-2">
-                          <div>
-                            <div className="text-xs text-gray-500 font-semibold">
-                              Route
-                            </div>
-                            <div className="font-semibold text-gray-800">
-                              {booking.pickupPoint} → {booking.destination}
-                            </div>
-                          </div>
-
-                          {booking.driverId && (
-                            <div>
-                              <div className="text-xs text-gray-500 font-semibold">
-                                Driver
-                              </div>
-                              <div className="font-bold text-gray-800">
-                                {booking.driverId.name}
-                              </div>
-                              <div className="text-sm text-gray-600">
-                                {booking.driverId.contactNumber}
-                              </div>
-                            </div>
-                          )}
-
-                          {booking.customerId && (
-                            <div>
-                              <div className="text-xs text-gray-500 font-semibold">
-                                Customer
-                              </div>
-                              <div className="font-bold text-gray-800">
-                                {booking.customerId.name}
-                              </div>
-                              <div className="text-sm text-gray-600">
-                                {booking.customerId.phoneNumber}
-                              </div>
-                              <div className="text-xs text-gray-500">
-                                {booking.numberOfPeople} passengers
-                              </div>
-                            </div>
-                          )}
-                        </div>
-                      </div>
-                    ))}
-                  </div>
-                </div>
-              </div>
-            )}
-
-            {/* Completed Bookings */}
-            {completedBookings.length > 0 && (
-              <div>
-                <h3 className="text-xl font-bold text-gray-700 mb-4 flex items-center gap-2">
-                  <svg
-                    className="w-5 h-5 text-green-500"
-                    fill="none"
-                    stroke="currentColor"
-                    viewBox="0 0 24 24"
-                  >
-                    <path
-                      strokeLinecap="round"
-                      strokeLinejoin="round"
-                      strokeWidth={2}
-                      d="M9 12l2 2 4-4m6 2a9 9 0 11-18 0 9 9 0 0118 0z"
-                    />
-                  </svg>
-                  Completed Rides ({completedBookings.length})
-                </h3>
-                <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
-                  {completedBookings.slice(0, 10).map((booking) => (
-                    <div
-                      key={booking._id}
-                      className="bg-white rounded-2xl shadow-soft p-5 flex items-center gap-4 border border-gray-100"
-                    >
-                      <div
-                        className={`p-2.5 rounded-xl shrink-0 ${booking.status === "completed" ? "bg-green-100" : "bg-red-100"}`}
-                      >
-                        {booking.status === "completed" ? (
-                          <svg
-                            className="w-5 h-5 text-green-600"
-                            fill="none"
-                            stroke="currentColor"
-                            viewBox="0 0 24 24"
-                          >
-                            <path
-                              strokeLinecap="round"
-                              strokeLinejoin="round"
-                              strokeWidth={2}
-                              d="M5 13l4 4L19 7"
-                            />
-                          </svg>
-                        ) : (
-                          <svg
-                            className="w-5 h-5 text-red-600"
-                            fill="none"
-                            stroke="currentColor"
-                            viewBox="0 0 24 24"
-                          >
-                            <path
-                              strokeLinecap="round"
-                              strokeLinejoin="round"
-                              strokeWidth={2}
-                              d="M6 18L18 6M6 6l12 12"
-                            />
-                          </svg>
-                        )}
-                      </div>
-                      <div className="flex-1 min-w-0">
-                        <h4 className="font-bold text-gray-800 text-sm truncate">
-                          {booking.pickupPoint} → {booking.destination}
-                        </h4>
-                        <p className="text-xs text-gray-500 mt-0.5">
-                          {new Date(booking.dateTime).toLocaleDateString(
-                            "en-US",
-                            { month: "short", day: "numeric", year: "numeric" },
-                          )}
-                        </p>
-                      </div>
-                      <span
-                        className={`px-3 py-1 rounded-full text-xs font-semibold shrink-0 ${getStatusColor(
-                          booking.status,
-                        )}`}
-                      >
-                        {booking.status.toUpperCase()}
-                      </span>
-                    </div>
-                  ))}
-                </div>
-              </div>
-            )}
-          </div>
-        )}
-
-        {/* Drivers Tab */}
-        {activeTab === "drivers" && (
-          <div className="animate-fade-in">
-            <div className="flex flex-col sm:flex-row justify-between items-start sm:items-center gap-4 mb-6">
-              <div>
-                <h2 className="text-2xl font-black text-gray-900 tracking-tight">
-                  Driver Management
-                </h2>
-                <p className="text-sm text-gray-500 mt-1">
-                  {drivers.length} driver{drivers.length !== 1 ? "s" : ""}{" "}
-                  registered
-                </p>
-              </div>
-              <button
-                onClick={() => setShowCreateDriver(!showCreateDriver)}
-                className={`px-5 py-2.5 rounded-xl font-semibold text-sm transition-all duration-200 flex items-center gap-2 ${
-                  showCreateDriver
-                    ? "bg-gray-100 text-gray-600 hover:bg-gray-200"
-                    : "bg-primary text-white hover:bg-primary-light shadow-md hover:shadow-lg"
-                }`}
-              >
-                {showCreateDriver ? (
-                  <>
-                    <svg
-                      className="w-4 h-4"
-                      fill="none"
-                      stroke="currentColor"
-                      viewBox="0 0 24 24"
-                    >
-                      <path
-                        strokeLinecap="round"
-                        strokeLinejoin="round"
-                        strokeWidth={2}
-                        d="M6 18L18 6M6 6l12 12"
-                      />
-                    </svg>{" "}
-                    Cancel
-                  </>
-                ) : (
-                  <>
-                    <svg
-                      className="w-4 h-4"
-                      fill="none"
-                      stroke="currentColor"
-                      viewBox="0 0 24 24"
-                    >
-                      <path
-                        strokeLinecap="round"
-                        strokeLinejoin="round"
-                        strokeWidth={2}
-                        d="M12 4v16m8-8H4"
-                      />
-                    </svg>{" "}
-                    Add Driver
-                  </>
-                )}
-              </button>
-            </div>
-
-            {/* Create Driver Form*/}
-            {showCreateDriver && (
-              <div className="bg-white rounded-2xl shadow-soft mb-6 border border-gray-100 overflow-hidden animate-slide-up">
-                <div className="bg-gradient-to-r from-primary/5 to-accent/5 px-6 py-4 border-b border-gray-100">
-                  <h3 className="font-bold text-gray-800 flex items-center gap-2">
-                    <svg
-                      className="w-5 h-5 text-primary"
-                      fill="none"
-                      stroke="currentColor"
-                      viewBox="0 0 24 24"
-                    >
-                      <path
-                        strokeLinecap="round"
-                        strokeLinejoin="round"
-                        strokeWidth={2}
-                        d="M18 9v3m0 0v3m0-3h3m-3 0h-3m-2-5a4 4 0 11-8 0 4 4 0 018 0zM3 20a6 6 0 0112 0v1H3v-1z"
-                      />
-                    </svg>
-                    Register New Driver
-                  </h3>
-                  <p className="text-sm text-gray-500 mt-1">
-                    Fields match the driver registration form
-                  </p>
-                </div>
-                <form onSubmit={createDriver} className="p-6 space-y-4">
-                  <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
-                    <div>
-                      <label className="block text-sm font-medium text-gray-700 mb-1">
-                        Phone Number *
-                      </label>
-                      <input
-                        type="tel"
-                        required
-                        value={newDriver.phoneNumber}
-                        onChange={(e) =>
-                          setNewDriver({
-                            ...newDriver,
-                            phoneNumber: e.target.value,
-                          })
-                        }
-                        className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-primary focus:border-transparent"
-                      />
-                    </div>
-                    <div>
-                      <label className="block text-sm font-medium text-gray-700 mb-1">
-                        Password *
-                      </label>
-                      <input
-                        type="password"
-                        required
-                        value={newDriver.password}
-                        onChange={(e) =>
-                          setNewDriver({
-                            ...newDriver,
-                            password: e.target.value,
-                          })
-                        }
-                        className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-primary focus:border-transparent"
-                      />
-                    </div>
-                    <div>
-                      <label className="block text-sm font-medium text-gray-700 mb-1">
-                        Name *
-                      </label>
-                      <input
-                        type="text"
-                        required
-                        value={newDriver.name}
-                        onChange={(e) =>
-                          setNewDriver({ ...newDriver, name: e.target.value })
-                        }
-                        className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-primary focus:border-transparent"
-                      />
-                    </div>
-                    <div>
-                      <label className="block text-sm font-medium text-gray-700 mb-1">
-                        Contact Number{" "}
-                        <span className="text-gray-400">(optional)</span>
-                      </label>
-                      <input
-                        type="text"
-                        value={newDriver.contactNumber}
-                        onChange={(e) =>
-                          setNewDriver({
-                            ...newDriver,
-                            contactNumber: e.target.value,
-                          })
-                        }
-                        placeholder="Defaults to phone number"
-                        className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-primary focus:border-transparent"
-                      />
-                    </div>
-                    <div>
-                      <label className="block text-sm font-medium text-gray-700 mb-1">
-                        Base Location *
-                      </label>
-                      <input
-                        type="text"
-                        required
-                        value={newDriver.baseLocation}
-                        onChange={(e) =>
-                          setNewDriver({
-                            ...newDriver,
-                            baseLocation: e.target.value,
-                          })
-                        }
-                        className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-primary focus:border-transparent"
-                      />
-                    </div>
-                    <div>
-                      <label className="block text-sm font-medium text-gray-700 mb-1">
-                        Car Type *
-                      </label>
-                      <select
-                        required
-                        value={newDriver.carType}
-                        onChange={(e) =>
-                          setNewDriver({
-                            ...newDriver,
-                            carType: e.target.value,
-                          })
-                        }
-                        className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-primary focus:border-transparent"
-                      >
-                        <option value="">Select car type</option>
-                        <option value="Toyota Vitz">Toyota Vitz</option>
-                        <option value="Toyota Voxy">Toyota Voxy</option>
-                        <option value="Toyota Hiace">Toyota Hiace</option>
-                        <option value="Nissan Caravan">Nissan Caravan</option>
-                        <option value="Other">Other</option>
-                      </select>
-                    </div>
-                    <div>
-                      <label className="block text-sm font-medium text-gray-700 mb-1">
-                        Car Number *
-                      </label>
-                      <input
-                        type="text"
-                        required
-                        value={newDriver.carNumber}
-                        onChange={(e) =>
-                          setNewDriver({
-                            ...newDriver,
-                            carNumber: e.target.value,
-                          })
-                        }
-                        className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-primary focus:border-transparent"
-                      />
-                    </div>
-                    <div>
-                      <label className="block text-sm font-medium text-gray-700 mb-1">
-                        License Number *
-                      </label>
-                      <input
-                        type="text"
-                        required
-                        value={newDriver.licenseNumber}
-                        onChange={(e) =>
-                          setNewDriver({
-                            ...newDriver,
-                            licenseNumber: e.target.value,
-                          })
-                        }
-                        className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-primary focus:border-transparent"
-                      />
-                    </div>
-                    <div>
-                      <label className="block text-sm font-medium text-gray-700 mb-1">
-                        Seats
-                      </label>
-                      <input
-                        type="number"
-                        min="1"
-                        max="20"
-                        value={newDriver.seats}
-                        onChange={(e) =>
-                          setNewDriver({
-                            ...newDriver,
-                            seats: parseInt(e.target.value),
-                          })
-                        }
-                        className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-primary focus:border-transparent"
-                      />
-                    </div>
-                  </div>
-                  <button
-                    type="submit"
-                    disabled={loading}
-                    className="w-full px-5 py-3 bg-primary text-white rounded-xl hover:bg-primary-light disabled:opacity-50 transition-all font-semibold shadow-md hover:shadow-lg"
-                  >
-                    {loading ? "Creating..." : "Create Driver Account"}
-                  </button>
-                </form>
-              </div>
-            )}
-
-            {drivers.length === 0 ? (
-              <div className="card text-center py-12">
-                <p className="text-gray-500">No drivers registered yet</p>
-              </div>
-            ) : (
-              <div className="bg-white rounded-2xl shadow-soft overflow-hidden border border-gray-100">
-                {/* Desktop Table */}
-                <div className="hidden lg:block overflow-x-auto">
-                  <table className="w-full">
-                    <thead className="bg-gray-50 border-b border-gray-200">
-                      <tr>
-                        <th className="px-6 py-4 text-left text-xs font-bold text-gray-500 uppercase tracking-wider">
-                          Name
-                        </th>
-                        <th className="px-6 py-4 text-left text-xs font-bold text-gray-500 uppercase tracking-wider">
-                          Status
-                        </th>
-                        <th className="px-6 py-4 text-left text-xs font-bold text-gray-500 uppercase tracking-wider">
-                          Phone
-                        </th>
-                        <th className="px-6 py-4 text-left text-xs font-bold text-gray-500 uppercase tracking-wider">
-                          Vehicle
-                        </th>
-                        <th className="px-6 py-4 text-left text-xs font-bold text-gray-500 uppercase tracking-wider">
-                          Contact
-                        </th>
-                        <th className="px-6 py-4 text-left text-xs font-bold text-gray-500 uppercase tracking-wider">
-                          Location
-                        </th>
-                        <th className="px-6 py-4 text-left text-xs font-bold text-gray-500 uppercase tracking-wider">
-                          Actions
-                        </th>
-                      </tr>
-                    </thead>
-                    <tbody className="divide-y divide-gray-200">
-                      {drivers.map((driver) => (
-                        <tr
-                          key={driver._id}
-                          className="hover:bg-gray-50 transition-colors"
-                        >
-                          <td className="px-6 py-4 font-semibold text-gray-800">
-                            {driver.name}
-                          </td>
-                          <td className="px-6 py-4">
-                            <span
-                              className={`px-3 py-1 rounded-full text-xs font-semibold ${
-                                driver.isAvailable
-                                  ? "bg-green-100 text-green-700"
-                                  : "bg-gray-100 text-gray-700"
-                              }`}
-                            >
-                              {driver.isAvailable ? "Online" : "Offline"}
-                            </span>
-                          </td>
-                          <td className="px-6 py-4 text-gray-600 text-sm">
-                            {driver.userId?.phoneNumber ||
-                              driver.contactNumber ||
-                              "Not set"}
-                          </td>
-                          <td className="px-6 py-4">
-                            <div className="text-sm">
-                              <div className="font-medium text-gray-800">
-                                {driver.carType}
-                              </div>
-                              <div className="text-gray-500 text-xs">
-                                {driver.carNumber} • {driver.numberOfSeats}{" "}
-                                seats
-                              </div>
-                            </div>
-                          </td>
-                          <td className="px-6 py-4 text-gray-600 text-sm">
-                            {driver.contactNumber}
-                          </td>
-                          <td className="px-6 py-4 text-gray-600 text-sm">
-                            {driver.baseLocation}
-                          </td>
-                          <td className="px-6 py-4">
-                            <button
-                              onClick={() => deleteDriver(driver._id)}
-                              className="px-3 py-1.5 bg-red-500 text-white rounded-md hover:bg-red-600 transition-all text-sm font-medium"
-                            >
-                              Delete
-                            </button>
-                          </td>
-                        </tr>
-                      ))}
-                    </tbody>
-                  </table>
-                </div>
-
-                {/* Mobile/Tablet Cards */}
-                <div className="lg:hidden space-y-4 p-4">
-                  {drivers.map((driver) => (
-                    <div
-                      key={driver._id}
-                      className="bg-white border border-gray-100 rounded-2xl p-5 shadow-soft"
-                    >
-                      <div className="flex justify-between items-start mb-4">
-                        <div className="flex items-center gap-3">
-                          <div className="w-10 h-10 bg-gradient-to-br from-primary to-primary-light rounded-full flex items-center justify-center text-white font-bold text-sm">
-                            {driver.name?.charAt(0) || "D"}
-                          </div>
-                          <div>
-                            <h3 className="font-bold text-gray-800">
-                              {driver.name}
-                            </h3>
-                            <p className="text-xs text-gray-500">
-                              {driver.userId?.phoneNumber ||
-                                driver.contactNumber ||
-                                ""}
-                            </p>
-                          </div>
-                        </div>
-                        <span
-                          className={`px-3 py-1 rounded-full text-xs font-semibold ${
-                            driver.isAvailable
-                              ? "bg-green-100 text-green-700"
-                              : "bg-gray-100 text-gray-600"
-                          }`}
-                        >
-                          {driver.isAvailable ? "Online" : "Offline"}
-                        </span>
-                      </div>
-                      <div className="grid grid-cols-2 gap-3 text-sm mb-4">
-                        <div className="bg-gray-50 rounded-xl p-3">
-                          <span className="text-gray-500 text-xs block">
-                            Vehicle
-                          </span>
-                          <span className="font-semibold text-gray-800">
-                            {driver.carType}
-                          </span>
-                        </div>
-                        <div className="bg-gray-50 rounded-xl p-3">
-                          <span className="text-gray-500 text-xs block">
-                            Plate
-                          </span>
-                          <span className="font-semibold text-gray-800">
-                            {driver.carNumber}
-                          </span>
-                        </div>
-                        <div className="bg-gray-50 rounded-xl p-3">
-                          <span className="text-gray-500 text-xs block">
-                            Seats
-                          </span>
-                          <span className="font-semibold text-gray-800">
-                            {driver.numberOfSeats}
-                          </span>
-                        </div>
-                        <div className="bg-gray-50 rounded-xl p-3">
-                          <span className="text-gray-500 text-xs block">
-                            Location
-                          </span>
-                          <span className="font-semibold text-gray-800">
-                            {driver.baseLocation}
-                          </span>
-                        </div>
-                      </div>
-                      <div className="flex items-center justify-between pt-3 border-t border-gray-100">
-                        <span className="text-sm text-gray-600 font-medium">
-                          {driver.contactNumber}
-                        </span>
-                        <button
-                          onClick={() => deleteDriver(driver._id)}
-                          className="px-4 py-2 bg-red-50 text-red-600 rounded-xl hover:bg-red-100 text-sm font-semibold border border-red-200"
-                        >
-                          Delete
-                        </button>
-                      </div>
-                    </div>
-                  ))}
-                </div>
-              </div>
-            )}
-          </div>
-        )}
-
-        {/* Customers Tab */}
-        {activeTab === "customers" && (
-          <div className="animate-fade-in">
-            <div className="flex flex-col sm:flex-row justify-between items-start sm:items-center gap-4 mb-6">
-              <div>
-                <h2 className="text-2xl font-black text-gray-900 tracking-tight">
-                  Customer Management
-                </h2>
-                <p className="text-sm text-gray-500 mt-1">
-                  {customers.length} customer{customers.length !== 1 ? "s" : ""}{" "}
-                  registered
-                </p>
-              </div>
-              <button
-                onClick={() => setShowCreateCustomer(!showCreateCustomer)}
-                className={`px-5 py-2.5 rounded-xl font-semibold text-sm transition-all duration-200 flex items-center gap-2 ${
-                  showCreateCustomer
-                    ? "bg-gray-100 text-gray-600 hover:bg-gray-200"
-                    : "bg-emerald-600 text-white hover:bg-emerald-700 shadow-md hover:shadow-lg"
-                }`}
-              >
-                {showCreateCustomer ? (
-                  <>
-                    <svg
-                      className="w-4 h-4"
-                      fill="none"
-                      stroke="currentColor"
-                      viewBox="0 0 24 24"
-                    >
-                      <path
-                        strokeLinecap="round"
-                        strokeLinejoin="round"
-                        strokeWidth={2}
-                        d="M6 18L18 6M6 6l12 12"
-                      />
-                    </svg>{" "}
-                    Cancel
-                  </>
-                ) : (
-                  <>
-                    <svg
-                      className="w-4 h-4"
-                      fill="none"
-                      stroke="currentColor"
-                      viewBox="0 0 24 24"
-                    >
-                      <path
-                        strokeLinecap="round"
-                        strokeLinejoin="round"
-                        strokeWidth={2}
-                        d="M12 4v16m8-8H4"
-                      />
-                    </svg>{" "}
-                    Add Customer
-                  </>
-                )}
-              </button>
-            </div>
-
-            {/* Create Customer Form */}
-            {showCreateCustomer && (
-              <div className="bg-white rounded-2xl shadow-soft mb-6 border border-gray-100 overflow-hidden animate-slide-up">
-                <div className="bg-gradient-to-r from-emerald-50 to-green-50 px-6 py-4 border-b border-gray-100">
-                  <h3 className="font-bold text-gray-800 flex items-center gap-2">
-                    <svg
-                      className="w-5 h-5 text-emerald-600"
-                      fill="none"
-                      stroke="currentColor"
-                      viewBox="0 0 24 24"
-                    >
-                      <path
-                        strokeLinecap="round"
-                        strokeLinejoin="round"
-                        strokeWidth={2}
-                        d="M18 9v3m0 0v3m0-3h3m-3 0h-3m-2-5a4 4 0 11-8 0 4 4 0 018 0zM3 20a6 6 0 0112 0v1H3v-1z"
-                      />
-                    </svg>
-                    Register New Customer
-                  </h3>
-                  <p className="text-sm text-gray-500 mt-1">
-                    Fields match the customer signup form
-                  </p>
-                </div>
-                <form onSubmit={createCustomer} className="p-6 space-y-4">
-                  <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
-                    <div>
-                      <label className="block text-sm font-medium text-gray-700 mb-1">
-                        Full Name *
-                      </label>
-                      <input
-                        type="text"
-                        required
-                        value={newCustomer.name}
-                        onChange={(e) =>
-                          setNewCustomer({
-                            ...newCustomer,
-                            name: e.target.value,
-                          })
-                        }
-                        placeholder="e.g., John Mensah"
-                        className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-green-500 focus:border-transparent"
-                      />
-                    </div>
-                    <div>
-                      <label className="block text-sm font-medium text-gray-700 mb-1">
-                        Phone Number *
-                      </label>
-                      <input
-                        type="tel"
-                        required
-                        value={newCustomer.phoneNumber}
-                        onChange={(e) =>
-                          setNewCustomer({
-                            ...newCustomer,
-                            phoneNumber: e.target.value,
-                          })
-                        }
-                        placeholder="e.g., 0241234567"
-                        className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-green-500 focus:border-transparent"
-                      />
-                    </div>
-                    <div>
-                      <label className="block text-sm font-medium text-gray-700 mb-1">
-                        Password *
-                      </label>
-                      <input
-                        type="password"
-                        required
-                        minLength={6}
-                        value={newCustomer.password}
-                        onChange={(e) =>
-                          setNewCustomer({
-                            ...newCustomer,
-                            password: e.target.value,
-                          })
-                        }
-                        placeholder="Minimum 6 characters"
-                        className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-green-500 focus:border-transparent"
-                      />
-                    </div>
-                    <div>
-                      <label className="block text-sm font-medium text-gray-700 mb-1">
-                        City *
-                      </label>
-                      <input
-                        type="text"
-                        required
-                        value={newCustomer.city}
-                        onChange={(e) =>
-                          setNewCustomer({
-                            ...newCustomer,
-                            city: e.target.value,
-                          })
-                        }
-                        placeholder="e.g., Kumasi"
-                        className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-green-500 focus:border-transparent"
-                      />
-                    </div>
-                    <div className="md:col-span-2">
-                      <label className="block text-sm font-medium text-gray-700 mb-1">
-                        Digital Address{" "}
-                        <span className="text-gray-400">(optional)</span>
-                      </label>
-                      <input
-                        type="text"
-                        value={newCustomer.digitalAddress}
-                        onChange={(e) =>
-                          setNewCustomer({
-                            ...newCustomer,
-                            digitalAddress: e.target.value,
-                          })
-                        }
-                        placeholder="e.g., AK-039-5028"
-                        className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-green-500 focus:border-transparent"
-                      />
-                    </div>
-                  </div>
-                  <button
-                    type="submit"
-                    disabled={loading}
-                    className="w-full px-5 py-3 bg-emerald-600 text-white rounded-xl hover:bg-emerald-700 disabled:opacity-50 transition-all font-semibold shadow-md hover:shadow-lg"
-                  >
-                    {loading ? "Creating..." : "Create Customer Account"}
-                  </button>
-                </form>
-              </div>
-            )}
-
-            {customers.length === 0 ? (
-              <div className="card text-center py-12">
-                <p className="text-gray-500">No customers registered yet</p>
-              </div>
-            ) : (
-              <div className="bg-white rounded-2xl shadow-soft overflow-hidden border border-gray-100">
-                {/* Desktop Table */}
-                <div className="hidden md:block overflow-x-auto">
-                  <table className="w-full">
-                    <thead className="bg-gray-50 border-b border-gray-200">
-                      <tr>
-                        <th className="px-6 py-4 text-left text-xs font-bold text-gray-500 uppercase tracking-wider">
-                          Name
-                        </th>
-                        <th className="px-6 py-4 text-left text-xs font-bold text-gray-500 uppercase tracking-wider">
-                          Phone
-                        </th>
-                        <th className="px-6 py-4 text-left text-xs font-bold text-gray-500 uppercase tracking-wider">
-                          City
-                        </th>
-                        <th className="px-6 py-4 text-left text-xs font-bold text-gray-500 uppercase tracking-wider">
-                          Actions
-                        </th>
-                      </tr>
-                    </thead>
-                    <tbody className="divide-y divide-gray-200">
-                      {customers.map((customer) => (
-                        <tr
-                          key={customer._id}
-                          className="hover:bg-gray-50 transition-colors"
-                        >
-                          <td className="px-6 py-4 font-semibold text-gray-800">
-                            {customer.name || "No Name"}
-                          </td>
-                          <td className="px-6 py-4 text-gray-600 text-sm">
-                            {customer.phoneNumber ||
-                              customer.userId?.phoneNumber ||
-                              "Not set"}
-                          </td>
-                          <td className="px-6 py-4 text-gray-600 text-sm">
-                            {customer.city || "Not set"}
-                          </td>
-                          <td className="px-6 py-4">
-                            <button
-                              onClick={() => deleteCustomer(customer._id)}
-                              className="px-3 py-1.5 bg-red-500 text-white rounded-md hover:bg-red-600 transition-all text-sm font-medium"
-                            >
-                              Delete
-                            </button>
-                          </td>
-                        </tr>
-                      ))}
-                    </tbody>
-                  </table>
-                </div>
-
-                {/* Mobile Cards */}
-                <div className="md:hidden space-y-4 p-4">
-                  {customers.map((customer) => (
-                    <div
-                      key={customer._id}
-                      className="bg-white border border-gray-100 rounded-2xl p-5 shadow-soft"
-                    >
-                      <div className="flex items-center gap-3 mb-4">
-                        <div className="w-10 h-10 bg-gradient-to-br from-emerald-500 to-emerald-600 rounded-full flex items-center justify-center text-white font-bold text-sm">
-                          {(customer.name || "C").charAt(0)}
-                        </div>
-                        <div>
-                          <h3 className="font-bold text-gray-800">
-                            {customer.name || "No Name"}
-                          </h3>
-                          <p className="text-xs text-gray-500">
-                            {customer.phoneNumber ||
-                              customer.userId?.phoneNumber ||
-                              ""}
-                          </p>
-                        </div>
-                      </div>
-                      <div className="grid grid-cols-2 gap-3 text-sm mb-4">
-                        <div className="bg-gray-50 rounded-xl p-3">
-                          <span className="text-gray-500 text-xs block">
-                            Phone
-                          </span>
-                          <span className="font-semibold text-gray-800">
-                            {customer.phoneNumber || "Not set"}
-                          </span>
-                        </div>
-                        <div className="bg-gray-50 rounded-xl p-3">
-                          <span className="text-gray-500 text-xs block">
-                            City
-                          </span>
-                          <span className="font-semibold text-gray-800">
-                            {customer.city || "Not set"}
-                          </span>
-                        </div>
-                      </div>
-                      <button
-                        onClick={() => deleteCustomer(customer._id)}
-                        className="w-full px-4 py-2 bg-red-50 text-red-600 rounded-xl hover:bg-red-100 text-sm font-semibold border border-red-200"
-                      >
-                        Delete Customer
-                      </button>
-                    </div>
-                  ))}
-                </div>
-              </div>
-            )}
-          </div>
-        )}
-
-        {/* Settings Tab */}
-        {activeTab === "settings" && (
-          <div className="max-w-4xl mx-auto">
-            <h2 className="text-2xl font-black text-gray-900 tracking-tight mb-2">
-              System Settings
-            </h2>
-            <p className="text-gray-500 mb-8">
-              Manage notifications, data, and application settings
-            </p>
-
-            {/* Notification Settings */}
-            <div className="bg-white rounded-2xl shadow-soft p-6 mb-6 border border-gray-100">
-              <div className="flex items-start gap-4">
-                <div className="p-3 bg-blue-100 rounded-xl shrink-0">
-                  <svg
-                    className="w-6 h-6 text-blue-600"
-                    fill="none"
-                    stroke="currentColor"
-                    viewBox="0 0 24 24"
-                  >
-                    <path
-                      strokeLinecap="round"
-                      strokeLinejoin="round"
-                      strokeWidth={2}
-                      d="M15 17h5l-1.405-1.405A2.032 2.032 0 0118 14.158V11a6.002 6.002 0 00-4-5.659V5a2 2 0 10-4 0v.341C7.67 6.165 6 8.388 6 11v3.159c0 .538-.214 1.055-.595 1.436L4 17h5m6 0v1a3 3 0 11-6 0v-1m6 0H9"
-                    />
-                  </svg>
-                </div>
-                <div className="flex-1">
-                  <h3 className="text-lg font-bold text-gray-800">
-                    Push Notifications
-                  </h3>
-                  <p className="text-gray-500 text-sm mt-1 mb-4">
-                    Get real-time alerts when new bookings are created so you
-                    can respond quickly.
-                  </p>
-                  <button
-                    onClick={requestNotificationPermission}
-                    className={`px-5 py-2.5 rounded-xl font-semibold text-sm ${
-                      notificationPermission === "granted"
-                        ? "bg-green-50 text-green-700 border border-green-200"
-                        : "bg-blue-600 text-white hover:bg-blue-700"
-                    }`}
-                  >
-                    {notificationPermission === "granted"
-                      ? "Notifications Enabled"
-                      : "Enable Notifications"}
-                  </button>
-                </div>
-              </div>
-            </div>
-
-            {/* Data Management */}
-            <div className="bg-white rounded-2xl shadow-soft p-6 mb-6 border border-gray-100">
-              <div className="flex items-center gap-3 mb-6">
-                <div className="p-3 bg-amber-100 rounded-xl">
-                  <svg
-                    className="w-6 h-6 text-amber-600"
-                    fill="none"
-                    stroke="currentColor"
-                    viewBox="0 0 24 24"
-                  >
-                    <path
-                      strokeLinecap="round"
-                      strokeLinejoin="round"
-                      strokeWidth={2}
-                      d="M4 7v10c0 2.21 3.582 4 8 4s8-1.79 8-4V7M4 7c0 2.21 3.582 4 8 4s8-1.79 8-4M4 7c0-2.21 3.582-4 8-4s8 1.79 8 4m0 5c0 2.21-3.582 4-8 4s-8-1.79-8-4"
-                    />
-                  </svg>
-                </div>
-                <div>
-                  <h3 className="text-lg font-bold text-gray-800">
-                    Data Management
-                  </h3>
-                  <p className="text-sm text-gray-500">
-                    Clean up booking data to maintain performance
-                  </p>
-                </div>
-              </div>
-
-              <div className="space-y-4">
-                {/* Clear Completed Bookings */}
-                <div className="bg-amber-50 border border-amber-200 rounded-xl p-5">
-                  <div className="flex flex-col sm:flex-row items-start sm:items-center justify-between gap-4">
-                    <div>
-                      <h4 className="font-bold text-gray-800 mb-1">
-                        Clear Completed Bookings
-                      </h4>
-                      <p className="text-sm text-gray-600">
-                        Remove <strong>{completedBookings.length}</strong>{" "}
-                        completed/cancelled bookings to reduce database size.
-                      </p>
-                    </div>
-                    <button
-                      onClick={clearCompletedBookings}
-                      disabled={loading || completedBookings.length === 0}
-                      className="px-5 py-2.5 bg-amber-600 text-white rounded-xl hover:bg-amber-700 disabled:opacity-50 disabled:cursor-not-allowed font-semibold text-sm shrink-0"
-                    >
-                      {loading
-                        ? "Clearing..."
-                        : `Clear ${completedBookings.length}`}
-                    </button>
-                  </div>
-                </div>
-
-                {/* Clear All Bookings - Danger Zone */}
-                <div className="bg-red-50 border-2 border-red-200 rounded-xl p-5">
-                  <div className="flex flex-col sm:flex-row items-start sm:items-center justify-between gap-4">
-                    <div>
-                      <h4 className="font-bold text-red-800 mb-1 flex items-center gap-2">
-                        <svg
-                          className="w-4 h-4"
-                          fill="none"
-                          stroke="currentColor"
-                          viewBox="0 0 24 24"
-                        >
-                          <path
-                            strokeLinecap="round"
-                            strokeLinejoin="round"
-                            strokeWidth={2}
-                            d="M12 9v2m0 4h.01m-6.938 4h13.856c1.54 0 2.502-1.667 1.732-2.5L13.732 4.5c-.77-.833-2.694-.833-3.464 0L3.34 16.5c-.77.833.192 2.5 1.732 2.5z"
-                          />
-                        </svg>
-                        Danger Zone: Clear All Bookings
-                      </h4>
-                      <p className="text-sm text-red-700">
-                        Permanently delete ALL bookings including active ones.
-                        This cannot be undone.
-                      </p>
-                    </div>
-                    <button
-                      onClick={clearAllBookings}
-                      disabled={loading || bookings.length === 0}
-                      className="px-5 py-2.5 bg-red-600 text-white rounded-xl hover:bg-red-700 disabled:opacity-50 disabled:cursor-not-allowed font-semibold text-sm shrink-0"
-                    >
-                      {loading
-                        ? "Clearing..."
-                        : `Delete All ${bookings.length}`}
-                    </button>
-                  </div>
-                </div>
-              </div>
-            </div>
-
-            {/* Archive & Download */}
-            <div className="bg-white rounded-2xl shadow-soft p-6 mb-6 border border-gray-100">
-              <div className="flex items-center gap-3 mb-6">
-                <div className="p-3 bg-indigo-100 rounded-xl">
-                  <svg
-                    className="w-6 h-6 text-indigo-600"
-                    fill="none"
-                    stroke="currentColor"
-                    viewBox="0 0 24 24"
-                  >
-                    <path
-                      strokeLinecap="round"
-                      strokeLinejoin="round"
-                      strokeWidth={2}
-                      d="M5 8h14M5 8a2 2 0 110-4h14a2 2 0 110 4M5 8v10a2 2 0 002 2h10a2 2 0 002-2V8m-9 4h4"
-                    />
-                  </svg>
-                </div>
-                <div>
-                  <h3 className="text-lg font-bold text-gray-800">
-                    Archive & Download
-                  </h3>
-                  <p className="text-sm text-gray-500">
-                    Archive bookings older than 90 days as JSON downloads
-                  </p>
-                </div>
-              </div>
-
-              {archiveStats && (
-                <div className="bg-indigo-50 border border-indigo-200 rounded-xl p-5 mb-4">
-                  <div className="grid grid-cols-1 sm:grid-cols-3 gap-4 mb-4">
-                    <div className="bg-white rounded-xl p-4 text-center">
-                      <p className="text-2xl font-black text-indigo-600">
-                        {archiveStats.archivable}
-                      </p>
-                      <p className="text-xs text-gray-500 mt-1 font-medium">
-                        Archivable (90+ days)
-                      </p>
-                    </div>
-                    <div className="bg-white rounded-xl p-4 text-center">
-                      <p className="text-2xl font-black text-emerald-600">
-                        {archiveStats.recentCompleted}
-                      </p>
-                      <p className="text-xs text-gray-500 mt-1 font-medium">
-                        Recent Completed
-                      </p>
-                    </div>
-                    <div className="bg-white rounded-xl p-4 text-center">
-                      <p className="text-2xl font-black text-amber-600">
-                        {archiveStats.active}
-                      </p>
-                      <p className="text-xs text-gray-500 mt-1 font-medium">
-                        Active (will keep)
-                      </p>
-                    </div>
-                  </div>
-
-                  {archiveStats.cutoffDate && (
-                    <p className="text-sm text-gray-600 mb-4">
-                      Cutoff:{" "}
-                      <strong>
-                        {new Date(archiveStats.cutoffDate).toLocaleDateString(
-                          "en-US",
-                          { month: "long", day: "numeric", year: "numeric" },
-                        )}
-                      </strong>
-                      <span className="text-gray-500">
-                        {" "}
-                        — bookings before this date will be archived
-                      </span>
-                    </p>
-                  )}
-
-                  <div className="flex flex-wrap gap-3">
-                    <button
-                      onClick={previewArchive}
-                      disabled={archiveLoading || archiveStats.archivable === 0}
-                      className="px-5 py-2.5 bg-indigo-600 text-white rounded-xl hover:bg-indigo-700 disabled:opacity-50 disabled:cursor-not-allowed font-semibold text-sm"
-                    >
-                      {archiveLoading ? "Loading..." : "Preview"}
-                    </button>
-                    <button
-                      onClick={executeArchive}
-                      disabled={archiveLoading || archiveStats.archivable === 0}
-                      className="px-5 py-2.5 bg-emerald-600 text-white rounded-xl hover:bg-emerald-700 disabled:opacity-50 disabled:cursor-not-allowed font-semibold text-sm flex items-center gap-2"
-                    >
-                      <svg
-                        className="w-4 h-4"
-                        fill="none"
-                        stroke="currentColor"
-                        viewBox="0 0 24 24"
-                      >
-                        <path
-                          strokeLinecap="round"
-                          strokeLinejoin="round"
-                          strokeWidth={2}
-                          d="M4 16v1a3 3 0 003 3h10a3 3 0 003-3v-1m-4-4l-4 4m0 0l-4-4m4 4V4"
-                        />
-                      </svg>
-                      {archiveLoading
-                        ? "Archiving..."
-                        : `Download & Archive ${archiveStats.archivable}`}
-                    </button>
-                  </div>
-                </div>
-              )}
-
-              {!archiveStats && (
-                <div className="text-center py-6">
-                  <div className="animate-pulse flex flex-col items-center">
-                    <div className="w-8 h-8 bg-gray-200 rounded-full mb-2"></div>
-                    <p className="text-gray-400 text-sm">
-                      Loading archive data...
-                    </p>
-                  </div>
-                </div>
-              )}
-
-              <div className="bg-gray-50 border border-gray-200 rounded-xl p-4">
-                <p className="text-sm text-gray-600 flex items-start gap-2">
-                  <svg
-                    className="w-4 h-4 text-gray-400 mt-0.5 shrink-0"
-                    fill="none"
-                    stroke="currentColor"
-                    viewBox="0 0 24 24"
-                  >
-                    <path
-                      strokeLinecap="round"
-                      strokeLinejoin="round"
-                      strokeWidth={2}
-                      d="M13 16h-1v-4h-1m1-4h.01M21 12a9 9 0 11-18 0 9 9 0 0118 0z"
-                    />
-                  </svg>
-                  Archive downloads a JSON file of completed/cancelled bookings
-                  older than 90 days, then deletes them from the database.
-                  Active bookings are never archived.
-                </p>
-              </div>
-            </div>
-
-            {/* PWA Status */}
-            <div className="bg-gradient-to-br from-violet-500 to-indigo-600 rounded-2xl p-6 mb-6 text-white shadow-lg">
-              <div className="flex items-center gap-3 mb-4">
-                <div className="p-3 bg-white/20 rounded-xl">
-                  <svg
-                    className="w-6 h-6"
-                    fill="none"
-                    stroke="currentColor"
-                    viewBox="0 0 24 24"
-                  >
-                    <path
-                      strokeLinecap="round"
-                      strokeLinejoin="round"
-                      strokeWidth={2}
-                      d="M12 18h.01M8 21h8a2 2 0 002-2V5a2 2 0 00-2-2H8a2 2 0 00-2 2v14a2 2 0 002 2z"
-                    />
-                  </svg>
-                </div>
-                <h3 className="text-lg font-bold">Progressive Web App</h3>
-              </div>
-              <div className="grid grid-cols-1 sm:grid-cols-3 gap-3 mb-4">
-                <div className="bg-white/10 rounded-xl p-3 text-center">
-                  <svg
-                    className="w-5 h-5 mx-auto mb-1 text-green-300"
-                    fill="none"
-                    stroke="currentColor"
-                    viewBox="0 0 24 24"
-                  >
-                    <path
-                      strokeLinecap="round"
-                      strokeLinejoin="round"
-                      strokeWidth={2}
-                      d="M5 13l4 4L19 7"
-                    />
-                  </svg>
-                  <p className="text-sm font-medium text-white/90">
-                    Offline Support
-                  </p>
-                </div>
-                <div className="bg-white/10 rounded-xl p-3 text-center">
-                  <svg
-                    className="w-5 h-5 mx-auto mb-1 text-green-300"
-                    fill="none"
-                    stroke="currentColor"
-                    viewBox="0 0 24 24"
-                  >
-                    <path
-                      strokeLinecap="round"
-                      strokeLinejoin="round"
-                      strokeWidth={2}
-                      d="M5 13l4 4L19 7"
-                    />
-                  </svg>
-                  <p className="text-sm font-medium text-white/90">
-                    Push Notifications
-                  </p>
-                </div>
-                <div className="bg-white/10 rounded-xl p-3 text-center">
-                  <svg
-                    className="w-5 h-5 mx-auto mb-1 text-green-300"
-                    fill="none"
-                    stroke="currentColor"
-                    viewBox="0 0 24 24"
-                  >
-                    <path
-                      strokeLinecap="round"
-                      strokeLinejoin="round"
-                      strokeWidth={2}
-                      d="M5 13l4 4L19 7"
-                    />
-                  </svg>
-                  <p className="text-sm font-medium text-white/90">
-                    Installable
-                  </p>
-                </div>
-              </div>
-              {/* Install App Button */}
-              {isInstallable && !isInstalled && (
-                <button
-                  onClick={async () => {
-                    const accepted = await promptInstall();
-                    if (accepted)
-                      toast.success("App installed successfully! 🎉");
-                  }}
-                  className="w-full flex items-center justify-center gap-3 px-6 py-3 bg-white text-indigo-600 rounded-xl hover:bg-gray-50 transition-all font-bold shadow-lg"
-                >
-                  <svg
-                    className="w-5 h-5"
-                    fill="none"
-                    stroke="currentColor"
-                    viewBox="0 0 24 24"
-                  >
-                    <path
-                      strokeLinecap="round"
-                      strokeLinejoin="round"
-                      strokeWidth={2}
-                      d="M4 16v1a3 3 0 003 3h10a3 3 0 003-3v-1m-4-4l-4 4m0 0l-4-4m4 4V4"
-                    />
-                  </svg>
-                  Install ELOCAB App
-                </button>
-              )}
-              {isInstalled && (
-                <div className="flex items-center gap-2 justify-center bg-white/10 rounded-xl p-3">
-                  <svg
-                    className="w-5 h-5 text-green-300"
-                    fill="none"
-                    stroke="currentColor"
-                    viewBox="0 0 24 24"
-                  >
-                    <path
-                      strokeLinecap="round"
-                      strokeLinejoin="round"
-                      strokeWidth={2}
-                      d="M5 13l4 4L19 7"
-                    />
-                  </svg>
-                  <span className="text-sm font-medium text-white/90">
-                    App installed on this device
-                  </span>
-                </div>
-              )}
-            </div>
-
-            {/* Archive Viewer */}
-            <ArchiveViewer />
-          </div>
-        )}
+        ))}
       </div>
-
-      {/* Install Prompt */}
-      <InstallPrompt
-        show={showInstallPrompt}
-        onClose={() => setShowInstallPrompt(false)}
-      />
-
-      {/* Confirm Modal */}
-      <ConfirmModal
-        isOpen={confirmModal.isOpen}
-        onClose={() => setConfirmModal((prev) => ({ ...prev, isOpen: false }))}
-        onConfirm={confirmModal.onConfirm}
-        title={confirmModal.title}
-        message={confirmModal.message}
-        variant={confirmModal.variant}
-        confirmText={confirmModal.confirmText}
-        requireType={confirmModal.requireType}
-        loading={loading}
-      />
     </div>
   );
-};
-
-export default AdminDashboard;
+}
+function Settings({ refresh, action, confirm, busy }) {
+  const {
+    archiveStats,
+    saved = [],
+    error,
+    refresh: reload,
+  } = useDashboardData({
+    archiveStats: "/api/admin/archive/stats",
+    saved: "/api/admin/archive/saved",
+  });
+  const [preview, setPreview] = useState(null);
+  const [imported, setImported] = useState(null);
+  const [instruction, setInstruction] = useState(false);
+  const { isInstalled, isInstallable, promptInstall } = useInstallPrompt();
+  const previewArchive = async () => {
+    const r = await action(() => axios.get("/api/admin/archive/preview"));
+    if (r.ok) setPreview(r.data);
+  };
+  const archive = () =>
+    confirm({
+      title: "Archive old journeys?",
+      message:
+        "Completed and cancelled rides older than 90 days will be saved to a recoverable database archive, then removed from active ride records. You can download the archive again below.",
+      label: "Archive and download",
+      action: async () => {
+        const { data } = await axios.post("/api/admin/archive/execute");
+        if (data.data) downloadJSON(data.data, data.filename);
+        await reload();
+        await refresh();
+        return { data };
+      },
+    });
+  const importFile = async (event) => {
+    const file = event.target.files[0];
+    if (!file) return;
+    try {
+      if (file.size > 10 * 1024 * 1024)
+        throw new Error("Choose an archive smaller than 10 MB.");
+      const data = JSON.parse(await file.text());
+      if (!data.exportDate || !Array.isArray(data.bookings))
+        throw new Error("This file is not an ELOCAB archive.");
+      const text = (v) => (typeof v === "string" ? v : "");
+      const bookings = data.bookings.map((b, i) => {
+        if (!b || typeof b !== "object")
+          throw new Error("The archive contains an invalid ride.");
+        const person = (p) =>
+          p && typeof p === "object"
+            ? Object.fromEntries(
+                [
+                  "name",
+                  "phoneNumber",
+                  "contactNumber",
+                  "carType",
+                  "carNumber",
+                ].map((k) => [k, text(p[k])]),
+              )
+            : null;
+        return {
+          _id: text(b._id) || `archive-${i}`,
+          pickupPoint: text(b.pickupPoint) || text(b.pickupLocation),
+          destination: text(b.destination) || text(b.dropoffLocation),
+          dateTime: text(b.dateTime),
+          numberOfPeople: Number(b.numberOfPeople) || 1,
+          serviceType: text(b.serviceType),
+          status: text(b.status) || "unknown",
+          notes: text(b.notes),
+          customerId: person(b.customerId),
+          driverId: person(b.driverId),
+        };
+      });
+      setImported({ ...data, bookings });
+      toast.success("Archive loaded.");
+    } catch (e) {
+      toast.error(
+        e instanceof SyntaxError ? "This file is not valid JSON." : e.message,
+      );
+    } finally {
+      event.target.value = "";
+    }
+  };
+  return (
+    <div className="settings-layout">
+      <ErrorBanner message={error} onRetry={reload} />
+      <div className="settings-two">
+        <section className="panel">
+          <div className="panel-heading">
+            <div>
+              <h2>Journey archives</h2>
+              <p>Keep older records safe and easy to find.</p>
+            </div>
+            <Icon name="archive" />
+          </div>
+          <div className="overview-activity">
+            <div>
+              <span>Ready to archive</span>
+              <strong>{archiveStats?.archivable ?? "—"}</strong>
+            </div>
+            <div>
+              <span>Recent completed / cancelled</span>
+              <strong>{archiveStats?.recentCompleted ?? "—"}</strong>
+            </div>
+            <div>
+              <span>Active journeys</span>
+              <strong>{archiveStats?.active ?? "—"}</strong>
+            </div>
+          </div>
+          <div className="modal-actions">
+            <Button variant="outline" busy={busy} onClick={previewArchive}>
+              Preview archive
+            </Button>
+            <Button
+              disabled={busy || !archiveStats?.archivable}
+              onClick={archive}
+            >
+              <Icon name="download" size={15} />
+              Archive & download
+            </Button>
+          </div>
+          {saved.length > 0 && (
+            <>
+              <div className="form-section-label section-space">
+                Saved archives
+              </div>
+              {saved.map((a) => (
+                <div className="settings-item" key={a._id}>
+                  <div>
+                    <h3>{formatDate(a.exportDate)}</h3>
+                    <p>{a.totalBookings} rides · Recoverable archive</p>
+                  </div>
+                  <Button
+                    variant="outline"
+                    disabled={busy}
+                    onClick={async () => {
+                      const r = await action(() =>
+                        axios.get(`/api/admin/archive/saved/${a._id}`),
+                      );
+                      if (r.ok)
+                        downloadJSON(r.data, `elocab-archive-${a._id}.json`);
+                    }}
+                  >
+                    <Icon name="download" size={14} />
+                    Download
+                  </Button>
+                </div>
+              ))}
+            </>
+          )}
+        </section>
+        <section className="panel">
+          <div className="panel-heading">
+            <div>
+              <h2>Open an archive</h2>
+              <p>Review a previously downloaded ELOCAB archive.</p>
+            </div>
+            <Icon name="search" />
+          </div>
+          <label className="archive-file-label">
+            Choose a JSON archive. Files stay in your browser.
+            <input
+              aria-label="Choose archive file"
+              type="file"
+              accept=".json,application/json"
+              onChange={importFile}
+            />
+          </label>
+          <div className="settings-item">
+            <div>
+              <h3>ELOCAB on your home screen</h3>
+              <p>A quicker way back to your workspace.</p>
+            </div>
+            <Button
+              variant="outline"
+              disabled={isInstalled}
+              onClick={async () => {
+                if (isInstallable) await promptInstall();
+                else setInstruction(true);
+              }}
+            >
+              {isInstalled ? "Installed" : "Install app"}
+            </Button>
+          </div>
+        </section>
+      </div>
+      <NotificationPreferences />
+      <section className="panel danger-panel">
+        <div className="panel-heading">
+          <div>
+            <h2>Data management</h2>
+            <p>
+              Review carefully. These actions permanently remove active records
+              or reset counters.
+            </p>
+          </div>
+          <Icon name="shield" />
+        </div>
+        {[
+          [
+            "Clear completed rides",
+            "Remove completed and cancelled rides. Export a copy first.",
+            "Clear completed",
+            "/api/admin/bookings/clear-completed",
+            "delete",
+            "CLEAR",
+          ],
+          [
+            "Clear all ride records",
+            "Only available when every ride is completed or cancelled.",
+            "Clear records",
+            "/api/admin/bookings/clear-all",
+            "delete",
+            "CLEAR ALL",
+          ],
+          [
+            "Reset lifetime statistics",
+            "Reset booking, completion, cancellation, and activity counters. Ride records are retained.",
+            "Reset statistics",
+            "/api/admin/stats/reset",
+            "post",
+            "RESET",
+          ],
+        ].map(([title, message, label, url, method, word]) => (
+          <div className="settings-item" key={url}>
+            <div>
+              <h3>{title}</h3>
+              <p>{message}</p>
+            </div>
+            <Button
+              variant="outline"
+              disabled={busy}
+              onClick={() =>
+                confirm({
+                  title: `${title}?`,
+                  message: `${message} This cannot be undone.`,
+                  label,
+                  requireType: word,
+                  danger: true,
+                  action: async () => {
+                    const r = await axios[method](url);
+                    await refresh();
+                    await reload();
+                    return r;
+                  },
+                })
+              }
+            >
+              {label}
+            </Button>
+          </div>
+        ))}
+      </section>
+      <Modal
+        open={!!preview}
+        onClose={() => setPreview(null)}
+        title="Archive preview"
+        wide
+      >
+        <p className="archive-count">
+          {preview?.count || 0} rides older than 90 days are ready to archive.
+        </p>
+        <RideList role="admin" bookings={preview?.bookings || []} readOnly />
+      </Modal>
+      <Modal
+        open={!!imported}
+        onClose={() => setImported(null)}
+        title="Archive viewer"
+        wide
+      >
+        <p className="archive-count">
+          {imported?.bookings.length || 0} rides · Exported{" "}
+          {formatDate(imported?.exportDate)}
+        </p>
+        <RideList role="admin" bookings={imported?.bookings || []} readOnly />
+      </Modal>
+      <Modal
+        open={instruction}
+        onClose={() => setInstruction(false)}
+        title="Install ELOCAB"
+      >
+        <p className="modal-description">
+          Use your browser's Install app or Add to Home Screen option. On iPhone
+          or iPad, open the site in Safari and use Share, then Add to Home
+          Screen.
+        </p>
+        <Button onClick={() => setInstruction(false)}>Got it</Button>
+      </Modal>
+    </div>
+  );
+}
+export default function AdminDashboard() {
+  const {
+    stats,
+    drivers = [],
+    customers = [],
+    bookings = [],
+    loading,
+    error,
+    refresh,
+  } = useDashboardData({
+    stats: "/api/admin/stats",
+    drivers: "/api/admin/drivers",
+    customers: "/api/admin/customers",
+    bookings: "/api/admin/bookings",
+  });
+  const { run, busy } = useAction();
+  const [assignment, setAssignment] = useState(null);
+  const [driverId, setDriverId] = useState("");
+  const [createRole, setCreateRole] = useState(null);
+  const [confirmation, setConfirmation] = useState(null);
+  const [typed, setTyped] = useState("");
+  const pending = bookings.filter((b) => b.status === "pending");
+  const tabs = [
+    {
+      id: "overview",
+      label: "Overview",
+      mobileLabel: "Overview",
+      icon: "grid",
+    },
+    {
+      id: "rides",
+      label: "All rides",
+      mobileLabel: "Rides",
+      icon: "rides",
+      count: pending.length,
+    },
+    { id: "drivers", label: "Drivers", mobileLabel: "Drivers", icon: "car" },
+    {
+      id: "customers",
+      label: "Customers",
+      mobileLabel: "Customers",
+      icon: "users",
+    },
+    {
+      id: "settings",
+      label: "Settings",
+      mobileLabel: "Settings",
+      icon: "settings",
+    },
+  ];
+  const confirm = (c) => {
+    setTyped("");
+    setConfirmation(c);
+  };
+  const confirmAction = async () => {
+    const r = await run(
+      confirmation.action,
+      confirmation.success || "Changes saved.",
+    );
+    if (r.ok) setConfirmation(null);
+  };
+  const updateRide = async (ride, status) => {
+    const r = await run(
+      () => axios.put(`/api/admin/bookings/${ride._id}/status`, { status }),
+      "Ride updated.",
+    );
+    if (r.ok) await refresh();
+    return r.ok;
+  };
+  const assign = async (e) => {
+    e.preventDefault();
+    const r = await run(
+      () =>
+        axios.post("/api/admin/bookings/assign", {
+          bookingId: assignment._id,
+          driverId,
+        }),
+      "Driver assigned. Waiting for their acceptance.",
+    );
+    if (r.ok) {
+      setAssignment(null);
+      await refresh();
+    }
+  };
+  const addPerson = async (values) => {
+    const r = await run(
+      () =>
+        axios.post(
+          `/api/admin/${createRole === "driver" ? "drivers" : "customers"}`,
+          values,
+        ),
+      `${createRole === "driver" ? "Driver" : "Customer"} account created.`,
+    );
+    if (r.ok) {
+      setCreateRole(null);
+      await refresh();
+    }
+  };
+  const deletePerson = (role) => (person) =>
+    confirm({
+      title: `Delete ${person.name}'s account?`,
+      message:
+        "This permanently removes their profile, sign-in access, and notifications. Active rides must be resolved first. Historical ride records are retained.",
+      label: "Delete account",
+      requireType: "DELETE",
+      danger: true,
+      action: async () => {
+        const r = await axios.delete(
+          `/api/admin/${role === "driver" ? "drivers" : "customers"}/${person._id}`,
+        );
+        await refresh();
+        return r;
+      },
+    });
+  const toggleDriver = (person) =>
+    confirm({
+      title: `${person.isActive ? "Deactivate" : "Activate"} ${person.name}?`,
+      message: person.isActive
+        ? "This blocks sign-in and new assignments. Active rides must be resolved first."
+        : "This restores sign-in access. The driver can choose when to go online.",
+      label: person.isActive ? "Deactivate driver" : "Activate driver",
+      action: async () => {
+        const r = await axios.put(
+          `/api/admin/drivers/${person._id}/toggle-status`,
+        );
+        await refresh();
+        return r;
+      },
+    });
+  const assignable = drivers.filter(
+    (d) =>
+      d.isActive &&
+      d.isAvailable &&
+      d.numberOfSeats >= (assignment?.numberOfPeople || 0),
+  );
+  return (
+    <DashboardShell role="admin" tabs={tabs}>
+      {({ tab, go }) => (
+        <>
+          <PageHeading
+            eyebrow="A CLEARER VIEW OF YOUR DAY"
+            title={
+              {
+                overview: "Good journeys start with you.",
+                rides: "Every ride, moving together.",
+                drivers: "The people behind the wheel.",
+                customers: "Your growing community.",
+                settings: "Keep things running smoothly.",
+              }[tab]
+            }
+            text={
+              {
+                overview: "Your ELOCAB operations, all in one place.",
+                rides:
+                  "Manage requests, assign drivers, and follow every journey.",
+                drivers: "Manage driver accounts, vehicles, and availability.",
+                customers: "Create and manage the people riding with ELOCAB.",
+                settings: "Manage records, archives, and your workspace.",
+              }[tab]
+            }
+          >
+            {["drivers", "customers"].includes(tab) ? (
+              <Button
+                onClick={() =>
+                  setCreateRole(tab === "drivers" ? "driver" : "customer")
+                }
+              >
+                <Icon name="plus" size={16} />
+                Add {tab === "drivers" ? "driver" : "customer"}
+              </Button>
+            ) : (
+              <Button variant="outline" disabled={busy} onClick={refresh}>
+                <Icon name="refresh" size={15} />
+                Refresh
+              </Button>
+            )}
+          </PageHeading>
+          <ErrorBanner message={error} onRetry={refresh} />
+          {loading ? (
+            <LoadingState />
+          ) : (
+            <>
+              {tab === "overview" && (
+                <>
+                  <div className="stats-grid">
+                    <Stat
+                      label="Total journeys"
+                      value={stats?.lifetime?.totalBookings ?? bookings.length}
+                      icon="rides"
+                      note="Lifetime ride requests"
+                    />
+                    <Stat
+                      label="Awaiting a driver"
+                      value={pending.length}
+                      icon="clock"
+                      note="Ready for assignment"
+                    />
+                    <Stat
+                      label="Drivers online"
+                      value={
+                        drivers.filter((d) => d.isAvailable && d.isActive)
+                          .length
+                      }
+                      icon="car"
+                      note={`Of ${drivers.length} registered drivers`}
+                    />
+                    <Stat
+                      label="Your customers"
+                      value={customers.length}
+                      icon="users"
+                      note="Part of the ELOCAB community"
+                    />
+                  </div>
+                  {pending.length > 0 && (
+                    <div className="upcoming-callout">
+                      <div>
+                        <h3>
+                          {pending.length}{" "}
+                          {pending.length === 1 ? "journey is" : "journeys are"}{" "}
+                          waiting for a driver.
+                        </h3>
+                        <p>
+                          A little coordination goes a long way. Let's get them
+                          moving.
+                        </p>
+                      </div>
+                      <Button onClick={() => go("rides")}>
+                        Manage requests <Icon name="arrow" size={16} />
+                      </Button>
+                    </div>
+                  )}
+                  <div className="admin-overview-grid">
+                    <ActivityChart stats={stats} />
+                    <section className="panel">
+                      <div className="panel-heading">
+                        <div>
+                          <h2>The bigger picture</h2>
+                          <p>Lifetime journey outcomes</p>
+                        </div>
+                        <Icon name="check" />
+                      </div>
+                      <div className="overview-activity">
+                        <div>
+                          <span>Completed journeys</span>
+                          <strong>
+                            {stats?.lifetime?.totalCompleted || 0}
+                          </strong>
+                        </div>
+                        <div>
+                          <span>Cancelled journeys</span>
+                          <strong>
+                            {stats?.lifetime?.totalCancelled || 0}
+                          </strong>
+                        </div>
+                        <div>
+                          <span>Currently in progress</span>
+                          <strong>
+                            {
+                              bookings.filter((b) =>
+                                [
+                                  "accepted",
+                                  "on-the-way",
+                                  "picked-up",
+                                ].includes(b.status),
+                              ).length
+                            }
+                          </strong>
+                        </div>
+                      </div>
+                    </section>
+                  </div>
+                  <section>
+                    <div className="panel-heading">
+                      <div>
+                        <h2>Latest ride requests</h2>
+                        <p>What's happening across your city.</p>
+                      </div>
+                      <Button variant="text" onClick={() => go("rides")}>
+                        View all rides <Icon name="arrow" size={14} />
+                      </Button>
+                    </div>
+                    <RideList
+                      role="admin"
+                      bookings={bookings.slice(0, 4)}
+                      compact
+                      readOnly
+                    />
+                  </section>
+                </>
+              )}
+              {tab === "rides" && (
+                <RideList
+                  role="admin"
+                  bookings={bookings}
+                  onAction={updateRide}
+                  busy={busy}
+                  onAssign={(b) => {
+                    setAssignment(b);
+                    setDriverId(b.driverId?._id || "");
+                  }}
+                />
+              )}
+              {tab === "drivers" && (
+                <People
+                  role="driver"
+                  people={drivers}
+                  busy={busy}
+                  onCreate={() => setCreateRole("driver")}
+                  onDelete={deletePerson("driver")}
+                  onToggle={toggleDriver}
+                />
+              )}{" "}
+              {tab === "customers" && (
+                <People
+                  role="customer"
+                  people={customers}
+                  busy={busy}
+                  onCreate={() => setCreateRole("customer")}
+                  onDelete={deletePerson("customer")}
+                />
+              )}{" "}
+              {tab === "settings" && (
+                <Settings
+                  refresh={refresh}
+                  action={run}
+                  confirm={confirm}
+                  busy={busy}
+                />
+              )}
+            </>
+          )}
+          <Modal
+            open={!!assignment}
+            title="Match a driver to this journey"
+            onClose={() => setAssignment(null)}
+            busy={busy}
+          >
+            <p className="modal-description">
+              {assignment?.pickupPoint} → {assignment?.destination}
+              <br />
+              {assignment?.numberOfPeople} passengers ·{" "}
+              {formatDate(assignment?.dateTime)}
+            </p>
+            {assignable.length ? (
+              <form className="form-stack" onSubmit={assign}>
+                <Field
+                  as="select"
+                  label="Available driver"
+                  required
+                  value={driverId}
+                  onChange={(e) => setDriverId(e.target.value)}
+                >
+                  <option value="">Choose an online driver</option>
+                  {assignable.map((d) => (
+                    <option key={d._id} value={d._id}>
+                      {d.name} · {d.carType} · {d.numberOfSeats} seats
+                    </option>
+                  ))}
+                </Field>
+                <p className="account-note">
+                  Only active, online drivers with enough seats are listed. The
+                  driver will need to accept the assignment.
+                </p>
+                <Button type="submit" busy={busy}>
+                  Assign driver <Icon name="arrow" size={16} />
+                </Button>
+              </form>
+            ) : (
+              <EmptyState
+                icon="car"
+                title="No suitable drivers online"
+                text="Ask a driver with enough seats to go online, then refresh your workspace."
+              />
+            )}
+          </Modal>
+          <Modal
+            open={!!createRole}
+            title={`Add a ${createRole || "new account"}`}
+            onClose={() => setCreateRole(null)}
+            busy={busy}
+          >
+            <AccountForm
+              key={createRole}
+              role={createRole}
+              onSubmit={addPerson}
+              busy={busy}
+            />
+          </Modal>
+          <Modal
+            open={!!confirmation}
+            title={confirmation?.title || "Confirm change"}
+            onClose={() => setConfirmation(null)}
+            busy={busy}
+          >
+            <p className="modal-description">{confirmation?.message}</p>
+            {confirmation?.requireType && (
+              <Field
+                label={`Type ${confirmation.requireType} to confirm`}
+                value={typed}
+                onChange={(e) => setTyped(e.target.value)}
+                autoComplete="off"
+              />
+            )}
+            <div className="modal-actions">
+              <Button
+                variant="outline"
+                disabled={busy}
+                onClick={() => setConfirmation(null)}
+              >
+                Go back
+              </Button>
+              <Button
+                variant={confirmation?.danger ? "danger" : "primary"}
+                busy={busy}
+                disabled={
+                  !!confirmation?.requireType &&
+                  typed !== confirmation.requireType
+                }
+                onClick={confirmAction}
+              >
+                {confirmation?.label || "Confirm"}
+              </Button>
+            </div>
+          </Modal>
+        </>
+      )}
+    </DashboardShell>
+  );
+}

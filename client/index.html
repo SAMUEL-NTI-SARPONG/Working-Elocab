@@ -2,61 +2,22 @@
 <html lang="en">
   <head>
     <meta charset="UTF-8" />
-    <!-- Favicon - PNG format (universal browser support) -->
-    <link rel="icon" type="image/png" sizes="32x32" href="/favicon-32x32.png" />
-    <link rel="icon" type="image/png" sizes="16x16" href="/favicon-16x16.png" />
-    <link rel="apple-touch-icon" sizes="180x180" href="/apple-touch-icon.png" />
-    <link rel="icon" type="image/png" href="/logo.png" />
-    
     <meta name="viewport" content="width=device-width, initial-scale=1.0" />
-    <meta name="theme-color" content="#F59E0B" />
+    <meta name="theme-color" content="#0f172a" />
     <meta
       name="description"
-      content="ELOCAB - Reliable Rides Anytime, Your Journey Our Priority"
+      content="Book dropping and hiring rides in Kumasi with ELOCAB. Your journey, our priority."
     />
+    <link rel="icon" type="image/png" href="/images/logo.png" />
+    <link rel="apple-touch-icon" href="/images/logo.png" />
     <link rel="manifest" href="/manifest.json" />
-    <link rel="apple-touch-icon" href="/logo.png" />
-    <title>ELOCAB - Reliable Rides Anytime, Your Journey Our Priority</title>
-    <script>
-      // Register service worker with auto-update
-      if ("serviceWorker" in navigator) {
-        window.addEventListener("load", () => {
-          navigator.serviceWorker
-            .register("/sw.js")
-            .then((reg) => {
-              console.log("Service Worker registered");
-              // Check for updates every 60 seconds
-              setInterval(() => reg.update(), 60000);
-              // When a new SW is found and activated, reload to get fresh content
-              reg.addEventListener("updatefound", () => {
-                const newWorker = reg.installing;
-                newWorker.addEventListener("statechange", () => {
-                  if (
-                    newWorker.state === "activated" &&
-                    navigator.serviceWorker.controller
-                  ) {
-                    console.log("New version available, reloading...");
-                    window.location.reload();
-                  }
-                });
-              });
-            })
-            .catch((err) =>
-              console.log("Service Worker registration failed:", err),
-            );
-        });
-        // Also reload when the controlling SW changes (e.g. skipWaiting)
-        let refreshing = false;
-        navigator.serviceWorker.addEventListener("controllerchange", () => {
-          if (!refreshing) {
-            refreshing = true;
-            window.location.reload();
-          }
-        });
-      }
-    </script>
+    <title>ELOCAB · Your journey, our priority</title>
   </head>
   <body>
+    <noscript
+      >ELOCAB needs JavaScript to book and manage rides. For help, call 025 716
+      0074.</noscript
+    >
     <div id="root"></div>
     <script type="module" src="/src/main.jsx"></script>
   </body>

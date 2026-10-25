@@ -1,56 +1,23 @@
-# ELOCAB - Quick Start Guide
+# ELOCAB quick start
 
-## 🚀 Getting Started in 3 Steps
-
-### 1. Install MongoDB
-
-- Download: https://www.mongodb.com/try/download/community
-- Install and run it
-
-### 2. Start Backend Server
+Read [LOCAL_DEVELOPMENT.md](LOCAL_DEVELOPMENT.md) for environment configuration.
 
 ```powershell
-cd server
-npm install
-Copy-Item .env.example .env
-# Edit .env file with your settings
-npm run dev
+npm --prefix client ci
+npm --prefix server ci
 ```
 
-### 3. Start Frontend
+Set private backend configuration in `server/.env`, and set `VITE_API_URL=http://localhost:5000` in `client/.env.local`.
+
+Run in separate terminals:
 
 ```powershell
-# Open new terminal window
-cd client
-npm install
-npm run dev
+npm --prefix server run dev
+npm --prefix client run dev -- --host 127.0.0.1 --strictPort
 ```
 
-### 4. Access Application
+- App: http://127.0.0.1:5173
+- Admin: http://127.0.0.1:5173/admin/login
+- Health: http://localhost:5000/api/health
 
-- **Homepage:** http://localhost:5173
-- **Admin Login:** http://localhost:5173/admin/login
-  - Email: admin@elocab.com
-  - Password: Admin@2026
-
-## 📸 Adding Images
-
-Place your images in:
-
-- Logo: `client/public/images/logo.png`
-- Cars: `client/public/images/cars/`
-  - nissan-caravan.jpg
-  - toyota-hiace.jpg
-  - toyota-voxy.jpg
-  - toyota-vitz.jpg
-
-## ✅ You're Ready!
-
-Now you can:
-
-- Register customers and drivers
-- Create bookings
-- Assign drivers (as admin)
-- Track rides in real-time
-
-For detailed instructions, see README.md
+Customer and driver accounts use phone numbers. Admin sign-in uses the credentials in the backend environment. Atlas database credentials are separate from application accounts.

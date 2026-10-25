@@ -1,6 +1,7 @@
 const mongoose = require("mongoose");
 
 const driverSchema = new mongoose.Schema({
+  assignmentVersion: { type: Number, default: 0 },
   userId: {
     type: mongoose.Schema.Types.ObjectId,
     ref: "User",
@@ -45,6 +46,10 @@ const driverSchema = new mongoose.Schema({
     required: true,
     min: 2,
     max: 30,
+    validate: {
+      validator: Number.isInteger,
+      message: "Seat count must be a whole number.",
+    },
   },
   contactNumber: {
     type: String,

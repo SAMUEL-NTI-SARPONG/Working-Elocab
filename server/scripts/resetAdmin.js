@@ -8,28 +8,24 @@ const resetAdmin = async () => {
     await mongoose.connect(process.env.MONGODB_URI);
     console.log("✅ Connected to MongoDB");
 
-    // Delete existing admin user
-    const deletedAdmin = await User.deleteOne({
+    if (!process.env.ADMIN_EMAIL || !process.env.ADMIN_PASSWORD)
+      throw new Error("Set ADMIN_EMAIL and ADMIN_PASSWORD first.");
+    let admin = await User.findOne({
       email: process.env.ADMIN_EMAIL,
       role: "admin",
     });
-
-    if (deletedAdmin.deletedCount > 0) {
-      console.log("🗑️  Deleted existing admin user");
-    } else {
-      console.log("ℹ️  No existing admin user found");
-    }
-
-    // Create new admin user
-    const newAdmin = await User.create({
-      email: process.env.ADMIN_EMAIL,
-      password: process.env.ADMIN_PASSWORD,
-      role: "admin",
-    });
+    if (!admin)
+      admin = new User({
+        phoneNumber: "admin",
+        email: process.env.ADMIN_EMAIL,
+        role: "admin",
+      });
+    admin.password = process.env.ADMIN_PASSWORD;
+    admin.isActive = true;
+    await admin.save();
 
     console.log("✅ New admin user created successfully");
     console.log("📧 Email:", process.env.ADMIN_EMAIL);
-    console.log("🔑 Password:", process.env.ADMIN_PASSWORD);
 
     // Disconnect
     await mongoose.disconnect();

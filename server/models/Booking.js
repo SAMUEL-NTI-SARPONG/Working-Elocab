@@ -34,6 +34,11 @@ const bookingSchema = new mongoose.Schema({
     type: Number,
     required: true,
     min: 1,
+    max: 30,
+    validate: {
+      validator: Number.isInteger,
+      message: "Passenger count must be a whole number.",
+    },
   },
   status: {
     type: String,

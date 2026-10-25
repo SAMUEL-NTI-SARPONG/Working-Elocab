@@ -1,29 +1,23 @@
-import { Navigate } from "react-router-dom";
-import { useAuth } from "../context/AuthContext";
-
-const ProtectedRoute = ({ children, allowedRoles }) => {
-  const { user, loading, isAuthenticated } = useAuth();
-
-  if (loading) {
+import { Navigate, useLocation } from "react-router-dom";
+import { useAuth, homeFor } from "../context/AuthContext";
+export default function ProtectedRoute({ children, allowedRoles }) {
+  const { user, loading } = useAuth();
+  const location = useLocation();
+  if (loading)
     return (
-      <div className="min-h-screen flex items-center justify-center">
-        <div className="text-center">
-          <div className="animate-spin rounded-full h-16 w-16 border-b-2 border-primary mx-auto mb-4"></div>
-          <p className="text-gray-600">Loading...</p>
-        </div>
+      <div className="page-loading" role="status">
+        Getting your account ready…
       </div>
     );
-  }
-
-  if (!isAuthenticated) {
-    return <Navigate to="/login" replace />;
-  }
-
-  if (allowedRoles && !allowedRoles.includes(user.role)) {
-    return <Navigate to="/" replace />;
-  }
-
+  if (!user)
+    return (
+      <Navigate
+        to={allowedRoles?.includes("admin") ? "/admin/login" : "/login"}
+        state={{ from: location.pathname }}
+        replace
+      />
+    );
+  if (!allowedRoles?.includes(user.role))
+    return <Navigate to={homeFor(user.role)} replace />;
   return children;
-};
-
-export default ProtectedRoute;
+}

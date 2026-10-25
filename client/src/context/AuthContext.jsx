@@ -1,111 +1,156 @@
-import { createContext, useState, useContext, useEffect } from "react";
+import { createContext, useContext, useEffect, useRef, useState } from "react";
 import axios from "axios";
-import toast from "react-hot-toast";
-
-// Configure axios base URL from environment variable
-// When VITE_API_URL is empty, requests use relative paths which Vercel proxy forwards to backend
+const AuthContext = createContext(null);
 axios.defaults.baseURL = import.meta.env.VITE_API_URL || "";
 axios.defaults.withCredentials = true;
-
-const AuthContext = createContext();
-
-export const useAuth = () => {
-  const context = useContext(AuthContext);
-  if (!context) {
-    throw new Error("useAuth must be used within an AuthProvider");
-  }
-  return context;
+axios.defaults.timeout = 20000;
+const clearStorage = () => {
+  localStorage.removeItem("elocab_user");
+  localStorage.removeItem("elocab_token");
+  delete axios.defaults.headers.common.Authorization;
 };
-
-export const AuthProvider = ({ children }) => {
-  const [user, setUser] = useState(null);
-  const [loading, setLoading] = useState(true);
-
-  // Auto-logout on 401 responses
+export const useAuth = () => useContext(AuthContext);
+const savedAccount = () => {
+  try {
+    const token = localStorage.getItem("elocab_token");
+    const account = JSON.parse(localStorage.getItem("elocab_user"));
+    if (token && ["customer", "driver", "admin"].includes(account?.role)) {
+      axios.defaults.headers.common.Authorization = `Bearer ${token}`;
+      return { ...account, token };
+    }
+  } catch {
+    clearStorage();
+  }
+  return null;
+};
+export function AuthProvider({ children }) {
+  const authVersion = useRef(0);
+  const [user, setUser] = useState(savedAccount);
+  const [loading, setLoading] = useState(
+    () => !!localStorage.getItem("elocab_token") && !user,
+  );
   useEffect(() => {
-    const interceptor = axios.interceptors.response.use(
-      (response) => response,
-      (error) => {
-        if (error.response?.status === 401) {
-          // Token expired or invalid — auto logout
-          const currentUser = localStorage.getItem("elocab_user");
-          if (currentUser) {
-            setUser(null);
-            localStorage.removeItem("elocab_user");
-            localStorage.removeItem("elocab_token");
-            delete axios.defaults.headers.common["Authorization"];
-            toast.error("Session expired. Please log in again.");
+    let mounted = true;
+    const restore = async () => {
+      const token = localStorage.getItem("elocab_token");
+      const version = authVersion.current;
+      const current = () =>
+        mounted &&
+        version === authVersion.current &&
+        localStorage.getItem("elocab_token") === token;
+      if (!token) {
+        if (mounted) setLoading(false);
+        return;
+      }
+      axios.defaults.headers.common.Authorization = `Bearer ${token}`;
+      try {
+        const { data } = await axios.get("/api/auth/me");
+        if (current()) setUser({ ...data, token });
+      } catch (error) {
+        if (!current()) return;
+        if (error.response?.status === 401 || error.response?.status === 403) {
+          clearStorage();
+          setUser(null);
+        }
+        // A network outage must not silently sign the user out.
+        else {
+          try {
+            const cached = JSON.parse(localStorage.getItem("elocab_user"));
+            if (
+              mounted &&
+              ["customer", "driver", "admin"].includes(cached?.role)
+            )
+              setUser({ ...cached, token });
+          } catch {
+            clearStorage();
           }
+        }
+      } finally {
+        if (mounted) setLoading(false);
+      }
+    };
+    restore();
+    const interceptor = axios.interceptors.response.use(
+      (r) => r,
+      (error) => {
+        const activeHeader = `Bearer ${localStorage.getItem("elocab_token")}`;
+        if (
+          error.response?.status === 401 &&
+          !error.config?.url?.includes("/login") &&
+          mounted &&
+          error.config?.headers?.Authorization === activeHeader
+        ) {
+          authVersion.current++;
+          setUser(null);
+          clearStorage();
         }
         return Promise.reject(error);
       },
     );
-    return () => axios.interceptors.response.eject(interceptor);
+    const syncLogout = (event) => {
+      if (event.key === "elocab_token" && !event.newValue) {
+        setUser(null);
+        delete axios.defaults.headers.common.Authorization;
+      }
+    };
+    window.addEventListener("storage", syncLogout);
+    return () => {
+      mounted = false;
+      axios.interceptors.response.eject(interceptor);
+      window.removeEventListener("storage", syncLogout);
+    };
   }, []);
-
-  useEffect(() => {
-    // Check for stored user data on mount
-    const storedUser = localStorage.getItem("elocab_user");
-    const storedToken = localStorage.getItem("elocab_token");
-
-    if (storedUser && storedToken) {
-      setUser(JSON.parse(storedUser));
-      // Set default axios header
-      axios.defaults.headers.common["Authorization"] = `Bearer ${storedToken}`;
-    }
-    setLoading(false);
-  }, []);
-
-  const login = async (identifier, password, isAdmin = false) => {
-    try {
-      const endpoint = isAdmin ? "/api/auth/admin/login" : "/api/auth/login";
-      // Admin uses email, regular users use phoneNumber
-      const payload = isAdmin
+  const persist = (data) => {
+    authVersion.current++;
+    setUser(data);
+    localStorage.setItem("elocab_user", JSON.stringify(data));
+    localStorage.setItem("elocab_token", data.token);
+    axios.defaults.headers.common.Authorization = `Bearer ${data.token}`;
+    return data;
+  };
+  const login = async (identifier, password, admin = false) => {
+    const { data } = await axios.post(
+      admin ? "/api/auth/admin/login" : "/api/auth/login",
+      admin
         ? { email: identifier, password }
-        : { phoneNumber: identifier, password };
-      const { data } = await axios.post(endpoint, payload);
-
-      setUser(data);
-      localStorage.setItem("elocab_user", JSON.stringify(data));
-      localStorage.setItem("elocab_token", data.token);
-      axios.defaults.headers.common["Authorization"] = `Bearer ${data.token}`;
-
-      return data;
-    } catch (error) {
-      throw error.response?.data?.message || "Login failed";
-    }
+        : { phoneNumber: identifier, password },
+    );
+    return persist(data);
   };
-
-  const register = async (userData) => {
-    try {
-      const { data } = await axios.post("/api/auth/register", userData);
-
-      setUser(data);
-      localStorage.setItem("elocab_user", JSON.stringify(data));
-      localStorage.setItem("elocab_token", data.token);
-      axios.defaults.headers.common["Authorization"] = `Bearer ${data.token}`;
-
-      return data;
-    } catch (error) {
-      throw error.response?.data?.message || "Registration failed";
-    }
+  const register = async (values) => {
+    const { data } = await axios.post("/api/auth/register", values);
+    return persist(data);
   };
-
   const logout = () => {
+    authVersion.current++;
+    clearStorage();
     setUser(null);
-    localStorage.removeItem("elocab_user");
-    localStorage.removeItem("elocab_token");
-    delete axios.defaults.headers.common["Authorization"];
   };
-
-  const value = {
-    user,
-    login,
-    register,
-    logout,
-    loading,
-    isAuthenticated: !!user,
+  const updateUser = (values) => {
+    if (user) persist({ ...user, ...values });
   };
-
-  return <AuthContext.Provider value={value}>{children}</AuthContext.Provider>;
-};
+  return (
+    <AuthContext.Provider
+      value={{
+        user,
+        loading,
+        login,
+        register,
+        logout,
+        updateUser,
+        isAuthenticated: !!user,
+      }}
+    >
+      {children}
+    </AuthContext.Provider>
+  );
+}
+export const homeFor = (role) =>
+  ["customer", "driver", "admin"].includes(role) ? `/${role}/dashboard` : "/";
+export const errorMessage = (error) =>
+  error.response?.data?.message ||
+  (error.code === "ECONNABORTED"
+    ? "The request timed out. Please try again."
+    : typeof error === "string"
+      ? error
+      : "Unable to connect. Check your connection and try again.");

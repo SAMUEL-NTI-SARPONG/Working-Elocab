@@ -5,6 +5,8 @@ const helmet = require("helmet");
 const dotenv = require("dotenv");
 const http = require("http");
 const socketIo = require("socket.io");
+const jwt = require("jsonwebtoken");
+const User = require("./models/User");
 const { startArchiveScheduler } = require("./schedulers/archiveScheduler");
 
 // Load environment variables
@@ -18,11 +20,7 @@ const bookingRoutes = require("./routes/bookingRoutes");
 const adminRoutes = require("./routes/adminRoutes");
 const archiveRoutes = require("./routes/archiveRoutes");
 const notificationRoutes = require("./routes/notificationRoutes");
-const {
-  apiLimiter,
-  authLimiter,
-  sanitizeInput,
-} = require("./middleware/security");
+const { apiLimiter, sanitizeInput } = require("./middleware/security");
 
 const app = express();
 const server = http.createServer(app);
@@ -43,11 +41,14 @@ const corsOptions = {
   origin: function (origin, callback) {
     const allowed = getAllowedOrigins();
     // Allow requests with no origin (mobile apps, curl, Vercel proxy, etc.)
-    if (!origin || allowed.length === 0 || allowed.includes(origin)) {
+    if (!origin || allowed.includes(origin)) {
       callback(null, true);
     } else {
-      // In production, allow all origins to prevent misconfiguration blocks
-      callback(null, true);
+      callback(
+        Object.assign(new Error("This origin is not allowed."), {
+          status: 403,
+        }),
+      );
     }
   },
   credentials: true,
@@ -74,7 +75,6 @@ app.use(express.urlencoded({ extended: true }));
 // Security middleware
 app.use(sanitizeInput);
 app.use("/api", apiLimiter);
-app.use("/api/auth", authLimiter);
 
 // Make io accessible to routes
 app.set("io", io);
@@ -132,7 +132,11 @@ const connectDB = async () => {
         // Index may not exist, ignore
       }
 
-      startArchiveScheduler();
+      if (
+        process.env.VERCEL !== "1" &&
+        process.env.ENABLE_ARCHIVE_SCHEDULER === "true"
+      )
+        startArchiveScheduler();
     } catch (err) {
       console.error("❌ MongoDB Connection Error:", err.message);
       isConnected = false;
@@ -244,31 +248,24 @@ app.use("/api", async (req, res, next) => {
 });
 
 // Socket.io connection handling
-const connectedUsers = new Map();
-
-io.on("connection", (socket) => {
-  console.log("🔌 New client connected:", socket.id);
-
-  // User joins with their ID
-  socket.on("join", (userId) => {
-    connectedUsers.set(userId, socket.id);
-    console.log(`User ${userId} joined with socket ${socket.id}`);
-  });
-
-  socket.on("disconnect", () => {
-    // Remove user from connected users
-    for (let [userId, socketId] of connectedUsers.entries()) {
-      if (socketId === socket.id) {
-        connectedUsers.delete(userId);
-        console.log(`User ${userId} disconnected`);
-        break;
-      }
-    }
-  });
+io.use(async (socket, next) => {
+  try {
+    const decoded = jwt.verify(
+      socket.handshake.auth?.token,
+      process.env.JWT_SECRET,
+    );
+    const user = await User.findById(decoded.id).select("_id role isActive");
+    if (!user || !user.isActive) return next(new Error("Not authorized"));
+    socket.user = user;
+    next();
+  } catch {
+    next(new Error("Not authorized"));
+  }
 });
-
-// Make connectedUsers accessible globally
-global.connectedUsers = connectedUsers;
+io.on("connection", (socket) => {
+  socket.join(`user:${socket.user._id}`);
+  if (socket.user.role === "admin") socket.join("role:admin");
+});
 
 // Routes
 app.use("/api/auth", authRoutes);
@@ -282,11 +279,7 @@ app.use("/api/notifications", notificationRoutes);
 // Error handling middleware
 app.use((err, req, res, next) => {
   console.error(err.stack);
-  res.status(err.status || 500).json({
-    success: false,
-    message: err.message || "Internal Server Error",
-    ...(process.env.NODE_ENV === "development" && { stack: err.stack }),
-  });
+  require("./utils/errors").sendError(res, err);
 });
 
 // 404 handler

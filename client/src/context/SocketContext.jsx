@@ -1,122 +1,64 @@
 import { createContext, useContext, useEffect, useState } from "react";
-import io from "socket.io-client";
+import { io } from "socket.io-client";
 import { useAuth } from "./AuthContext";
 import toast from "react-hot-toast";
-
-const SocketContext = createContext();
-
-export const useSocket = () => {
-  const context = useContext(SocketContext);
-  if (!context) {
-    throw new Error("useSocket must be used within a SocketProvider");
-  }
-  return context;
-};
-
-export const SocketProvider = ({ children }) => {
+const SocketContext = createContext({ socket: null });
+export const useSocket = () => useContext(SocketContext);
+export function SocketProvider({ children }) {
+  const { user } = useAuth();
   const [socket, setSocket] = useState(null);
-  const { user, isAuthenticated } = useAuth();
-
   useEffect(() => {
-    if (isAuthenticated && user) {
-      // Connect to socket server — use VITE_API_URL if set, otherwise same origin (Vercel proxy)
-      const socketUrl = import.meta.env.VITE_API_URL || window.location.origin;
-      const newSocket = io(socketUrl, {
+    if (!user?.token) return;
+    const connection = io(
+      import.meta.env.VITE_API_URL || window.location.origin,
+      {
+        auth: { token: user.token },
         withCredentials: true,
-        transports: ["polling", "websocket"],
-        reconnectionAttempts: 5,
-        reconnectionDelay: 2000,
-      });
-
-      newSocket.on("connect", () => {
-        console.log("Socket connected");
-        // Join with user ID
-        newSocket.emit("join", user._id);
-      });
-
-      newSocket.on("connect_error", (err) => {
-        console.log("Socket connection error (non-critical):", err.message);
-      });
-
-      // Listen for new bookings (admin)
-      newSocket.on("newBooking", (booking) => {
-        if (user.role === "admin") {
-          toast.success("New booking received!", {
-            duration: 5000,
-            icon: "🚗",
-          });
-          // Play notification sound
-          playNotificationSound();
-        }
-      });
-
-      // Listen for booking assignments (driver)
-      newSocket.on("newAssignment", (booking) => {
-        if (user.role === "driver") {
-          toast.success(`New ride assigned! Pickup: ${booking.pickupPoint}`, {
-            duration: 6000,
-            icon: "🚗",
-          });
-          playNotificationSound();
-        }
-      });
-
-      // Listen for booking updates (all)
-      newSocket.on("bookingUpdated", (booking) => {
-        toast.success("Booking status updated", {
-          icon: "📋",
-        });
-      });
-
-      // Listen for driver availability changes (admin)
-      newSocket.on("driverAvailabilityChanged", (data) => {
-        if (user.role === "admin") {
-          toast(
-            `${data.driverName} is now ${data.isAvailable ? "available" : "unavailable"}`,
-            {
-              icon: data.isAvailable ? "✅" : "❌",
-            },
-          );
-        }
-      });
-
-      setSocket(newSocket);
-
-      return () => {
-        newSocket.close();
-      };
-    }
-  }, [isAuthenticated, user]);
-
-  const playNotificationSound = () => {
-    // Create a simple beep sound
-    const audioContext = new (
-      window.AudioContext || window.webkitAudioContext
-    )();
-    const oscillator = audioContext.createOscillator();
-    const gainNode = audioContext.createGain();
-
-    oscillator.connect(gainNode);
-    gainNode.connect(audioContext.destination);
-
-    oscillator.frequency.value = 800;
-    oscillator.type = "sine";
-
-    gainNode.gain.setValueAtTime(0.3, audioContext.currentTime);
-    gainNode.gain.exponentialRampToValueAtTime(
-      0.01,
-      audioContext.currentTime + 0.5,
+        reconnectionAttempts: 3,
+        reconnectionDelay: 3000,
+      },
     );
-
-    oscillator.start(audioContext.currentTime);
-    oscillator.stop(audioContext.currentTime + 0.5);
-  };
-
-  const value = {
-    socket,
-  };
-
+    const alert = (message) => {
+      toast(message, { id: "ride-update" });
+      if (
+        document.hidden &&
+        typeof Notification !== "undefined" &&
+        Notification.permission === "granted" &&
+        localStorage.getItem("elocab_desktop_alerts") === "true"
+      ) {
+        try {
+          new Notification("ELOCAB journey update", {
+            body: message,
+            icon: "/images/icon-192.png",
+            tag: "elocab-ride-update",
+          });
+        } catch {}
+      }
+    };
+    connection.on("newBooking", () => {
+      if (user.role === "admin")
+        alert("A new ride request is ready for a driver.");
+    });
+    connection.on("newAssignment", () => {
+      if (user.role === "driver")
+        alert("A new journey has been assigned to you.");
+    });
+    connection.on("bookingAssigned", () => {
+      if (user.role === "customer")
+        alert("Your driver has been assigned. View My rides for details.");
+    });
+    connection.on("bookingCancelled", () =>
+      alert("A journey has been cancelled. Your ride list is up to date."),
+    );
+    setSocket(connection);
+    return () => {
+      connection.close();
+      setSocket(null);
+    };
+  }, [user?.token]);
   return (
-    <SocketContext.Provider value={value}>{children}</SocketContext.Provider>
+    <SocketContext.Provider value={{ socket }}>
+      {children}
+    </SocketContext.Provider>
   );
-};
+}

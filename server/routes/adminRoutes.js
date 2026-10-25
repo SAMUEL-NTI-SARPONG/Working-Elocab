@@ -1,5 +1,6 @@
 const express = require("express");
 const router = express.Router();
+require("../middleware/recordIds")(router);
 const {
   getAllDrivers,
   getAllCustomers,

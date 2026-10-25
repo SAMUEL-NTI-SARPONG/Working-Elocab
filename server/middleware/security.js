@@ -3,7 +3,7 @@ const rateLimit = require("express-rate-limit");
 // General API rate limiter
 const apiLimiter = rateLimit({
   windowMs: 15 * 60 * 1000, // 15 minutes
-  max: 200, // limit each IP to 200 requests per windowMs
+  max: Number(process.env.API_RATE_LIMIT_MAX) || 600,
   message: {
     success: false,
     message: "Too many requests, please try again later.",
@@ -15,7 +15,8 @@ const apiLimiter = rateLimit({
 // Strict limiter for auth endpoints (login/register)
 const authLimiter = rateLimit({
   windowMs: 15 * 60 * 1000, // 15 minutes
-  max: 15, // limit each IP to 15 login attempts per 15 min
+  max: Number(process.env.AUTH_RATE_LIMIT_MAX) || 30,
+  skipSuccessfulRequests: true,
   message: {
     success: false,
     message: "Too many login attempts, please try again after 15 minutes.",
@@ -38,8 +39,9 @@ const createLimiter = rateLimit({
 
 // Input sanitizer middleware - strips potential XSS and injection patterns
 const sanitizeInput = (req, res, next) => {
-  const sanitize = (obj) => {
+  const sanitize = (obj, field = "") => {
     if (typeof obj === "string") {
+      if (field === "password" || field === "confirmPassword") return obj;
       // Remove common XSS patterns
       return obj
         .replace(/<script\b[^<]*(?:(?!<\/script>)<[^<]*)*<\/script>/gi, "")
@@ -55,8 +57,13 @@ const sanitizeInput = (req, res, next) => {
       const sanitized = {};
       for (const [key, value] of Object.entries(obj)) {
         // Block MongoDB injection operators
-        if (key.startsWith("$")) continue;
-        sanitized[key] = sanitize(value);
+        if (
+          key.startsWith("$") ||
+          key.includes(".") ||
+          ["__proto__", "prototype", "constructor"].includes(key)
+        )
+          continue;
+        sanitized[key] = sanitize(value, key);
       }
       return sanitized;
     }
