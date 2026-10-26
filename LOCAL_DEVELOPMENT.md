@@ -90,6 +90,17 @@ origins. CORS rejects other origins. Set a private `JWT_SECRET`, database URI,
 and admin bootstrap credentials in the deployment environment. Bootstrap only
 creates an admin after the configured password has been verified.
 
+For an existing admin, the database password hash is authoritative: changing
+`ADMIN_PASSWORD` does not replace it. To recover access, run
+`node scripts/resetAdmin.js` from `server/` with the intended database URI,
+`ADMIN_EMAIL`, and `ADMIN_PASSWORD` configured. It updates the existing account
+without deleting it or changing its ID. Never publish these environment values.
+
+Phone numbers identify one account and role. Driver registration requires a
+separate unused phone number if the person already has a customer account.
+Vehicle and driving licence numbers must also be unique. Conflicts now identify
+the specific field and point the person toward their existing account.
+
 Socket.IO authenticates with the same JWT and sends private booking events only
 to the relevant customer, driver, and admins. A persistent Node host is required
 for persistent socket connections. The dashboards also refresh every 30 seconds

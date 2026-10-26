@@ -1,9 +1,16 @@
 const fail = (status, message) => Object.assign(new Error(message), { status });
 const sendError = (res, error) => {
-  if (error.code === 11000)
-    return res
-      .status(409)
-      .json({ message: "An account with those details already exists." });
+  if (error.code === 11000) {
+    const fields = error.keyPattern || error.keyValue || {};
+    const message = fields.carNumber
+      ? "This vehicle number is already registered. Check the number or contact ELOCAB if this is your vehicle."
+      : fields.licenseNumber
+        ? "This driving licence is already registered. Sign in to your existing driver account or contact ELOCAB."
+        : fields.phoneNumber
+          ? "This phone number is already registered. Sign in to your existing account."
+          : "An account with those details already exists.";
+    return res.status(409).json({ message });
+  }
   if (error.name === "ValidationError" || error.name === "CastError") {
     return res.status(400).json({
       message:

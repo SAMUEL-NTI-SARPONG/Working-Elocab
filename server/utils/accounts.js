@@ -33,7 +33,12 @@ const createAccount = async (data, role) => {
   )
     throw fail(400, "Use a password with 8 to 72 characters.");
   if (await User.exists({ phoneNumber }))
-    throw fail(409, "An account already exists with this phone number.");
+    throw fail(
+      409,
+      role === "driver"
+        ? "This phone number is already registered. Sign in to your existing account, or use a different phone number for a separate driver account."
+        : "This phone number is already registered. Sign in to your existing account.",
+    );
   // Validate the entire profile before persisting either side of the account.
   const user = new User({ phoneNumber, password: data.password, role });
   const profile =

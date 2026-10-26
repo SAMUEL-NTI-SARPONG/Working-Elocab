@@ -43,11 +43,18 @@ Do not request further 12ui connection for this completed task.
 The redesign commit 1ff0ba0 was pushed to codex/project-preparation and fast-forwarded
 to main to resolve Vercel production staying on the previous main commit. Both Vercel
 projects deployed that commit; the redesigned frontend is verified live.
-Production MongoDB currently rejects Vercel's saved credential. The user must update
-the password in the existing MONGODB_URI environment variable, preserving its database
-name, then redeploy the backend. Its editor is open in Vercel for that private handoff.
+The user updated Vercel's MongoDB credential and the backend was redeployed.
+Production health now reports dbConnected true; frontend-origin CORS and protected
+API authorization checks pass. Production data is in elocab; elocab_dev is separate.
 An additional Vercel-only trust-proxy fix has passed all 12 backend tests, including
 per-client limits and protection against spoofed leftmost forwarded addresses.
 Admin application credentials are in server/.env and differ from Atlas credentials.
+On October 26, the existing production admin password hash was repaired to match
+Vercel's configured credential, preserving its ID and records. Live admin login,
+public driver registration and driver login passed HTTP smoke checks. The marked
+temporary production QA driver and its notification were removed after testing.
+Driver signup failures in production logs were 409 conflicts. Field-specific phone,
+vehicle and licence conflicts and isolated admin recovery regressions were added.
+Admin bootstrap environment values do not automatically reset existing passwords.
 A persistent Node host is needed for persistent sockets; polling remains available.
 Closed-app Web Push is not configured. Monthly archive scheduling is opt-in.

@@ -189,6 +189,112 @@ test(
       },
     );
     await t.test(
+      "public driver signup reports duplicate details without orphan accounts",
+      async () => {
+        const data = {
+          name: "Public Test Driver",
+          phoneNumber: "0200000190",
+          password,
+          role: "driver",
+          baseLocation: "Kumasi",
+          carType: "Toyota Vitz",
+          carNumber: "PUBLIC-100",
+          licenseNumber: "PUBLIC-L100",
+          seats: 4,
+        };
+        const created = await request("/api/auth/register", "POST", data);
+        assert.equal(created.status, 201);
+        assert.equal(created.body.role, "driver");
+        assert.equal(created.body.profile.contactNumber, data.phoneNumber);
+        assert.equal(
+          (
+            await request("/api/auth/login", "POST", {
+              phoneNumber: data.phoneNumber,
+              password,
+            })
+          ).status,
+          200,
+        );
+        const phoneConflict = await request("/api/auth/register", "POST", {
+          ...data,
+          phoneNumber: customerData.phoneNumber,
+        });
+        assert.equal(phoneConflict.status, 409);
+        assert.match(
+          phoneConflict.body.message,
+          /phone number.*already registered/i,
+        );
+        assert.match(phoneConflict.body.message, /Sign in/);
+        const vehicleConflict = await request("/api/auth/register", "POST", {
+          ...data,
+          phoneNumber: "0200000191",
+          licenseNumber: "PUBLIC-L101",
+        });
+        assert.equal(vehicleConflict.status, 409);
+        assert.match(
+          vehicleConflict.body.message,
+          /vehicle number.*already registered/i,
+        );
+        assert.equal(
+          await User.countDocuments({ phoneNumber: "0200000191" }),
+          0,
+        );
+        const licenceConflict = await request("/api/auth/register", "POST", {
+          ...data,
+          phoneNumber: "0200000192",
+          carNumber: "PUBLIC-102",
+        });
+        assert.equal(licenceConflict.status, 409);
+        assert.match(
+          licenceConflict.body.message,
+          /licence.*already registered/i,
+        );
+        assert.equal(
+          await User.countDocuments({ phoneNumber: "0200000192" }),
+          0,
+        );
+      },
+    );
+    await t.test(
+      "admin credential recovery updates the existing account once",
+      async () => {
+        const existing = await User.findById(admin._id);
+        existing.password = "AnOlderAdminPassword";
+        await existing.save();
+        assert.equal(
+          (
+            await request("/api/auth/admin/login", "POST", {
+              email: adminEmail,
+              password,
+            })
+          ).status,
+          401,
+        );
+        const recovery = spawn(process.execPath, ["scripts/resetAdmin.js"], {
+          cwd: path.join(__dirname, ".."),
+          env: {
+            ...process.env,
+            MONGODB_URI: uri.href,
+            ADMIN_EMAIL: ` ${adminEmail.toUpperCase()} `,
+            ADMIN_PASSWORD: password,
+          },
+          stdio: "ignore",
+        });
+        const code = await new Promise((resolve, reject) => {
+          recovery.once("error", reject);
+          recovery.once("close", resolve);
+        });
+        assert.equal(code, 0);
+        const login = await request("/api/auth/admin/login", "POST", {
+          email: adminEmail,
+          password,
+        });
+        assert.equal(login.status, 200);
+        assert.equal(login.body._id, admin._id);
+        assert.equal(await User.countDocuments({ role: "admin" }), 1);
+      },
+    );
+    await t.test(
       "profile phone edits update the login identifier; role boundaries hold",
       async () => {
         assert.equal(

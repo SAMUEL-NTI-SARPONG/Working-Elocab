@@ -10,22 +10,23 @@ const resetAdmin = async () => {
 
     if (!process.env.ADMIN_EMAIL || !process.env.ADMIN_PASSWORD)
       throw new Error("Set ADMIN_EMAIL and ADMIN_PASSWORD first.");
+    const email = process.env.ADMIN_EMAIL.trim().toLowerCase();
     let admin = await User.findOne({
-      email: process.env.ADMIN_EMAIL,
+      email,
       role: "admin",
     });
     if (!admin)
       admin = new User({
         phoneNumber: "admin",
-        email: process.env.ADMIN_EMAIL,
+        email,
         role: "admin",
       });
     admin.password = process.env.ADMIN_PASSWORD;
     admin.isActive = true;
     await admin.save();
 
-    console.log("✅ New admin user created successfully");
-    console.log("📧 Email:", process.env.ADMIN_EMAIL);
+    console.log("✅ Admin account password synchronized with ADMIN_PASSWORD");
+    console.log("📧 Email:", email);
 
     // Disconnect
     await mongoose.disconnect();
