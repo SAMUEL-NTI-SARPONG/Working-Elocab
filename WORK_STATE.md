@@ -40,7 +40,14 @@ permission; the corrected approval then failed with a timeout and unknown code.
 User was informed and design was completed directly using existing brand/assets.
 Do not request further 12ui connection for this completed task.
 
-The user authorized committing and pushing all changes to codex/project-preparation. Production deployment and merging into main remain separate.
+The redesign commit 1ff0ba0 was pushed to codex/project-preparation and fast-forwarded
+to main to resolve Vercel production staying on the previous main commit. Both Vercel
+projects deployed that commit; the redesigned frontend is verified live.
+Production MongoDB currently rejects Vercel's saved credential. The user must update
+the password in the existing MONGODB_URI environment variable, preserving its database
+name, then redeploy the backend. Its editor is open in Vercel for that private handoff.
+An additional Vercel-only trust-proxy fix has passed all 12 backend tests, including
+per-client limits and protection against spoofed leftmost forwarded addresses.
 Admin application credentials are in server/.env and differ from Atlas credentials.
 A persistent Node host is needed for persistent sockets; polling remains available.
 Closed-app Web Push is not configured. Monthly archive scheduling is opt-in.

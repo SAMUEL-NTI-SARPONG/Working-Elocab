@@ -23,6 +23,9 @@ const notificationRoutes = require("./routes/notificationRoutes");
 const { apiLimiter, sanitizeInput } = require("./middleware/security");
 
 const app = express();
+// Vercel supplies the client address through its trusted edge proxy.
+// Keep direct/local servers untrusted so supplied headers cannot spoof an IP.
+if (process.env.VERCEL === "1") app.set("trust proxy", 1);
 const server = http.createServer(app);
 
 // CORS origin configuration
